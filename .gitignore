@@ -21,4 +21,4 @@ Cargo.lock
 #.idea/
 
 # mdbook
-./book/*
+./book/book/*
