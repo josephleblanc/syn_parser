@@ -1,234 +1,277 @@
-use proc_macro2::TokenStream;
-use quote::ToTokens;
-use ron::ser::{to_string_pretty, PrettyConfig};
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
-use std::fs::File as FsFile;
-use std::io::Write;
-use std::path::Path;
-use syn::{
-    visit::{self, Visit},
-    AngleBracketedGenericArguments, Field, File, FnArg, GenericArgument, Generics, Ident, ItemEnum,
-    ItemFn, ItemImpl, ItemStruct, ItemTrait, Lifetime, Pat, PatIdent, PatType, Path as SynPath,
-    PathArguments, PathSegment, ReturnType, Type, TypeParam, TypePath, TypeReference, Variant,
-    Visibility,
-};
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Project Progress syn-parser</title>
+        <meta name="robots" content="noindex">
 
-// Type ID for internal references
-type TypeId = usize;
 
-// Main structure representing the entire code graph
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CodeGraph {
-    // Functions defined in the code
-    pub functions: Vec<FunctionNode>,
-    // Types (structs, enums) defined in the code
-    pub defined_types: Vec<TypeDefNode>,
-    // All observed types, including nested and generic types
-    pub type_graph: Vec<TypeNode>,
-    // Implementation blocks
-    pub impls: Vec<ImplNode>,
-    // Traits defined in the code
-    pub traits: Vec<TraitNode>,
-    // Relations between nodes
-    pub relations: Vec<Relation>,
-}
+        <!-- Custom HTML head -->
 
-// ANCHOR: ItemFn
-// Represents a function definition
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Project Progress syn-parser</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p>This is a design document to track the progress of the <code>syn-parser</code> project, a
+sub-module for a developing RAG pipeline.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="goals"><a class="header" href="#goals">Goals</a></h1>
+<p>The goal of this project is to parse rust source files into data structures
+that can be used to form a heterogeneous graph database. This database is
+intended to be used by a Retrieval Augmented Generation (RAG) pipeline for
+coding-related tasks such as code generation, code explain, code refactoring,
+and documentation generation.</p>
+<p>This project aims to achieve the goal of creating a RAG database for code by
+parsing rust source files into structs that
+can be used as-is or saved using <code>serde</code> to a <code>ron</code> file.</p>
+<p>For construction of a heterogeneous graph, we identify <code>Item</code>s with <code>syn</code> that
+will form nodes in the graph, and use static analysis to identify edge relations.</p>
+<!--Additionally we use [MIRAI](https://github.com/endorlabs/MIRAI) abstract-->
+<!--interpreter to generate a call graph. More info on MIRAI's call graph-->
+<!--[here](https://github.com/endorlabs/MIRAI/blob/main/documentation/CallGraph.md).-->
+<h2 id="types"><a class="header" href="#types">Types</a></h2>
+<p>The <code>syn</code> crate makes it possible to parse rust source files for many of the
+data structures used by the <code>rustc</code> compiler. However, not all of these data
+structures will be useful for our graph database. The <code>syn</code> crate primarily
+parses rust source files into <code>Type</code>, <code>Item</code>, and <code>Expr</code> structures (see <code>syn</code>
+<a href="https://docs.rs/syn/latest/syn/index.html">docs</a> for more info).</p>
+<p>We process the following <code>syn</code> data structures to form nodes and later perform
+static analysis.</p>
+<h3 id="1-all-items-in-syn"><a class="header" href="#1-all-items-in-syn">1. All <code>Item</code>s in <code>syn</code></a></h3>
+<details>
+  <summary><code>Fn(ItemFn)</code></summary>
+<pre><code class="language-rust no_run noplayground">// Represents a function definition
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FunctionNode {
     pub id: NodeId,
     pub name: String,
     pub visibility: VisibilityKind,
-    pub parameters: Vec<ParameterNode>,
-    pub return_type: Option<TypeId>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-//ANCHOR_END: ItemFn
-
-// Represents a parameter in a function
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ParameterNode {
-    pub id: NodeId,
-    pub name: Option<String>,
-    pub type_id: TypeId,
-    pub is_mutable: bool,
-    pub is_self: bool,
-}
-
-// Represents a type definition (struct or enum)
-#[derive(Debug, Serialize, Deserialize)]
-pub enum TypeDefNode {
-    Struct(StructNode),
-    Enum(EnumNode),
-}
-
-// Represents a struct definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct StructNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub fields: Vec<FieldNode>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>, // Replace Vec<String>
-    pub docstring: Option<String>,
-}
-
-// Represents an enum definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EnumNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub variants: Vec<VariantNode>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-
-// ANCHOR: field_node
-// Represents a field in a struct
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FieldNode {
-    pub id: NodeId,
-    pub name: Option<String>,
-    pub type_id: TypeId,
-    pub visibility: VisibilityKind,
-    pub attributes: Vec<Attribute>,
-}
-//ANCHOR_END: field_node
-
-// Represents a variant in an enum
-#[derive(Debug, Serialize, Deserialize)]
-pub struct VariantNode {
-    pub id: NodeId,
-    pub name: String,
-    pub fields: Vec<FieldNode>,
-    pub discriminant: Option<String>,
-    pub attributes: Vec<Attribute>,
-}
-
-// ANCHOR: ItemImpl
-// Represents an implementation block
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ImplNode {
-    pub id: NodeId,
-    pub self_type: TypeId,
-    pub trait_type: Option<TypeId>,
-    pub methods: Vec<FunctionNode>,
-    pub generic_params: Vec<GenericParamNode>,
-}
-//ANCHOR_END: ItemImpl
-
-// Represents a trait definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TraitNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub methods: Vec<FunctionNode>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub super_traits: Vec<TypeId>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-
-// Represents a type reference with full metadata
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TypeNode {
-    pub id: TypeId,
-    pub kind: TypeKind,
-    // Reference to related types (e.g., generic arguments)
-    pub related_types: Vec<TypeId>,
-}
-
-// Represents a generic parameter
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GenericParamNode {
-    pub id: NodeId,
-    pub kind: GenericParamKind,
-}
-
-// Represent an attribute
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Attribute {
-    pub kind: String,          // e.g., "derive", "cfg", "serde"
-    pub args: Vec<String>,     // Arguments or parameters of the attribute
-    pub value: Option<String>, // Optional value (e.g., for `#[attr = "value"]`)
-}
-
-// ANCHOR: generic_param_kind
-// Different kinds of generic parameters
+    pub parameters: Vec&lt;ParameterNode&gt;,
+    pub return_type: Option&lt;TypeId&gt;,
+    pub generic_params: Vec&lt;GenericParamNode&gt;,
+    pub attributes: Vec&lt;Attribute&gt;,
+    pub docstring: Option&lt;String&gt;,
+}</code></pre>
+</details>
+<details>
+  <summary><code>Const(ItemConst)</code> inside <code>GenericParamKind</code> </summary>
+<pre><code class="language-rust no_run noplayground">// Different kinds of generic parameters
 #[derive(Debug, Serialize, Deserialize)]
 pub enum GenericParamKind {
     Type {
         name: String,
-        bounds: Vec<TypeId>,
-        default: Option<TypeId>,
+        bounds: Vec&lt;TypeId&gt;,
+        default: Option&lt;TypeId&gt;,
     },
     Lifetime {
         name: String,
-        bounds: Vec<String>,
+        bounds: Vec&lt;String&gt;,
     },
     Const {
         name: String,
         type_id: TypeId,
     },
-}
-//ANCHOR_END: generic_param_kind
-
-// Different kinds of types
+}</code></pre>
+</details>
+<details>
+  <summary><code>Enum(ItemEnum)</code> as <code>FieldNode</code> </summary>
+<pre><code class="language-rust no_run noplayground">// Represents a field in a struct
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FieldNode {
+    pub id: NodeId,
+    pub name: Option&lt;String&gt;,
+    pub type_id: TypeId,
+    pub visibility: VisibilityKind,
+    pub attributes: Vec&lt;Attribute&gt;,
+}</code></pre>
+</details>
+<details>
+  <summary><code>ExternCrate(ItemExternCrate)</code> inside <code>TypeKind::Function::is_extern</code> </summary>
+<pre><code class="language-rust no_run noplayground">// Different kinds of types
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum TypeKind {
-    Named {
-        path: Vec<String>, // Full path segments
-        is_fully_qualified: bool,
-    },
-    Reference {
-        lifetime: Option<String>,
-        is_mutable: bool,
-        // Type being referenced is in related_types[0]
-    },
-    Slice {
-        // Element type is in related_types[0]
-    },
-    Array {
-        // Element type is in related_types[0]
-        size: Option<String>,
-    },
-    Tuple {
-        // Element types are in related_types
-    },
-    // ANCHOR: ExternCrate
+    // ...
     Function {
         // Parameter types are in related_types (except last one)
         // Return type is in related_types[last]
         is_unsafe: bool,
         is_extern: bool,
-        abi: Option<String>,
-    },
-    //ANCHOR_END: ExternCrate
-    Never,
-    Inferred,
-    RawPointer {
-        is_mutable: bool,
-        // Pointee type is in related_types[0]
-    },
-    TraitObject {
-        // Trait bounds are in related_types
-        dyn_token: bool,
-    },
-    ImplTrait {
-        // Trait bounds are in related_types
-    },
-    Paren {
-        // Inner type is in related_types[0]
-    },
-    // ANCHOR: ItemMacro
+        abi: Option&lt;String&gt;,
+    },</code></pre>
+</details>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground">// Different kinds of types
+#[derive(Debug, Serialize, Deserialize, Clone)]
+    // ...
+</code></pre>
+</details>
+<details>
+  <summary><code>ForeignMod(ItemForeignMod)</code> not implemented</summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Impl(ItemImpl)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>Item(Impl)</code> used for relations, needs more work.</summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<details>
+  <summary><code>Macro(ItemMacro)</code> inside <code>TypeKind</code> </summary>
+<pre><code class="language-rust no_run noplayground">// Different kinds of types
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum TypeKind {
+    // ...
     Macro {
         name: String,
         tokens: String,
@@ -244,7 +287,7 @@ pub enum TypeKind {
 pub enum VisibilityKind {
     Public,
     Crate,
-    Restricted(Vec<String>), // Path components of restricted visibility
+    Restricted(Vec&lt;String&gt;), // Path components of restricted visibility
     Inherited,               // Default visibility
 }
 
@@ -280,11 +323,11 @@ struct VisitorState {
     next_node_id: NodeId,
     next_type_id: TypeId,
     // Maps existing types to their IDs to avoid duplication
-    type_map: HashMap<String, TypeId>,
+    type_map: HashMap&lt;String, TypeId&gt;,
 }
 
 impl VisitorState {
-    fn new() -> Self {
+    fn new() -&gt; Self {
         Self {
             code_graph: CodeGraph {
                 functions: Vec::new(),
@@ -300,24 +343,24 @@ impl VisitorState {
         }
     }
 
-    fn next_node_id(&mut self) -> NodeId {
+    fn next_node_id(&amp;mut self) -&gt; NodeId {
         let id = self.next_node_id;
         self.next_node_id += 1;
         id
     }
 
-    fn next_type_id(&mut self) -> TypeId {
+    fn next_type_id(&amp;mut self) -&gt; TypeId {
         let id = self.next_type_id;
         self.next_type_id += 1;
         id
     }
 
     // Get or create a type ID
-    fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
+    fn get_or_create_type(&amp;mut self, ty: &amp;Type) -&gt; TypeId {
         // Convert type to a string representation for caching
         let type_str = ty.to_token_stream().to_string();
 
-        if let Some(&id) = self.type_map.get(&type_str) {
+        if let Some(&amp;id) = self.type_map.get(&amp;type_str) {
             return id;
         }
 
@@ -336,11 +379,11 @@ impl VisitorState {
     }
 
     // Process a type and get its kind and related types
-    fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
+    fn process_type(&amp;mut self, ty: &amp;Type) -&gt; (TypeKind, Vec&lt;TypeId&gt;) {
         match ty {
-            Type::Path(TypePath { path, qself }) => {
+            Type::Path(TypePath { path, qself }) =&gt; {
                 let mut related_types = Vec::new();
-                let segments: Vec<String> = path
+                let segments: Vec&lt;String&gt; = path
                     .segments
                     .iter()
                     .map(|seg| {
@@ -348,23 +391,23 @@ impl VisitorState {
                         if let PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                             args,
                             ..
-                        }) = &seg.arguments
+                        }) = &amp;seg.arguments
                         {
                             for arg in args {
                                 match arg {
-                                    GenericArgument::Type(arg_type) => {
+                                    GenericArgument::Type(arg_type) =&gt; {
                                         related_types.push(self.get_or_create_type(arg_type));
                                     }
                                     // Process other generic arguments if needed
-                                    _ => {}
+                                    _ =&gt; {}
                                 }
                             }
-                        } else if let PathArguments::Parenthesized(parenthesized) = &seg.arguments {
-                            // Handle function pointer types like Fn(Args) -> Return
-                            for input in &parenthesized.inputs {
+                        } else if let PathArguments::Parenthesized(parenthesized) = &amp;seg.arguments {
+                            // Handle function pointer types like Fn(Args) -&gt; Return
+                            for input in &amp;parenthesized.inputs {
                                 related_types.push(self.get_or_create_type(input));
                             }
-                            if let ReturnType::Type(_, return_ty) = &parenthesized.output {
+                            if let ReturnType::Type(_, return_ty) = &amp;parenthesized.output {
                                 related_types.push(self.get_or_create_type(return_ty));
                             }
                         }
@@ -386,7 +429,7 @@ impl VisitorState {
                 lifetime,
                 mutability,
                 ..
-            }) => {
+            }) =&gt; {
                 let elem_id = self.get_or_create_type(elem);
                 (
                     TypeKind::Reference {
@@ -396,27 +439,27 @@ impl VisitorState {
                     vec![elem_id],
                 )
             }
-            Type::Tuple(tuple) => {
-                let elem_ids: Vec<TypeId> = tuple
+            Type::Tuple(tuple) =&gt; {
+                let elem_ids: Vec&lt;TypeId&gt; = tuple
                     .elems
                     .iter()
                     .map(|elem| self.get_or_create_type(elem))
                     .collect();
                 (TypeKind::Tuple {}, elem_ids)
             }
-            Type::Array(array) => {
-                let elem_id = self.get_or_create_type(&array.elem);
+            Type::Array(array) =&gt; {
+                let elem_id = self.get_or_create_type(&amp;array.elem);
                 let size = array.len.to_token_stream().to_string();
                 (TypeKind::Array { size: Some(size) }, vec![elem_id])
             }
-            Type::Slice(slice) => {
-                let elem_id = self.get_or_create_type(&slice.elem);
+            Type::Slice(slice) =&gt; {
+                let elem_id = self.get_or_create_type(&amp;slice.elem);
                 (TypeKind::Slice {}, vec![elem_id])
             }
-            Type::Never(_) => (TypeKind::Never, Vec::new()),
-            Type::Infer(_) => (TypeKind::Inferred, Vec::new()),
-            Type::Ptr(ptr) => {
-                let pointee_id = self.get_or_create_type(&ptr.elem);
+            Type::Never(_) =&gt; (TypeKind::Never, Vec::new()),
+            Type::Infer(_) =&gt; (TypeKind::Inferred, Vec::new()),
+            Type::Ptr(ptr) =&gt; {
+                let pointee_id = self.get_or_create_type(&amp;ptr.elem);
                 (
                     TypeKind::RawPointer {
                         is_mutable: ptr.mutability.is_some(),
@@ -424,12 +467,12 @@ impl VisitorState {
                     vec![pointee_id],
                 )
             }
-            Type::BareFn(bare_fn) => {
+            Type::BareFn(bare_fn) =&gt; {
                 let mut related_ids = Vec::new();
-                for input in &bare_fn.inputs {
-                    related_ids.push(self.get_or_create_type(&input.ty));
+                for input in &amp;bare_fn.inputs {
+                    related_ids.push(self.get_or_create_type(&amp;input.ty));
                 }
-                if let ReturnType::Type(_, return_ty) = &bare_fn.output {
+                if let ReturnType::Type(_, return_ty) = &amp;bare_fn.output {
                     related_ids.push(self.get_or_create_type(return_ty));
                 }
                 (
@@ -445,17 +488,17 @@ impl VisitorState {
                     related_ids,
                 )
             }
-            Type::Paren(paren) => {
-                let inner_id = self.get_or_create_type(&paren.elem);
+            Type::Paren(paren) =&gt; {
+                let inner_id = self.get_or_create_type(&amp;paren.elem);
                 (TypeKind::Paren {}, vec![inner_id])
             }
-            Type::TraitObject(trait_obj) => {
-                let bound_ids: Vec<TypeId> = trait_obj
+            Type::TraitObject(trait_obj) =&gt; {
+                let bound_ids: Vec&lt;TypeId&gt; = trait_obj
                     .bounds
                     .iter()
                     .filter_map(|bound| {
                         match bound {
-                            syn::TypeParamBound::Trait(trait_bound) => {
+                            syn::TypeParamBound::Trait(trait_bound) =&gt; {
                                 let path_string = trait_bound.path.to_token_stream().to_string();
                                 // Create a synthetic type for the trait bound
                                 let bound_id = self.next_type_id();
@@ -474,7 +517,7 @@ impl VisitorState {
                                 });
                                 Some(bound_id)
                             }
-                            _ => None,
+                            _ =&gt; None,
                         }
                     })
                     .collect();
@@ -485,13 +528,13 @@ impl VisitorState {
                     bound_ids,
                 )
             }
-            Type::ImplTrait(impl_trait) => {
-                let bound_ids: Vec<TypeId> = impl_trait
+            Type::ImplTrait(impl_trait) =&gt; {
+                let bound_ids: Vec&lt;TypeId&gt; = impl_trait
                     .bounds
                     .iter()
                     .filter_map(|bound| {
                         match bound {
-                            syn::TypeParamBound::Trait(trait_bound) => {
+                            syn::TypeParamBound::Trait(trait_bound) =&gt; {
                                 let path_string = trait_bound.path.to_token_stream().to_string();
                                 // Create a synthetic type for the trait bound
                                 let bound_id = self.next_type_id();
@@ -510,20 +553,20 @@ impl VisitorState {
                                 });
                                 Some(bound_id)
                             }
-                            _ => None,
+                            _ =&gt; None,
                         }
                     })
                     .collect();
                 (TypeKind::ImplTrait {}, bound_ids)
             }
-            Type::Macro(type_macro) => (
+            Type::Macro(type_macro) =&gt; (
                 TypeKind::Macro {
                     name: type_macro.mac.path.to_token_stream().to_string(),
                     tokens: type_macro.mac.tokens.to_string(),
                 },
                 Vec::new(),
             ),
-            _ => {
+            _ =&gt; {
                 // Handle other types or unknown types
                 (
                     TypeKind::Unknown {
@@ -536,10 +579,10 @@ impl VisitorState {
     }
 
     // Convert syn::Visibility to our VisibilityKind
-    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+    fn convert_visibility(&amp;self, vis: &amp;Visibility) -&gt; VisibilityKind {
         match vis {
-            Visibility::Public(_) => VisibilityKind::Public,
-            Visibility::Restricted(restricted) => {
+            Visibility::Public(_) =&gt; VisibilityKind::Public,
+            Visibility::Restricted(restricted) =&gt; {
                 let path = restricted
                     .path
                     .segments
@@ -548,22 +591,22 @@ impl VisitorState {
                     .collect();
                 VisibilityKind::Restricted(path)
             }
-            Visibility::Inherited => VisibilityKind::Inherited,
+            Visibility::Inherited =&gt; VisibilityKind::Inherited,
         }
     }
 
     // Process a function parameter
-    fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
+    fn process_fn_arg(&amp;mut self, arg: &amp;FnArg) -&gt; Option&lt;ParameterNode&gt; {
         match arg {
-            FnArg::Typed(PatType { pat, ty, .. }) => {
+            FnArg::Typed(PatType { pat, ty, .. }) =&gt; {
                 let type_id = self.get_or_create_type(ty);
 
                 // Extract parameter name and mutability
-                let (name, is_mutable) = match &**pat {
+                let (name, is_mutable) = match &amp;**pat {
                     Pat::Ident(PatIdent {
                         ident, mutability, ..
-                    }) => (Some(ident.to_string()), mutability.is_some()),
-                    _ => (None, false),
+                    }) =&gt; (Some(ident.to_string()), mutability.is_some()),
+                    _ =&gt; (None, false),
                 };
 
                 Some(ParameterNode {
@@ -574,14 +617,14 @@ impl VisitorState {
                     is_self: false,
                 })
             }
-            FnArg::Receiver(receiver) => {
+            FnArg::Receiver(receiver) =&gt; {
                 // Create a special self type
                 let self_type_id = self.next_type_id();
                 let mut related_types = Vec::new();
 
                 // If we have an explicit type for self, include it
                 // if let Some(ty_box) = receiver.ty {
-                let ty_ref: &syn::Type = &receiver.ty; // Dereference the Box to get &syn::Type
+                let ty_ref: &amp;syn::Type = &amp;receiver.ty; // Dereference the Box to get &amp;syn::Type
                 let inner_type_id = self.get_or_create_type(ty_ref);
                 related_types.push(inner_type_id);
                 // }
@@ -607,22 +650,22 @@ impl VisitorState {
     }
 
     // Process generic parameters
-    fn process_generics(&mut self, generics: &Generics) -> Vec<GenericParamNode> {
+    fn process_generics(&amp;mut self, generics: &amp;Generics) -&gt; Vec&lt;GenericParamNode&gt; {
         let mut params = Vec::new();
 
-        for param in &generics.params {
+        for param in &amp;generics.params {
             match param {
                 syn::GenericParam::Type(TypeParam {
                     ident,
                     bounds,
                     default,
                     ..
-                }) => {
-                    let bound_ids: Vec<TypeId> = bounds
+                }) =&gt; {
+                    let bound_ids: Vec&lt;TypeId&gt; = bounds
                         .iter()
                         .filter_map(|bound| {
                             match bound {
-                                syn::TypeParamBound::Trait(trait_bound) => {
+                                syn::TypeParamBound::Trait(trait_bound) =&gt; {
                                     // Create a synthetic type for the trait bound
                                     let bound_id = self.next_type_id();
                                     self.code_graph.type_graph.push(TypeNode {
@@ -640,7 +683,7 @@ impl VisitorState {
                                     });
                                     Some(bound_id)
                                 }
-                                _ => None, // Ignore lifetime bounds for now
+                                _ =&gt; None, // Ignore lifetime bounds for now
                             }
                         })
                         .collect();
@@ -656,8 +699,8 @@ impl VisitorState {
                         },
                     });
                 }
-                syn::GenericParam::Lifetime(lifetime_def) => {
-                    let bounds: Vec<String> = lifetime_def
+                syn::GenericParam::Lifetime(lifetime_def) =&gt; {
+                    let bounds: Vec&lt;String&gt; = lifetime_def
                         .bounds
                         .iter()
                         .map(|bound| bound.ident.to_string())
@@ -671,8 +714,8 @@ impl VisitorState {
                         },
                     });
                 }
-                syn::GenericParam::Const(const_param) => {
-                    let type_id = self.get_or_create_type(&const_param.ty);
+                syn::GenericParam::Const(const_param) =&gt; {
+                    let type_id = self.get_or_create_type(&amp;const_param.ty);
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
@@ -689,8 +732,8 @@ impl VisitorState {
     }
 
     // Extract doc comments from attributes
-    fn extract_docstring(&self, attrs: &[syn::Attribute]) -> Option<String> {
-        let doc_lines: Vec<String> = attrs
+    fn extract_docstring(&amp;self, attrs: &amp;[syn::Attribute]) -&gt; Option&lt;String&gt; {
+        let doc_lines: Vec&lt;String&gt; = attrs
             .iter()
             .filter(|attr| attr.path().is_ident("doc"))
             .filter_map(|attr| {
@@ -718,7 +761,7 @@ impl VisitorState {
     }
 
     // Extract attribute strings
-    // fn extract_attributes(&self, attrs: &[syn::Attribute]) -> Vec<String> {
+    // fn extract_attributes(&amp;self, attrs: &amp;[syn::Attribute]) -&gt; Vec&lt;String&gt; {
     //     attrs
     //         .iter()
     //         .filter(|attr| !attr.path().is_ident("doc")) // Skip doc comments
@@ -726,19 +769,19 @@ impl VisitorState {
     //         .collect()
     // }
 
-    fn parse_attribute(attr: &syn::Attribute) -> Option<Attribute> {
+    fn parse_attribute(attr: &amp;syn::Attribute) -&gt; Option&lt;Attribute&gt; {
         let path = attr.path().to_token_stream().to_string();
-        let args = match &attr.meta {
-            syn::Meta::List(list) => list
+        let args = match &amp;attr.meta {
+            syn::Meta::List(list) =&gt; list
                 .tokens
                 .to_string()
                 .split(',')
                 .map(|s| s.trim().to_string())
                 .collect(),
-            syn::Meta::NameValue(name_value) => {
+            syn::Meta::NameValue(name_value) =&gt; {
                 vec![name_value.value.to_token_stream().to_string()]
             }
-            _ => Vec::new(),
+            _ =&gt; Vec::new(),
         };
         Some(Attribute {
             kind: path,
@@ -746,7 +789,7 @@ impl VisitorState {
             value: None,
         })
     }
-    fn extract_attributes(&self, attrs: &[syn::Attribute]) -> Vec<Attribute> {
+    fn extract_attributes(&amp;self, attrs: &amp;[syn::Attribute]) -&gt; Vec&lt;Attribute&gt; {
         attrs
             .iter()
             .filter(|attr| !attr.path().is_ident("doc")) // Skip doc comments
@@ -756,25 +799,25 @@ impl VisitorState {
 }
 
 // Visitor implementation
-struct CodeVisitor<'a> {
-    state: &'a mut VisitorState,
+struct CodeVisitor&lt;'a&gt; {
+    state: &amp;'a mut VisitorState,
 }
 
-impl<'a> CodeVisitor<'a> {
-    fn new(state: &'a mut VisitorState) -> Self {
+impl&lt;'a&gt; CodeVisitor&lt;'a&gt; {
+    fn new(state: &amp;'a mut VisitorState) -&gt; Self {
         Self { state }
     }
 }
 
-impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
+impl&lt;'a, 'ast&gt; Visit&lt;'ast&gt; for CodeVisitor&lt;'a&gt; {
     // Visit function definitions
-    fn visit_item_fn(&mut self, func: &'ast ItemFn) {
+    fn visit_item_fn(&amp;mut self, func: &amp;'ast ItemFn) {
         let fn_id = self.state.next_node_id();
         let fn_name = func.sig.ident.to_string();
 
         // Process function parameters
         let mut parameters = Vec::new();
-        for arg in &func.sig.inputs {
+        for arg in &amp;func.sig.inputs {
             if let Some(param) = self.state.process_fn_arg(arg) {
                 // Add relation between function and parameter
                 self.state.code_graph.relations.push(Relation {
@@ -787,9 +830,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         }
 
         // Extract return type if it exists
-        let return_type = match &func.sig.output {
-            ReturnType::Default => None,
-            ReturnType::Type(_, ty) => {
+        let return_type = match &amp;func.sig.output {
+            ReturnType::Default =&gt; None,
+            ReturnType::Type(_, ty) =&gt; {
                 let type_id = self.state.get_or_create_type(ty);
                 // Add relation between function and return type
                 self.state.code_graph.relations.push(Relation {
@@ -802,17 +845,17 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         };
 
         // Process generic parameters
-        let generic_params = self.state.process_generics(&func.sig.generics);
+        let generic_params = self.state.process_generics(&amp;func.sig.generics);
 
         // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&func.attrs);
-        let attributes = self.state.extract_attributes(&func.attrs);
+        let docstring = self.state.extract_docstring(&amp;func.attrs);
+        let attributes = self.state.extract_attributes(&amp;func.attrs);
 
         // Store function info
         self.state.code_graph.functions.push(FunctionNode {
             id: fn_id,
             name: fn_name,
-            visibility: self.state.convert_visibility(&func.vis),
+            visibility: self.state.convert_visibility(&amp;func.vis),
             parameters,
             return_type,
             generic_params,
@@ -825,23 +868,23 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit struct definitions
-    fn visit_item_struct(&mut self, item_struct: &'ast ItemStruct) {
+    fn visit_item_struct(&amp;mut self, item_struct: &amp;'ast ItemStruct) {
         let struct_id = self.state.next_node_id();
         let struct_name = item_struct.ident.to_string();
 
         // Process fields
         let mut fields = Vec::new();
-        for field in &item_struct.fields {
+        for field in &amp;item_struct.fields {
             let field_id = self.state.next_node_id();
             let field_name = field.ident.as_ref().map(|ident| ident.to_string());
-            let type_id = self.state.get_or_create_type(&field.ty);
+            let type_id = self.state.get_or_create_type(&amp;field.ty);
 
             let field_node = FieldNode {
                 id: field_id,
                 name: field_name,
                 type_id,
-                visibility: self.state.convert_visibility(&field.vis),
-                attributes: self.state.extract_attributes(&field.attrs),
+                visibility: self.state.convert_visibility(&amp;field.vis),
+                attributes: self.state.extract_attributes(&amp;field.attrs),
             };
 
             // Add relation between struct and field
@@ -855,11 +898,11 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         }
 
         // Process generic parameters
-        let generic_params = self.state.process_generics(&item_struct.generics);
+        let generic_params = self.state.process_generics(&amp;item_struct.generics);
 
         // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_struct.attrs);
-        let attributes = self.state.extract_attributes(&item_struct.attrs);
+        let docstring = self.state.extract_docstring(&amp;item_struct.attrs);
+        let attributes = self.state.extract_attributes(&amp;item_struct.attrs);
 
         // Store struct info
         self.state
@@ -868,7 +911,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             .push(TypeDefNode::Struct(StructNode {
                 id: struct_id,
                 name: struct_name,
-                visibility: self.state.convert_visibility(&item_struct.vis),
+                visibility: self.state.convert_visibility(&amp;item_struct.vis),
                 fields,
                 generic_params,
                 attributes,
@@ -879,53 +922,53 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit enum definitions
-    fn visit_item_enum(&mut self, item_enum: &'ast ItemEnum) {
+    fn visit_item_enum(&amp;mut self, item_enum: &amp;'ast ItemEnum) {
         let enum_id = self.state.next_node_id();
         let enum_name = item_enum.ident.to_string();
 
         // Process variants
         let mut variants = Vec::new();
-        for variant in &item_enum.variants {
+        for variant in &amp;item_enum.variants {
             let variant_id = self.state.next_node_id();
             let variant_name = variant.ident.to_string();
 
             // Process fields of the variant
             let mut fields = Vec::new();
-            match &variant.fields {
-                syn::Fields::Named(fields_named) => {
-                    for field in &fields_named.named {
+            match &amp;variant.fields {
+                syn::Fields::Named(fields_named) =&gt; {
+                    for field in &amp;fields_named.named {
                         let field_id = self.state.next_node_id();
                         let field_name = field.ident.as_ref().map(|ident| ident.to_string());
-                        let type_id = self.state.get_or_create_type(&field.ty);
+                        let type_id = self.state.get_or_create_type(&amp;field.ty);
 
                         let field_node = FieldNode {
                             id: field_id,
                             name: field_name,
                             type_id,
-                            visibility: self.state.convert_visibility(&field.vis),
-                            attributes: self.state.extract_attributes(&field.attrs),
+                            visibility: self.state.convert_visibility(&amp;field.vis),
+                            attributes: self.state.extract_attributes(&amp;field.attrs),
                         };
 
                         fields.push(field_node);
                     }
                 }
-                syn::Fields::Unnamed(fields_unnamed) => {
+                syn::Fields::Unnamed(fields_unnamed) =&gt; {
                     for (i, field) in fields_unnamed.unnamed.iter().enumerate() {
                         let field_id = self.state.next_node_id();
-                        let type_id = self.state.get_or_create_type(&field.ty);
+                        let type_id = self.state.get_or_create_type(&amp;field.ty);
 
                         let field_node = FieldNode {
                             id: field_id,
                             name: None, // Tuple fields don't have names
                             type_id,
-                            visibility: self.state.convert_visibility(&field.vis),
-                            attributes: self.state.extract_attributes(&field.attrs),
+                            visibility: self.state.convert_visibility(&amp;field.vis),
+                            attributes: self.state.extract_attributes(&amp;field.attrs),
                         };
 
                         fields.push(field_node);
                     }
                 }
-                syn::Fields::Unit => {
+                syn::Fields::Unit =&gt; {
                     // Unit variants don't have fields
                 }
             }
@@ -941,7 +984,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 name: variant_name,
                 fields,
                 discriminant,
-                attributes: self.state.extract_attributes(&variant.attrs),
+                attributes: self.state.extract_attributes(&amp;variant.attrs),
             };
 
             // Add relation between enum and variant
@@ -955,11 +998,11 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         }
 
         // Process generic parameters
-        let generic_params = self.state.process_generics(&item_enum.generics);
+        let generic_params = self.state.process_generics(&amp;item_enum.generics);
 
         // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_enum.attrs);
-        let attributes = self.state.extract_attributes(&item_enum.attrs);
+        let docstring = self.state.extract_docstring(&amp;item_enum.attrs);
+        let attributes = self.state.extract_attributes(&amp;item_enum.attrs);
 
         // Store enum info
         self.state
@@ -968,7 +1011,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             .push(TypeDefNode::Enum(EnumNode {
                 id: enum_id,
                 name: enum_name,
-                visibility: self.state.convert_visibility(&item_enum.vis),
+                visibility: self.state.convert_visibility(&amp;item_enum.vis),
                 variants,
                 generic_params,
                 attributes,
@@ -979,11 +1022,11 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit impl blocks
-    fn visit_item_impl(&mut self, item_impl: &'ast ItemImpl) {
+    fn visit_item_impl(&amp;mut self, item_impl: &amp;'ast ItemImpl) {
         let impl_id = self.state.next_node_id();
 
         // Process self type
-        let self_type_id = self.state.get_or_create_type(&item_impl.self_ty);
+        let self_type_id = self.state.get_or_create_type(&amp;item_impl.self_ty);
 
         // Process trait type if it's a trait impl
         let trait_type_id = item_impl.trait_.as_ref().map(|(_, path, _)| {
@@ -991,19 +1034,19 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 qself: None,
                 path: path.clone(),
             });
-            self.state.get_or_create_type(&ty)
+            self.state.get_or_create_type(&amp;ty)
         });
 
         // Process methods
         let mut methods = Vec::new();
-        for item in &item_impl.items {
+        for item in &amp;item_impl.items {
             if let syn::ImplItem::Fn(method) = item {
                 let method_node_id = self.state.next_node_id();
                 let method_name = method.sig.ident.to_string();
 
                 // Process method parameters
                 let mut parameters = Vec::new();
-                for arg in &method.sig.inputs {
+                for arg in &amp;method.sig.inputs {
                     if let Some(param) = self.state.process_fn_arg(arg) {
                         // Add relation between method and parameter
                         self.state.code_graph.relations.push(Relation {
@@ -1016,9 +1059,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 }
 
                 // Extract return type if it exists
-                let return_type = match &method.sig.output {
-                    ReturnType::Default => None,
-                    ReturnType::Type(_, ty) => {
+                let return_type = match &amp;method.sig.output {
+                    ReturnType::Default =&gt; None,
+                    ReturnType::Type(_, ty) =&gt; {
                         let type_id = self.state.get_or_create_type(ty);
                         // Add relation between method and return type
                         self.state.code_graph.relations.push(Relation {
@@ -1031,17 +1074,17 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 };
 
                 // Process generic parameters for methods
-                let generic_params = self.state.process_generics(&method.sig.generics);
+                let generic_params = self.state.process_generics(&amp;method.sig.generics);
 
                 // Extract doc comments and other attributes for methods
-                let docstring = self.state.extract_docstring(&method.attrs);
-                let attributes = self.state.extract_attributes(&method.attrs);
+                let docstring = self.state.extract_docstring(&amp;method.attrs);
+                let attributes = self.state.extract_attributes(&amp;method.attrs);
 
                 // Store method info
                 let method_node = FunctionNode {
                     id: method_node_id,
                     name: method_name,
-                    visibility: self.state.convert_visibility(&method.vis),
+                    visibility: self.state.convert_visibility(&amp;method.vis),
                     parameters,
                     return_type,
                     generic_params,
@@ -1053,7 +1096,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         }
 
         // Process generic parameters for impl block
-        let generic_params = self.state.process_generics(&item_impl.generics);
+        let generic_params = self.state.process_generics(&amp;item_impl.generics);
 
         // Store impl info
         let impl_node = ImplNode {
@@ -1088,20 +1131,20 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit trait definitions
-    fn visit_item_trait(&mut self, item_trait: &'ast ItemTrait) {
+    fn visit_item_trait(&amp;mut self, item_trait: &amp;'ast ItemTrait) {
         let trait_id = self.state.next_node_id();
         let trait_name = item_trait.ident.to_string();
 
         // Process methods
         let mut methods = Vec::new();
-        for item in &item_trait.items {
+        for item in &amp;item_trait.items {
             if let syn::TraitItem::Fn(method) = item {
                 let method_node_id = self.state.next_node_id();
                 let method_name = method.sig.ident.to_string();
 
                 // Process method parameters
                 let mut parameters = Vec::new();
-                for arg in &method.sig.inputs {
+                for arg in &amp;method.sig.inputs {
                     if let Some(param) = self.state.process_fn_arg(arg) {
                         // Add relation between method and parameter
                         self.state.code_graph.relations.push(Relation {
@@ -1114,9 +1157,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 }
 
                 // Extract return type if it exists
-                let return_type = match &method.sig.output {
-                    ReturnType::Default => None,
-                    ReturnType::Type(_, ty) => {
+                let return_type = match &amp;method.sig.output {
+                    ReturnType::Default =&gt; None,
+                    ReturnType::Type(_, ty) =&gt; {
                         let type_id = self.state.get_or_create_type(ty);
                         // Add relation between method and return type
                         self.state.code_graph.relations.push(Relation {
@@ -1129,11 +1172,11 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 };
 
                 // Process generic parameters for methods
-                let generic_params = self.state.process_generics(&method.sig.generics);
+                let generic_params = self.state.process_generics(&amp;method.sig.generics);
 
                 // Extract doc comments and other attributes for methods
-                let docstring = self.state.extract_docstring(&method.attrs);
-                let attributes = self.state.extract_attributes(&method.attrs);
+                let docstring = self.state.extract_docstring(&amp;method.attrs);
+                let attributes = self.state.extract_attributes(&amp;method.attrs);
 
                 // Store method info
                 let method_node = FunctionNode {
@@ -1151,10 +1194,10 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         }
 
         // Process generic parameters
-        let generic_params = self.state.process_generics(&item_trait.generics);
+        let generic_params = self.state.process_generics(&amp;item_trait.generics);
 
         // Process super traits
-        let super_traits: Vec<TypeId> = item_trait
+        let super_traits: Vec&lt;TypeId&gt; = item_trait
             .supertraits
             .iter()
             .map(|bound| {
@@ -1162,19 +1205,19 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     dyn_token: None,
                     bounds: syn::punctuated::Punctuated::from_iter(vec![bound.clone()]),
                 });
-                self.state.get_or_create_type(&ty)
+                self.state.get_or_create_type(&amp;ty)
             })
             .collect();
 
         // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_trait.attrs);
-        let attributes = self.state.extract_attributes(&item_trait.attrs);
+        let docstring = self.state.extract_docstring(&amp;item_trait.attrs);
+        let attributes = self.state.extract_attributes(&amp;item_trait.attrs);
 
         // Store trait info
         let trait_node = TraitNode {
             id: trait_id,
             name: trait_name,
-            visibility: self.state.convert_visibility(&item_trait.vis),
+            visibility: self.state.convert_visibility(&amp;item_trait.vis),
             methods,
             generic_params,
             super_traits: super_traits.clone(),
@@ -1184,7 +1227,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         self.state.code_graph.traits.push(trait_node);
 
         // Add relation for super traits
-        for super_trait_id in &super_traits {
+        for super_trait_id in &amp;super_traits {
             self.state.code_graph.relations.push(Relation {
                 source: trait_id,
                 target: *super_trait_id,
@@ -1196,15 +1239,15 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 }
 
-pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
-    let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
+pub fn analyze_code(file_path: &amp;Path) -&gt; Result&lt;CodeGraph, syn::Error&gt; {
+    let file = syn::parse_file(&amp;std::fs::read_to_string(file_path).unwrap())?;
     let mut visitor_state = VisitorState::new();
-    let mut visitor = CodeVisitor::new(&mut visitor_state);
-    visitor.visit_file(&file);
+    let mut visitor = CodeVisitor::new(&amp;mut visitor_state);
+    visitor.visit_file(&amp;file);
     Ok(visitor_state.code_graph)
 }
 
-pub fn save_graph(code_graph: &CodeGraph, output_path: &Path) -> std::io::Result<()> {
+pub fn save_graph(code_graph: &amp;CodeGraph, output_path: &amp;Path) -&gt; std::io::Result&lt;()&gt; {
     let pretty_config = PrettyConfig::default();
     let ron_string = to_string_pretty(code_graph, pretty_config).expect("Serialization failed");
 
@@ -1223,11 +1266,11 @@ mod tests {
         let input_path = PathBuf::from("test_data/sample.rs");
         let output_path = PathBuf::from("code_graph.ron");
 
-        let code_graph_result = analyze_code(&input_path);
+        let code_graph_result = analyze_code(&amp;input_path);
         assert!(code_graph_result.is_ok());
 
         let code_graph = code_graph_result.unwrap();
-        save_graph(&code_graph, &output_path).expect("Failed to save graph");
+        save_graph(&amp;code_graph, &amp;output_path).expect("Failed to save graph");
 
         // Here you can add assertions to check the structure of the generated graph
         // For example, check the number of functions, structs, traits, etc.
@@ -1238,4 +1281,239 @@ mod tests {
 
         println!("Code graph saved to {:?}", output_path);
     }
-}
+}</code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Mod(ItemMod)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>Mod(ItemMod)</code> not implemented, should be relation.</summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Static(ItemStatic)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Struct(ItemStruct)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Trait(ItemTrait)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>TraitAlias(ItemTraitAlias)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Type(ItemType)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Union(ItemUnion)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Use(ItemUse)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Verbatim(TokenStream)</code>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Started?</li>
+<li><input disabled="" type="checkbox"/>
+Finished?</li>
+</ul>
+</li>
+</ul>
+<details>
+  <summary><code>()</code> inside <code></code> </summary>
+<pre><code class="language-rust no_run noplayground"></code></pre>
+</details>
+<ol start="2">
+<li>No <code>Type</code> enum variants for now</li>
+</ol>
+<p>As defined in <code>syn</code> documentation for <a href="https://docs.rs/syn/latest/syn/enum.Item.html"><code>Type</code></a>.</p>
+<p>These will just help with traversing the tree and go through temporary internal
+representations in my code. This could be a stretch goal down the road.</p>
+<ul>
+<li><input disabled="" type="checkbox"/>
+<code>Array(TypeArray)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>BareFn(TypeBareFn)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Group(TypeGroup)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>ImplTrait(TypeImplTrait)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Infer(TypeInfer)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Macro(TypeMacro)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Never(TypeNever)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Paren(TypeParen)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Path(TypePath)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Ptr(TypePtr)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Reference(TypeReference)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Slice(TypeSlice)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>TraitObject(TypeTraitObject)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Tuple(TypeTuple)</code></li>
+<li><input disabled="" type="checkbox"/>
+<code>Verbatim(TokenStream)</code></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

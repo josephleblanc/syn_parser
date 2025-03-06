@@ -2,10 +2,12 @@
 
 The goal of this project is to parse rust source files into data structures
 that can be used to form a heterogeneous graph database. This database is
-intended to be used by a Retrieval Augmented Generation pipeline (RAG) for
-coding-related tasks (code generation, code explain, code refactoring).
+intended to be used by a Retrieval Augmented Generation (RAG) pipeline for
+coding-related tasks such as code generation, code explain, code refactoring,
+and documentation generation.
 
-This project achieves this goal by parsing rust source files into structs that
+This project aims to achieve the goal of creating a RAG database for code by
+parsing rust source files into structs that
 can be used as-is or saved using `serde` to a `ron` file.
 
 For construction of a heterogeneous graph, we identify `Item`s with `syn` that
@@ -25,7 +27,59 @@ parses rust source files into `Type`, `Item`, and `Expr` structures (see `syn`
 We process the following `syn` data structures to form nodes and later perform
 static analysis.
 
-1. All `Type` enum variants defined in `syn` documentation for [`Type`](https://docs.rs/syn/latest/syn/enum.Item.html):
+1. All `Item` enum variants defined in `syn` documentation for `Item`:
+
+- [ ] `Fn(ItemFn)`
+  - [x] Started?
+  - [ ] Finished?
+- [ ] `Const(ItemConst)`
+  - [x] Started?
+  - [ ] Finished?
+  - Currently
+- [ ] `Enum(ItemEnum)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `ExternCrate(ItemExternCrate)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `ForeignMod(ItemForeignMod)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Impl(ItemImpl)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Macro(ItemMacro)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Mod(ItemMod)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Static(ItemStatic)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Struct(ItemStruct)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Trait(ItemTrait)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `TraitAlias(ItemTraitAlias)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Type(ItemType)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Union(ItemUnion)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Use(ItemUse)`
+  - [ ] Started?
+  - [ ] Finished?
+- [ ] `Verbatim(TokenStream)`
+  - [ ] Started?
+  - [ ] Finished?
+
+2. All `Type` enum variants defined in `syn` documentation for [`Type`](https://docs.rs/syn/latest/syn/enum.Item.html):
 
 - [ ] `Array(TypeArray)`
 - [ ] `BareFn(TypeBareFn)`
@@ -41,23 +95,4 @@ static analysis.
 - [ ] `Slice(TypeSlice)`
 - [ ] `TraitObject(TypeTraitObject)`
 - [ ] `Tuple(TypeTuple)`
-- [ ] `Verbatim(TokenStream)`
-
-2. All `Item` enum variants defined in `syn` documentation for `Item`:
-
-- [ ] `Const(ItemConst)`
-- [ ] `Enum(ItemEnum)`
-- [ ] `ExternCrate(ItemExternCrate)`
-- [x] `Fn(ItemFn)`
-- [ ] `ForeignMod(ItemForeignMod)`
-- [ ] `Impl(ItemImpl)`
-- [ ] `Macro(ItemMacro)`
-- [ ] `Mod(ItemMod)`
-- [ ] `Static(ItemStatic)`
-- [ ] `Struct(ItemStruct)`
-- [ ] `Trait(ItemTrait)`
-- [ ] `TraitAlias(ItemTraitAlias)`
-- [ ] `Type(ItemType)`
-- [ ] `Union(ItemUnion)`
-- [ ] `Use(ItemUse)`
 - [ ] `Verbatim(TokenStream)`
