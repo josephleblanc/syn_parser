@@ -10,3 +10,7 @@ enum SampleEnum {
     Variant1,
     Variant2(i32),
 }
+
+trait SampleTrait {
+    fn sample_method(&self);
+}
