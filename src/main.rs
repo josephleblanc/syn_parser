@@ -3,9 +3,8 @@ use crate::parser::analyze_code;
 use crate::parser::save_graph;
 use std::path::Path;
 
-const TARGET_FILE: &str = "/home/brasides/code/rag_workspace/example_traverse_target/src/main.rs";
-const RON_SAVE_FILE: &str =
-    "/home/brasides/code/rag_workspace/example_traverse_target/data/graph.ron";
+const TARGET_FILE: &str = "src/main.rs";
+const RON_SAVE_FILE: &str = "data/graph.ron";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let target_path = Path::new(TARGET_FILE);
