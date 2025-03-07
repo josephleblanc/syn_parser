@@ -35,8 +35,6 @@ pub struct CodeGraph {
     pub relations: Vec<Relation>,
 }
 
-// Implement ModuleNode AI!
-
 // Represents a module
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModuleNode {
@@ -174,8 +172,6 @@ pub struct GenericParamNode {
     pub kind: GenericParamKind,
 }
 
-// Implement ModuleNode AI!
-
 // Represent an attribute
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Attribute {
@@ -312,6 +308,7 @@ struct VisitorState {
     next_type_id: TypeId,
     // Maps existing types to their IDs to avoid duplication
     type_map: HashMap<String, TypeId>,
+    // add `modules` field AI!
 }
 
 impl VisitorState {
