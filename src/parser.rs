@@ -321,6 +321,7 @@ impl VisitorState {
                 impls: Vec::new(),
                 traits: Vec::new(),
                 relations: Vec::new(),
+                modules: Vec::new(),
             },
             next_node_id: 0,
             next_type_id: 0,
