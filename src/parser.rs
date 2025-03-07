@@ -33,7 +33,19 @@ pub struct CodeGraph {
     pub traits: Vec<TraitNode>,
     // Relations between nodes
     pub relations: Vec<Relation>,
-    // Implement `modules` AI!
+    // Implement ModuleNode AI!
+
+    // Represents a module
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct ModuleNode {
+        pub id: NodeId,
+        pub name: String,
+        pub visibility: VisibilityKind,
+        pub attributes: Vec<Attribute>,
+        pub docstring: Option<String>,
+        pub submodules: Vec<NodeId>,
+        pub items: Vec<NodeId>,
+    }
 }
 
 // ANCHOR: ItemFn
@@ -1217,12 +1229,42 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         // Extract module information
         let module_id = self.state.next_node_id();
         let module_name = module.ident.to_string();
+
         // Process inner items if available
-        if let Some((_, items)) = &module.content {
-            for item in items {
-                // Record relationship between module and contained items
+        let mut submodules = Vec::new();
+        let mut items = Vec::new();
+
+        if let Some((_, mod_items)) = &module.content {
+            for item in mod_items {
+                let item_id = self.state.next_node_id();
+                items.push(item_id);
+
+                match item {
+                    syn::Item::Fn(func) => {
+                        self.visit_item_fn(func);
+                    }
+                    syn::Item::Struct(strct) => {
+                        self.visit_item_struct(strct);
+                    }
+                    syn::Item::Enum(enm) => {
+                        self.visit_item_enum(enm);
+                    }
+                    syn::Item::Impl(impl_block) => {
+                        self.visit_item_impl(impl_block);
+                    }
+                    syn::Item::Trait(trt) => {
+                        self.visit_item_trait(trt);
+                    }
+                    syn::Item::Mod(md) => {
+                        submodules.push(item_id); // Add to submodules
+                        self.visit_item_mod(md); // Recursive call
+                    }
+                    // Add other item types as needed
+                    _ => {}
+                }
             }
         }
+
         // Add module to graph
         self.state.code_graph.modules.push(ModuleNode {
             id: module_id,
@@ -1230,9 +1272,12 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             visibility: self.state.convert_visibility(&module.vis),
             attributes: self.state.extract_attributes(&module.attrs),
             docstring: self.state.extract_docstring(&module.attrs),
+            submodules,
+            items,
         });
-        // Continue visiting inner items
-        visit::visit_item_mod(self, module);
+
+        // Continue visiting inner items (this is redundant now, remove it)
+        // visit::visit_item_mod(self, module);
     }
 }
 
