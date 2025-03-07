@@ -66,6 +66,7 @@ pub enum TypeDefNode {
     Enum(EnumNode),
 }
 
+// ANCHOR: StructNode
 // Represents a struct definition
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StructNode {
@@ -77,6 +78,7 @@ pub struct StructNode {
     pub attributes: Vec<Attribute>, // Replace Vec<String>
     pub docstring: Option<String>,
 }
+//ANCHOR_END: StructNode
 
 // Represents an enum definition
 #[derive(Debug, Serialize, Deserialize)]
@@ -112,7 +114,7 @@ pub struct VariantNode {
     pub attributes: Vec<Attribute>,
 }
 
-// ANCHOR: ItemImpl
+// ANCHOR: ImplNode
 // Represents an implementation block
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImplNode {
@@ -124,6 +126,7 @@ pub struct ImplNode {
 }
 //ANCHOR_END: ItemImpl
 
+// ANCHOR: TraitNode
 // Represents a trait definition
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TraitNode {
@@ -136,7 +139,9 @@ pub struct TraitNode {
     pub attributes: Vec<Attribute>,
     pub docstring: Option<String>,
 }
+//ANCHOR_END: TraitNode
 
+// ANCHOR: TypeNode
 // Represents a type reference with full metadata
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TypeNode {
@@ -145,6 +150,7 @@ pub struct TypeNode {
     // Reference to related types (e.g., generic arguments)
     pub related_types: Vec<TypeId>,
 }
+//ANCHOR_END: TypeNode
 
 // Represents a generic parameter
 #[derive(Debug, Serialize, Deserialize)]
@@ -181,9 +187,11 @@ pub enum GenericParamKind {
 }
 //ANCHOR_END: generic_param_kind
 
+// ANCHOR: TypeKind_defn
 // Different kinds of types
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum TypeKind {
+    //ANCHOR_END: TypeKind_defn
     Named {
         path: Vec<String>, // Full path segments
         is_fully_qualified: bool,
@@ -218,13 +226,17 @@ pub enum TypeKind {
         is_mutable: bool,
         // Pointee type is in related_types[0]
     },
+    // ANCHOR: TraitObject
     TraitObject {
         // Trait bounds are in related_types
         dyn_token: bool,
     },
+    //ANCHOR_END: TraitObject
+    // ANCHOR: ImplTrait
     ImplTrait {
         // Trait bounds are in related_types
     },
+    //ANCHOR_END: ImplTrait
     Paren {
         // Inner type is in related_types[0]
     },
@@ -256,6 +268,7 @@ pub struct Relation {
     pub kind: RelationKind,
 }
 
+// ANCHOR: Uses
 // Different kinds of relations
 #[derive(Debug, Serialize, Deserialize)]
 pub enum RelationKind {
@@ -270,6 +283,7 @@ pub enum RelationKind {
     Contains,
     Uses,
 }
+//ANCHOR_END: Uses
 
 // Unique ID for a node in the graph
 pub type NodeId = usize;
