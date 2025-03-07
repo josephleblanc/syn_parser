@@ -6,6 +6,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File as FsFile;
 use std::io::Write;
 use std::path::Path;
+use syn::ItemMod;
 use syn::{
     visit::{self, Visit},
     AngleBracketedGenericArguments, Field, File, FnArg, GenericArgument, Generics, Ident, ItemEnum,
@@ -32,6 +33,7 @@ pub struct CodeGraph {
     pub traits: Vec<TraitNode>,
     // Relations between nodes
     pub relations: Vec<Relation>,
+    // Implement `modules` AI!
 }
 
 // ANCHOR: ItemFn
@@ -158,6 +160,8 @@ pub struct GenericParamNode {
     pub id: NodeId,
     pub kind: GenericParamKind,
 }
+
+// Implement ModuleNode AI!
 
 // Represent an attribute
 #[derive(Debug, Serialize, Deserialize)]
@@ -1207,6 +1211,28 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         }
 
         visit::visit_item_trait(self, item_trait);
+    }
+
+    fn visit_item_mod(&mut self, module: &'ast ItemMod) {
+        // Extract module information
+        let module_id = self.state.next_node_id();
+        let module_name = module.ident.to_string();
+        // Process inner items if available
+        if let Some((_, items)) = &module.content {
+            for item in items {
+                // Record relationship between module and contained items
+            }
+        }
+        // Add module to graph
+        self.state.code_graph.modules.push(ModuleNode {
+            id: module_id,
+            name: module_name,
+            visibility: self.state.convert_visibility(&module.vis),
+            attributes: self.state.extract_attributes(&module.attrs),
+            docstring: self.state.extract_docstring(&module.attrs),
+        });
+        // Continue visiting inner items
+        visit::visit_item_mod(self, module);
     }
 }
 
