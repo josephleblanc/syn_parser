@@ -33,19 +33,20 @@ pub struct CodeGraph {
     pub traits: Vec<TraitNode>,
     // Relations between nodes
     pub relations: Vec<Relation>,
-    // Implement ModuleNode AI!
+}
 
-    // Represents a module
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct ModuleNode {
-        pub id: NodeId,
-        pub name: String,
-        pub visibility: VisibilityKind,
-        pub attributes: Vec<Attribute>,
-        pub docstring: Option<String>,
-        pub submodules: Vec<NodeId>,
-        pub items: Vec<NodeId>,
-    }
+// Implement ModuleNode AI!
+
+// Represents a module
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ModuleNode {
+    pub id: NodeId,
+    pub name: String,
+    pub visibility: VisibilityKind,
+    pub attributes: Vec<Attribute>,
+    pub docstring: Option<String>,
+    pub submodules: Vec<NodeId>,
+    pub items: Vec<NodeId>,
 }
 
 // ANCHOR: ItemFn
