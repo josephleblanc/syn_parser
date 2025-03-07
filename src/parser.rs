@@ -8,9 +8,9 @@ use std::path::Path;
 use syn::ItemMod;
 use syn::{
     visit::{self, Visit},
-    AngleBracketedGenericArguments, File, FnArg, GenericArgument, Generics, Ident, ItemEnum,
-    ItemFn, ItemImpl, ItemStruct, ItemTrait, Lifetime, Pat, PatIdent, PatType, Path as SynPath,
-    PathArguments, PathSegment, ReturnType, Type, TypeParam, TypePath, TypeReference, Visibility,
+    AngleBracketedGenericArguments, FnArg, GenericArgument, Generics, ItemEnum,
+    ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType, PathArguments,
+    ReturnType, Type, TypeParam, TypePath, TypeReference, Visibility,
 };
 
 // Type ID for internal references
