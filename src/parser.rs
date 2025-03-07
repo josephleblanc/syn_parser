@@ -1,18 +1,16 @@
-use proc_macro2::TokenStream;
 use quote::ToTokens;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs::File as FsFile;
 use std::io::Write;
 use std::path::Path;
 use syn::ItemMod;
 use syn::{
     visit::{self, Visit},
-    AngleBracketedGenericArguments, Field, File, FnArg, GenericArgument, Generics, Ident, ItemEnum,
+    AngleBracketedGenericArguments, File, FnArg, GenericArgument, Generics, Ident, ItemEnum,
     ItemFn, ItemImpl, ItemStruct, ItemTrait, Lifetime, Pat, PatIdent, PatType, Path as SynPath,
-    PathArguments, PathSegment, ReturnType, Type, TypeParam, TypePath, TypeReference, Variant,
-    Visibility,
+    PathArguments, PathSegment, ReturnType, Type, TypeParam, TypePath, TypeReference, Visibility,
 };
 
 // Type ID for internal references
@@ -33,6 +31,8 @@ pub struct CodeGraph {
     pub traits: Vec<TraitNode>,
     // Relations between nodes
     pub relations: Vec<Relation>,
+    // Modules defined in the code
+    pub modules: Vec<ModuleNode>,
 }
 
 // Represents a module
@@ -484,7 +484,7 @@ impl VisitorState {
                     .filter_map(|bound| {
                         match bound {
                             syn::TypeParamBound::Trait(trait_bound) => {
-                                let path_string = trait_bound.path.to_token_stream().to_string();
+                                let _path_string = trait_bound.path.to_token_stream().to_string();
                                 // Create a synthetic type for the trait bound
                                 let bound_id = self.next_type_id();
                                 self.code_graph.type_graph.push(TypeNode {
@@ -520,7 +520,7 @@ impl VisitorState {
                     .filter_map(|bound| {
                         match bound {
                             syn::TypeParamBound::Trait(trait_bound) => {
-                                let path_string = trait_bound.path.to_token_stream().to_string();
+                                let _path_string = trait_bound.path.to_token_stream().to_string();
                                 // Create a synthetic type for the trait bound
                                 let bound_id = self.next_type_id();
                                 self.code_graph.type_graph.push(TypeNode {
@@ -938,7 +938,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     }
                 }
                 syn::Fields::Unnamed(fields_unnamed) => {
-                    for (i, field) in fields_unnamed.unnamed.iter().enumerate() {
+                    for (_, field) in fields_unnamed.unnamed.iter().enumerate() {
                         let field_id = self.state.next_node_id();
                         let type_id = self.state.get_or_create_type(&field.ty);
 
