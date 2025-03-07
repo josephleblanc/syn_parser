@@ -37,6 +37,19 @@ pub struct CodeGraph {
 
 // Represents a module
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ImportNode {
+    pub id: NodeId,
+    pub path: Vec<String>,
+    pub kind: ImportKind,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ImportKind {
+    UseStatement,
+    ExternCrate,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ModuleNode {
     pub id: NodeId,
     pub name: String,
@@ -328,6 +341,7 @@ impl VisitorState {
             next_node_id: 0,
             next_type_id: 0,
             type_map: HashMap::new(),
+            modules: HashMap::new(),
         }
     }
 
@@ -1281,6 +1295,8 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             docstring: self.state.extract_docstring(&module.attrs),
             submodules,
             items,
+            imports: Vec::new(),
+            exports: Vec::new(),
         });
 
         // Continue visiting inner items (this is redundant now, remove it)
