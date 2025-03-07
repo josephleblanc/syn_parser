@@ -45,6 +45,8 @@ pub struct ModuleNode {
     pub docstring: Option<String>,
     pub submodules: Vec<NodeId>,
     pub items: Vec<NodeId>,
+    pub imports: Vec<ImportNode>,
+    pub exports: Vec<NodeId>,
 }
 
 // ANCHOR: ItemFn
@@ -308,7 +310,7 @@ struct VisitorState {
     next_type_id: TypeId,
     // Maps existing types to their IDs to avoid duplication
     type_map: HashMap<String, TypeId>,
-    // add `modules` field AI!
+    modules: HashMap<String, NodeId>,
 }
 
 impl VisitorState {
@@ -1257,6 +1259,12 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     syn::Item::Mod(md) => {
                         submodules.push(item_id); // Add to submodules
                         self.visit_item_mod(md); // Recursive call
+                    }
+                    syn::Item::Use(use_item) => {
+                        self.visit_item_use(item_id, use_item);
+                    }
+                    syn::Item::ExternCrate(extern_crate) => {
+                        self.visit_item_extern_crate(item_id, extern_crate);
                     }
                     // Add other item types as needed
                     _ => {}

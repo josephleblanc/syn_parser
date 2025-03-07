@@ -3,7 +3,7 @@
 
 1. **Module Structure**:
    - [x] Add `ModuleNode` to represent module hierarchy
-   - [ ] Track imports/exports between modules to establish cross-module relationships
+   - [x] Track imports/exports between modules to establish cross-module relationships
    - [ ] Store module-level documentation
 
 2. **Use Declarations & Extern Crates**:
