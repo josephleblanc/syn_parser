@@ -14,3 +14,9 @@ enum SampleEnum {
 trait SampleTrait {
     fn sample_method(&self);
 }
+
+impl SampleTrait for SampleStruct {
+    fn sample_method(&self) {
+        println!("SampleStruct implementation of sample_method");
+    }
+}
