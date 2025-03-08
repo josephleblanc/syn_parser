@@ -4,7 +4,7 @@ use syn_parser::parser::{analyze_code, save_graph, RelationKind, TypeDefNode, Vi
 #[test]
 fn test_analyzer() {
     let input_path = PathBuf::from("test_data/sample.rs");
-    let output_path = PathBuf::from("code_graph.ron");
+    let output_path = PathBuf::from("test_data/code_graph.ron");
 
     let code_graph_result = analyze_code(&input_path);
     assert!(code_graph_result.is_ok());
