@@ -8,9 +8,9 @@ use std::path::Path;
 use syn::ItemMod;
 use syn::{
     visit::{self, Visit},
-    AngleBracketedGenericArguments, FnArg, GenericArgument, Generics, ItemEnum,
-    ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType, PathArguments,
-    ReturnType, Type, TypeParam, TypePath, TypeReference, Visibility,
+    AngleBracketedGenericArguments, FnArg, GenericArgument, Generics, ItemEnum, ItemFn, ItemImpl,
+    ItemStruct, ItemTrait, Pat, PatIdent, PatType, PathArguments, ReturnType, Type, TypeParam,
+    TypePath, TypeReference, Visibility,
 };
 
 // Type ID for internal references
@@ -323,7 +323,6 @@ struct VisitorState {
     next_type_id: TypeId,
     // Maps existing types to their IDs to avoid duplication
     type_map: HashMap<String, TypeId>,
-    modules: HashMap<String, NodeId>,
 }
 
 impl VisitorState {
@@ -341,7 +340,6 @@ impl VisitorState {
             next_node_id: 0,
             next_type_id: 0,
             type_map: HashMap::new(),
-            modules: HashMap::new(),
         }
     }
 
@@ -1275,10 +1273,10 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                         self.visit_item_mod(md); // Recursive call
                     }
                     syn::Item::Use(use_item) => {
-                        self.visit_item_use(item_id, use_item);
+                        self.visit_item_use(use_item);
                     }
                     syn::Item::ExternCrate(extern_crate) => {
-                        self.visit_item_extern_crate(item_id, extern_crate);
+                        self.visit_item_extern_crate(extern_crate);
                     }
                     // Add other item types as needed
                     _ => {}
