@@ -1,5 +1,5 @@
-mod utils;
-
+#![allow(dead_code)]
+use super::test_dir;
 use std::fmt::Debug;
 
 trait PrintDebug: Debug {
@@ -10,7 +10,8 @@ trait PrintDebug: Debug {
 
 impl<T: Debug> PrintDebug for T {}
 
-struct SampleStruct<T: Debug> {
+#[derive(Debug)]
+struct SampleStruct<T> {
     field: T,
 }
 
@@ -32,7 +33,10 @@ trait SampleTrait<T: Debug> {
 
 impl<T: Debug> SampleTrait<T> for SampleStruct<T> {
     fn sample_method(&self, arg: T) {
-        println!("SampleStruct implementation of sample_method with arg: {:?}", arg);
+        println!(
+            "SampleStruct implementation of sample_method with arg: {:?}",
+            arg
+        );
     }
 }
 
@@ -52,7 +56,7 @@ fn sample_function<T: Debug>(arg: T) {
     println!("Hello, world with arg: {:?}", arg);
 }
 
-impl utils::UtilsTrait for SampleStruct<T> {
+impl<T> test_dir::example_file::UtilsTrait for SampleStruct<T> {
     fn util_method(&self) {
         println!("Util method for SampleStruct");
     }

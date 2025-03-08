@@ -103,15 +103,6 @@ impl TypeDefNode {
     }
 }
 
-impl TypeDefNode {
-    pub fn id(&self) -> NodeId {
-        match self {
-            TypeDefNode::Struct(s) => s.id,
-            TypeDefNode::Enum(e) => e.id,
-        }
-    }
-}
-
 // ANCHOR: StructNode
 // Represents a struct definition
 #[derive(Debug, Serialize, Deserialize)]
@@ -298,8 +289,6 @@ pub enum TypeKind {
 }
 
 // Different kinds of visibility
-#[derive(Debug, Serialize, Deserialize)]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum VisibilityKind {
     Public,
@@ -318,8 +307,6 @@ pub struct Relation {
 
 // ANCHOR: Uses
 // Different kinds of relations
-#[derive(Debug, Serialize, Deserialize)]
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RelationKind {
     FunctionParameter,
@@ -1340,4 +1327,3 @@ pub fn save_graph(code_graph: &CodeGraph, output_path: &Path) -> std::io::Result
     output_file.write_all(ron_string.as_bytes())?;
     Ok(())
 }
-
