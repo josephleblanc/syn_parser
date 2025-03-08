@@ -801,6 +801,8 @@
             docstring: None,
             submodules: [],
             items: [],
+            imports: [],
+            exports: [],
         ),
     ],
 )
