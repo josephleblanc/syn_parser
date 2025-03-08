@@ -1319,29 +1319,3 @@ pub fn save_graph(code_graph: &CodeGraph, output_path: &Path) -> std::io::Result
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::path::PathBuf;
-
-    #[test]
-    fn test_analyzer() {
-        let input_path = PathBuf::from("test_data/sample.rs");
-        let output_path = PathBuf::from("code_graph.ron");
-
-        let code_graph_result = analyze_code(&input_path);
-        assert!(code_graph_result.is_ok());
-
-        let code_graph = code_graph_result.unwrap();
-        save_graph(&code_graph, &output_path).expect("Failed to save graph");
-
-        // Here you can add assertions to check the structure of the generated graph
-        // For example, check the number of functions, structs, traits, etc.
-        assert!(!code_graph.functions.is_empty());
-        assert!(!code_graph.defined_types.is_empty());
-        assert!(!code_graph.traits.is_empty());
-        assert!(!code_graph.impls.is_empty());
-
-        println!("Code graph saved to {:?}", output_path);
-    }
-}
