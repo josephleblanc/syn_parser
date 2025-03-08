@@ -30,8 +30,8 @@ fn test_analyzer() {
     );
     assert_eq!(
         code_graph.defined_types.len(),
-        1,
-        "Expected 1 defined type in the code graph"
+        3,
+        "Expected 3 defined types in the code graph"
     );
 
     // Check the number of traits
