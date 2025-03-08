@@ -41,8 +41,8 @@ fn test_analyzer() {
     );
     assert_eq!(
         code_graph.traits.len(),
-        1,
-        "Expected 1 trait in the code graph"
+        2,
+        "Expected 2 traits in the code graph"
     );
 
     // Check the number of impls
