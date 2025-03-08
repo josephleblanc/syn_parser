@@ -1,4 +1,4 @@
-use super::*;
+use crate::parser::{analyze_code, save_graph, TypeDefNode, VisibilityKind, RelationKind};
 use std::path::PathBuf;
 
 #[test]
