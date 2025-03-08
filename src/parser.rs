@@ -94,6 +94,24 @@ pub enum TypeDefNode {
     Enum(EnumNode),
 }
 
+impl TypeDefNode {
+    pub fn id(&self) -> NodeId {
+        match self {
+            TypeDefNode::Struct(s) => s.id,
+            TypeDefNode::Enum(e) => e.id,
+        }
+    }
+}
+
+impl TypeDefNode {
+    pub fn id(&self) -> NodeId {
+        match self {
+            TypeDefNode::Struct(s) => s.id,
+            TypeDefNode::Enum(e) => e.id,
+        }
+    }
+}
+
 // ANCHOR: StructNode
 // Represents a struct definition
 #[derive(Debug, Serialize, Deserialize)]
@@ -281,6 +299,8 @@ pub enum TypeKind {
 
 // Different kinds of visibility
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum VisibilityKind {
     Public,
     Crate,
@@ -299,6 +319,8 @@ pub struct Relation {
 // ANCHOR: Uses
 // Different kinds of relations
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RelationKind {
     FunctionParameter,
     FunctionReturn,
