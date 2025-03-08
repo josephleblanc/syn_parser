@@ -260,5 +260,53 @@ fn test_analyzer() {
         "Expected relation kind to be ImplementsFor"
     );
 
+    // Check specific enum details
+    let enum_node = &code_graph.defined_types.iter().find(|def| matches!(def, TypeDefNode::Enum(_))).expect("Expected an enum");
+    if let TypeDefNode::Enum(enum_) = enum_node {
+        assert_eq!(enum_.name, "SampleEnum", "Enum name mismatch");
+        assert_eq!(enum_.variants.len(), 2, "Expected 2 variants for enum SampleEnum");
+        assert_eq!(enum_.generic_params.len(), 1, "Expected 1 generic parameter for enum SampleEnum");
+        assert_eq!(enum_.attributes.len(), 0, "Expected 0 attributes for enum SampleEnum");
+        assert_eq!(enum_.docstring, None, "Expected no docstring for enum SampleEnum");
+
+        // Check variant details
+        let variant1 = &enum_.variants[0];
+        assert_eq!(variant1.name, "Variant1", "Variant name mismatch");
+        assert_eq!(variant1.fields.len(), 0, "Expected 0 fields for variant Variant1");
+        assert_eq!(variant1.discriminant, None, "Expected no discriminant for variant Variant1");
+        assert_eq!(variant1.attributes.len(), 0, "Expected 0 attributes for variant Variant1");
+
+        let variant2 = &enum_.variants[1];
+        assert_eq!(variant2.name, "Variant2", "Variant name mismatch");
+        assert_eq!(variant2.fields.len(), 1, "Expected 1 field for variant Variant2");
+        assert_eq!(variant2.discriminant, None, "Expected no discriminant for variant Variant2");
+        assert_eq!(variant2.attributes.len(), 0, "Expected 0 attributes for variant Variant2");
+
+        let field1 = &variant2.fields[0];
+        assert_eq!(field1.name, None, "Expected no name for field in variant Variant2");
+        assert_eq!(field1.visibility, VisibilityKind::Public, "Expected public visibility for field in variant Variant2");
+        assert_eq!(field1.attributes.len(), 0, "Expected 0 attributes for field in variant Variant2");
+    } else {
+        panic!("Expected an enum, found a different type");
+    }
+
+    // Check specific struct details
+    let struct_node = &code_graph.defined_types.iter().find(|def| matches!(def, TypeDefNode::Struct(_))).expect("Expected a struct");
+    if let TypeDefNode::Struct(struct_) = struct_node {
+        assert_eq!(struct_.name, "NestedStruct", "Struct name mismatch");
+        assert_eq!(struct_.fields.len(), 1, "Expected 1 field for struct NestedStruct");
+        assert_eq!(struct_.generic_params.len(), 0, "Expected 0 generic parameters for struct NestedStruct");
+        assert_eq!(struct_.attributes.len(), 0, "Expected 0 attributes for struct NestedStruct");
+        assert_eq!(struct_.docstring, None, "Expected no docstring for struct NestedStruct");
+
+        // Check field details
+        let field1 = &struct_.fields[0];
+        assert_eq!(field1.name, Some("nested_field".to_string()), "Expected field name nested_field for struct NestedStruct");
+        assert_eq!(field1.visibility, VisibilityKind::Public, "Expected public visibility for field nested_field in struct NestedStruct");
+        assert_eq!(field1.attributes.len(), 0, "Expected 0 attributes for field nested_field in struct NestedStruct");
+    } else {
+        panic!("Expected a struct, found a different type");
+    }
+
     println!("Code graph saved to {:?}", output_path);
 }
