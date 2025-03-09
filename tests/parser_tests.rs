@@ -292,7 +292,7 @@ fn test_analyzer() {
         .find(|m| m.name == "private_module")
         .expect("private_module not found");
 
-    assert!(private_module.visibility.is_restricted());
+    assert!(matches!(private_module.visibility, VisibilityKind::Restricted(_)));
 
     let public_module = code_graph
         .modules
