@@ -1489,6 +1489,11 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     println!("Self type: {:?}", path);
                 }
             }
+        
+            // Debug: Print all methods in the impl
+            for method in &impl_node.methods {
+                println!("Found method {} in impl {}", method.name, impl_id);
+            }
         }
 
         visit::visit_item_impl(self, item_impl);

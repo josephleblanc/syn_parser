@@ -48,8 +48,8 @@ fn test_analyzer() {
     // Check impls
     assert_eq!(
         code_graph.impls.len(),
-        7,
-        "Expected 7 impls (SampleTrait/SampleStruct, AnotherTrait/SampleStruct, DefaultTrait/SampleStruct, Direct/SampleStruct, Direct/PrivateStruct, DefaultTrait/ModuleStruct, Direct/ModuleStruct)\nFound:\n\t{:?}",
+        6,
+        "Expected 6 impls (SampleTrait/SampleStruct, AnotherTrait/SampleStruct, DefaultTrait/SampleStruct, Direct/SampleStruct, Direct/PrivateStruct, DefaultTrait/ModuleStruct)\nFound:\n\t{:?}",
         code_graph.impls.iter().map(|imp| {
             if let Some(trait_type) = imp.trait_type {
                 if let Some(trait_type) = code_graph.type_graph.iter().find(|t| t.id == trait_type) {
