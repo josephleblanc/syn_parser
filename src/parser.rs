@@ -420,8 +420,6 @@ struct VisitorState {
     next_type_id: TypeId,
     // Maps existing types to their IDs to avoid duplication
     type_map: HashMap<String, TypeId>,
-    dependency_graph: petgraph::Graph<NodeId, RelationKind>,
-    node_map: HashMap<NodeId, petgraph::graph::NodeIndex>,
 }
 
 impl VisitorState {
@@ -441,8 +439,6 @@ impl VisitorState {
             next_node_id: 0,
             next_type_id: 0,
             type_map: HashMap::new(),
-            dependency_graph: Graph::new(),
-            node_map: HashMap::new(),
         }
     }
 
