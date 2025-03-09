@@ -1045,8 +1045,12 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 qself: None,
                 path: path.clone(),
             });
-            self.state.get_or_create_type(&ty)
+            let trait_id = self.state.get_or_create_type(&ty);
+            println!("Trait type ID: {:?}", trait_id);
+            trait_id
         });
+
+        println!("Trait type ID after map: {:?}", trait_type_id);
 
         // Process methods
         let mut methods = Vec::new();

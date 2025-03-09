@@ -102,17 +102,21 @@ fn test_analyzer() {
 
     // Check specific impl details
     let impl_node = &code_graph.impls[0];
+    println!("Impl node: {:?}", impl_node);
     assert_eq!(impl_node.methods.len(), 1, "Expected 1 method for impl");
     assert_eq!(
         impl_node.generic_params.len(),
         1,
         "Expected 1 generic parameter for impl"
     );
-    assert_eq!(
+    assert!(
+        impl_node.trait_type == Some(code_graph.traits[0].id),
+        "Expected trait type to match trait id, found {:?} != {:?}",
         impl_node.trait_type,
-        Some(code_graph.traits[0].id),
-        "Expected trait type to match trait id"
+        code_graph.traits[0].id
     );
+
+    // Add more checks if needed
 
     // Check specific module details
 
