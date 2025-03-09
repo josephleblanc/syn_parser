@@ -1333,13 +1333,13 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 .find(|t| t.id == trait_type_id)
             {
                 if let TypeKind::Named { path, .. } = &trait_type.kind {
-                    let trait_name = path.last().unwrap_or(&String::new());
+                    let trait_name = path.last().unwrap_or(&String::new()).to_string();
                     let trait_def = self
                         .state
                         .code_graph
                         .traits
                         .iter()
-                        .find(|t| t.name == *trait_name);
+                        .find(|t| t.name == trait_name);
 
                     if let Some(trait_def) = trait_def {
                         if !matches!(trait_def.visibility, VisibilityKind::Public) {
