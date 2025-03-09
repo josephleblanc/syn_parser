@@ -884,10 +884,10 @@ impl VisitorState {
 
         match &attr.meta {
             syn::Meta::List(list) => {
-                for nested in &list.nested {
-                    if let syn::NestedMeta::Meta(meta) = nested {
-                        args.push(meta.to_token_stream().to_string());
-                    }
+                let parser = syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated;
+                let nested_metas = parser.parse2(list.tokens.clone()).unwrap_or_default();
+                for meta in nested_metas {
+                    args.push(meta.to_token_stream().to_string());
                 }
             }
             syn::Meta::NameValue(name_value) => {
@@ -901,7 +901,7 @@ impl VisitorState {
         Attribute {
             name,
             args,
-            value: Some(attr.tokens.to_string()),
+            value: Some(attr.to_token_stream().to_string()),
         }
     }
     fn extract_attributes(&self, attrs: &[syn::Attribute]) -> Vec<Attribute> {
