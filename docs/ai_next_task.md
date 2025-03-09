@@ -1,28 +1,57 @@
 
-# AI task: Complete Item Coverage
+# AI task: Address Critical Code Improvements Needed
 
-1. **Module Structure**:
-   - [x] Add `ModuleNode` to represent module hierarchy
-   - [x] Track imports/exports between modules to establish cross-module relationships
-   - [x] Store module-level documentation
+Finish implementing the following:
 
-2. **Use Declarations & Extern Crates**:
-   - [x] Create `ImportNode` to represent both use statements and extern crates
-   - [x] Establish `UseRelation` edges between items and their imports
-   - [x] Track which external dependencies are being used
+## 1 Type Resolution Refactor
 
-3. **Type Aliases and Unions**:
-   - [x] Extend `TypeDefNode` enum to include these additional type definitions
-   - [x] Add support for parsing type aliases
-   - [x] Add support for parsing unions
+```rust
 
-4. **Constants and Statics**:
-   - [x] Add `ValueNode` to represent constants and static variables
-   - [x] Track type information and initialization expressions
-   - [x] Parse visibility and attributes for constants/statics
-   - [x] Add tests for constants and statics
+                                                                                        
+ // Current limitation in process_type()                                                
+ // Add proper handling for associated types                                            
+ fn process_associated_type(&mut self, ty: &syn::TypePath) -> TypeId {                  
+     let path_segments = ty.path.segments.iter().map(|s| s.ident.to_string()).collect() 
+     self.get_or_create_named_type(&path_segments, ty)                                  
+ }                                                                                      
+                                                                                        
 
-5. **Macros and Macro Rules**:
-   - [x] Create `MacroNode` to capture macro definitions
-   - [x] Record macro invocations as `MacroUseRelation`
-   - [x] Track macro usage across the codebase
+```
+
+## 2 Better Attribute Handling
+
+```rust
+ // Current attribute parsing misses key information                                    
+ fn parse_attribute(attr: &syn::Attribute) -> Attribute {                               
+     // Add support for nested meta items                                               
+     let args = attr.meta.require_list()                                                
+         .iter()                                                                        
+         .flat_map(|nested| nested.parse_args_with(Punctuated::<Meta,                   
+ Comma>::parse_terminated))                                                             
+         .collect();                                                                    
+                                                                                        
+     Attribute {                                                                        
+         name: attr.path().to_token_stream().to_string(),                               
+         args,                                                                          
+         // Add span information for error reporting                                    
+     }                                                                                  
+ }                                                                                      
+```
+
+## 3 Cross-Item Dependency Tracking
+
+```rust
+                                                                                        
+ // Add to VisitorState                                                                 
+ dependency_graph: petgraph::Graph<NodeId, RelationKind>,                               
+ node_map: HashMap<NodeId, petgraph::graph::NodeIndex>,                                 
+                                                                                        
+ fn record_dependency(&mut self, from: NodeId, to: NodeId, kind: RelationKind) {        
+     let from_idx = *self.node_map.entry(from).or_insert_with(||                        
+ self.dependency_graph.add_node(from));                                                 
+     let to_idx = *self.node_map.entry(to).or_insert_with(||                            
+ self.dependency_graph.add_node(to));                                                   
+     self.dependency_graph.add_edge(from_idx, to_idx, kind);                            
+ }                                                                                      
+                                                                               
+```
