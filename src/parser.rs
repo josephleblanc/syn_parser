@@ -1457,6 +1457,23 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             {
                 if let TypeKind::Named { path, .. } = &trait_type.kind {
                     println!("Found trait implementation: {:?}", path);
+                    // Specific check for DefaultTrait implementation
+                    if path.last().unwrap_or(&String::new()) == "DefaultTrait" {
+                        if let Some(self_type) = self
+                            .state
+                            .code_graph
+                            .type_graph
+                            .iter()
+                            .find(|t| t.id == self_type_id)
+                        {
+                            if let TypeKind::Named { path, .. } = &self_type.kind {
+                                println!("Self type for DefaultTrait: {:?}", path);
+                                if path.last().unwrap_or(&String::new()) == "ModuleStruct" {
+                                    println!("Found DefaultTrait implementation for ModuleStruct");
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
