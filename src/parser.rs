@@ -489,7 +489,6 @@ impl VisitorState {
 
         match ty {
             Type::Path(TypePath { path, qself }) => {
-                let mut related_types = Vec::new();
                 let segments: Vec<String> = path
                     .segments
                     .iter()
