@@ -64,6 +64,12 @@ fn test_analyzer() {
         4,
         "Expected 4 values (MAX_ITEMS, MIN_ITEMS, GLOBAL_COUNTER, MUTABLE_COUNTER)"
     );
+    
+    // Check macros
+    assert!(
+        code_graph.macros.len() >= 1,
+        "Expected at least 1 macro (test_macro)"
+    );
 
     // =========== Relations ===========
     // Count relations by type
@@ -312,8 +318,29 @@ fn test_analyzer() {
     assert_eq!(mutable_counter.visibility, VisibilityKind::Public);
     assert!(matches!(mutable_counter.kind, ValueKind::Static { is_mutable: true }));
     assert_eq!(mutable_counter.value.as_ref().unwrap(), "0");
-
-
+    
+    
+    // =========== Macro Tests ===========
+    let test_macro = code_graph
+        .macros
+        .iter()
+        .find(|m| m.name == "test_macro")
+        .expect("test_macro not found");
+    
+    assert_eq!(test_macro.name, "test_macro");
+    assert!(test_macro.docstring.is_some());
+    assert!(test_macro.docstring.as_ref().unwrap().contains("simple macro for testing"));
+    
+    // Check macro attributes
+    assert!(test_macro.attributes.iter().any(|attr| attr.name == "macro_export"));
+    
+    // Check macro rules
+    assert!(test_macro.rules.len() >= 1, "Expected at least one rule in test_macro");
+    
+    // Check macro kind
+    assert!(matches!(test_macro.kind, MacroKind::DeclarativeMacro));
+    
+    
     // =========== Enum Tests ===========
     let sample_enum = code_graph
         .defined_types

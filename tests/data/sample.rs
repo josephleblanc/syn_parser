@@ -161,3 +161,27 @@ pub static GLOBAL_COUNTER: i32 = 0;
 
 /// A mutable static variable
 pub static mut MUTABLE_COUNTER: i32 = 0;
+
+/// A simple macro for testing
+#[macro_export]
+macro_rules! test_macro {
+    // Simple pattern with no arguments
+    () => {
+        println!("Hello from macro!");
+    };
+    // Pattern with an expression argument
+    ($expr:expr) => {
+        println!("Expression: {}", $expr);
+    };
+    // Pattern with multiple arguments
+    ($name:ident, $value:expr) => {
+        println!("{} = {}", stringify!($name), $value);
+    };
+}
+
+/// A procedural macro example (this would normally be in a proc-macro crate)
+#[proc_macro]
+pub fn example_proc_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    // This is just for demonstration, not actually functional
+    input
+}

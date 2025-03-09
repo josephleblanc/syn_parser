@@ -23,6 +23,6 @@
    - [x] Add tests for constants and statics
 
 5. **Macros and Macro Rules**:
-   - [ ] Create `MacroNode` to capture macro definitions
-   - [ ] Record macro invocations as `MacroUseRelation`
-   - [ ] Track macro usage across the codebase
+   - [x] Create `MacroNode` to capture macro definitions
+   - [x] Record macro invocations as `MacroUseRelation`
+   - [x] Track macro usage across the codebase

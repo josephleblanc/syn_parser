@@ -35,6 +35,8 @@ pub struct CodeGraph {
     pub modules: Vec<ModuleNode>,
     // Constants and static variables
     pub values: Vec<ValueNode>,
+    // Macros defined in the code
+    pub macros: Vec<MacroNode>,
 }
 
 // Represents a module
@@ -62,6 +64,42 @@ pub struct ValueNode {
     pub value: Option<String>,
     pub attributes: Vec<Attribute>,
     pub docstring: Option<String>,
+}
+
+// Represents a macro definition
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MacroNode {
+    pub id: NodeId,
+    pub name: String,
+    pub visibility: VisibilityKind,
+    pub kind: MacroKind,
+    pub rules: Vec<MacroRuleNode>,
+    pub attributes: Vec<Attribute>,
+    pub docstring: Option<String>,
+    pub body: Option<String>,
+}
+
+// Represents a macro rule
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MacroRuleNode {
+    pub id: NodeId,
+    pub pattern: String,
+    pub expansion: String,
+}
+
+// Different kinds of macros
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum MacroKind {
+    DeclarativeMacro,
+    ProcedureMacro { kind: ProcMacroKind },
+}
+
+// Different kinds of procedural macros
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ProcMacroKind {
+    Derive,
+    Attribute,
+    Function,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -364,6 +402,8 @@ pub enum RelationKind {
     Contains,
     Uses,
     ValueType,
+    MacroUse,
+    MacroExpansion,
 }
 //ANCHOR_END: Uses
 //ANCHOR_END: Relation
@@ -392,6 +432,7 @@ impl VisitorState {
                 relations: Vec::new(),
                 modules: Vec::new(),
                 values: Vec::new(),
+                macros: Vec::new(),
             },
             next_node_id: 0,
             next_type_id: 0,
@@ -1487,6 +1528,12 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     syn::Item::Static(item_static) => {
                         self.visit_item_static(item_static);
                     }
+                    syn::Item::Macro(item_macro) => {
+                        self.visit_item_macro(item_macro);
+                    }
+                    syn::Item::Macro2(item_macro2) => {
+                        // Handle macro 2.0 definitions if needed
+                    }
                     // Add other item types as needed
                     _ => {}
                 }
@@ -1581,6 +1628,16 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                         self.state.code_graph.values.iter()
                             .find(|v| v.name == item_static.ident.to_string() && matches!(v.kind, ValueKind::Static { .. }))
                             .map(|v| v.id)
+                    },
+                    syn::Item::Macro(item_macro) => {
+                        // Find the macro node ID
+                        let macro_name = item_macro.ident.as_ref()
+                            .map(|ident| ident.to_string())
+                            .unwrap_or_else(|| "unnamed_macro".to_string());
+                        
+                        self.state.code_graph.macros.iter()
+                            .find(|m| m.name == macro_name)
+                            .map(|m| m.id)
                     },
                     _ => None,
                 };
@@ -1748,6 +1805,195 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         
         // Continue visiting
         visit::visit_item_static(self, item_static);
+    }
+    
+    // Visit macro definitions (macro_rules!)
+    fn visit_item_macro(&mut self, item_macro: &'ast syn::ItemMacro) {
+        let macro_id = self.state.next_node_id();
+        
+        // Get the macro name
+        let macro_name = item_macro.ident.as_ref()
+            .map(|ident| ident.to_string())
+            .unwrap_or_else(|| "unnamed_macro".to_string());
+        
+        // Extract the macro body
+        let body = Some(item_macro.tokens.to_string());
+        
+        // Extract doc comments and other attributes
+        let docstring = self.state.extract_docstring(&item_macro.attrs);
+        let attributes = self.state.extract_attributes(&item_macro.attrs);
+        
+        // Parse macro rules (simplified approach)
+        let mut rules = Vec::new();
+        let tokens_str = item_macro.tokens.to_string();
+        
+        // Very basic parsing of macro rules - in a real implementation,
+        // you would want to use a more sophisticated approach
+        for (i, rule) in tokens_str.split(";").enumerate() {
+            if rule.trim().is_empty() {
+                continue;
+            }
+            
+            // Try to split the rule into pattern and expansion
+            if let Some(idx) = rule.find("=>") {
+                let pattern = rule[..idx].trim().to_string();
+                let expansion = rule[(idx + 2)..].trim().to_string();
+                
+                rules.push(MacroRuleNode {
+                    id: self.state.next_node_id(),
+                    pattern,
+                    expansion,
+                });
+            }
+        }
+        
+        // Create the macro node
+        let macro_node = MacroNode {
+            id: macro_id,
+            name: macro_name,
+            visibility: VisibilityKind::Inherited, // Macros don't have explicit visibility
+            kind: MacroKind::DeclarativeMacro,
+            rules,
+            attributes,
+            docstring,
+            body,
+        };
+        
+        // Add the macro to the code graph
+        self.state.code_graph.macros.push(macro_node);
+        
+        // Continue visiting
+        visit::visit_item_macro(self, item_macro);
+    }
+    
+    // Visit procedural macros
+    fn visit_item_fn(&mut self, func: &'ast ItemFn) {
+        // Check if this function is a procedural macro
+        let is_proc_macro = func.attrs.iter().any(|attr| {
+            attr.path().is_ident("proc_macro") || 
+            attr.path().is_ident("proc_macro_derive") ||
+            attr.path().is_ident("proc_macro_attribute")
+        });
+        
+        if is_proc_macro {
+            let macro_id = self.state.next_node_id();
+            let macro_name = func.sig.ident.to_string();
+            
+            // Determine the kind of procedural macro
+            let proc_macro_kind = if func.attrs.iter().any(|attr| attr.path().is_ident("proc_macro_derive")) {
+                ProcMacroKind::Derive
+            } else if func.attrs.iter().any(|attr| attr.path().is_ident("proc_macro_attribute")) {
+                ProcMacroKind::Attribute
+            } else {
+                ProcMacroKind::Function
+            };
+            
+            // Extract doc comments and other attributes
+            let docstring = self.state.extract_docstring(&func.attrs);
+            let attributes = self.state.extract_attributes(&func.attrs);
+            
+            // Extract function body as a string
+            let body = Some(func.block.to_token_stream().to_string());
+            
+            // Create the macro node
+            let macro_node = MacroNode {
+                id: macro_id,
+                name: macro_name,
+                visibility: self.state.convert_visibility(&func.vis),
+                kind: MacroKind::ProcedureMacro { kind: proc_macro_kind },
+                rules: Vec::new(), // Procedural macros don't have declarative rules
+                attributes,
+                docstring,
+                body,
+            };
+            
+            // Add the macro to the code graph
+            self.state.code_graph.macros.push(macro_node);
+        }
+        
+        // Continue with normal function processing
+        let fn_id = self.state.next_node_id();
+        let fn_name = func.sig.ident.to_string();
+
+        // Process function parameters
+        let mut parameters = Vec::new();
+        for arg in &func.sig.inputs {
+            if let Some(param) = self.state.process_fn_arg(arg) {
+                // Add relation between function and parameter
+                self.state.code_graph.relations.push(Relation {
+                    source: fn_id,
+                    target: param.id,
+                    kind: RelationKind::FunctionParameter,
+                });
+                parameters.push(param);
+            }
+        }
+
+        // Extract return type if it exists
+        let return_type = match &func.sig.output {
+            ReturnType::Default => None,
+            ReturnType::Type(_, ty) => {
+                let type_id = self.state.get_or_create_type(ty);
+                // Add relation between function and return type
+                self.state.code_graph.relations.push(Relation {
+                    source: fn_id,
+                    target: type_id,
+                    kind: RelationKind::FunctionReturn,
+                });
+                Some(type_id)
+            }
+        };
+
+        // Process generic parameters
+        let generic_params = self.state.process_generics(&func.sig.generics);
+
+        // Extract doc comments and other attributes
+        let docstring = self.state.extract_docstring(&func.attrs);
+        let attributes = self.state.extract_attributes(&func.attrs);
+
+        // Extract function body as a string
+        let body = Some(func.block.to_token_stream().to_string());
+
+        // Store function info
+        self.state.code_graph.functions.push(FunctionNode {
+            id: fn_id,
+            name: fn_name,
+            visibility: self.state.convert_visibility(&func.vis),
+            parameters,
+            return_type,
+            generic_params,
+            attributes,
+            docstring,
+            body,
+        });
+
+        // Continue visiting the function body
+        visit::visit_item_fn(self, func);
+    }
+    
+    // Visit macro invocations
+    fn visit_macro(&mut self, mac: &'ast syn::Macro) {
+        // Create a node ID for this macro invocation
+        let invocation_id = self.state.next_node_id();
+        
+        // Get the macro name
+        let macro_path = mac.path.to_token_stream().to_string();
+        
+        // Find if this macro is defined in our code graph
+        let defined_macro = self.state.code_graph.macros.iter()
+            .find(|m| m.name == macro_path.split("::").last().unwrap_or(&macro_path));
+        
+        if let Some(defined_macro) = defined_macro {
+            // Add a relation between the invocation and the macro definition
+            self.state.code_graph.relations.push(Relation {
+                source: invocation_id,
+                target: defined_macro.id,
+                kind: RelationKind::MacroUse,
+            });
+        }
+        
+        // Continue visiting
+        visit::visit_macro(self, mac);
     }
 }
 
