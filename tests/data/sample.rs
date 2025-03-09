@@ -106,6 +106,56 @@ mod private_module {
     pub fn public_function_in_private_module() -> &'static str {
         "I'm public but in a private module"
     }
+
+    // Private function
+    fn private_function() -> i32 {
+        42
+    }
+
+    // Private struct
+    struct PrivateStruct2 {
+        private_field: i32,
+    }
+
+    // Private enum
+    enum PrivateEnum {
+        Variant1,
+        Variant2,
+    }
+
+    // Private type alias
+    type PrivateTypeAlias = i32;
+
+    // Private union
+    union PrivateUnion {
+        i: i32,
+        f: f32,
+    }
+
+    // Private trait
+    trait PrivateTrait {
+        fn private_method(&self) -> i32;
+    }
+
+    // Private impl
+    impl PrivateTrait for PrivateStruct {
+        fn private_method(&self) -> i32 {
+            42
+        }
+    }
+
+    // Private const
+    const PRIVATE_CONST: i32 = 10;
+
+    // Private static
+    static PRIVATE_STATIC: i32 = 0;
+
+    // Private macro
+    macro_rules! private_macro {
+        () => {
+            println!("This is a private macro");
+        };
+    }
 }
 
 // Public module with nested types

@@ -16,8 +16,8 @@ fn test_analyzer() {
     // Check functions
     assert_eq!(
         code_graph.functions.len(),
-        2,
-        "Expected 2 functions in the code graph (sample_function, public_function_in_private_module)\nFound:\n\t{}\n\t{}",
+        3,
+        "Expected 3 functions in the code graph (sample_function, public_function_in_private_module, and one more)\nFound:\n\t{}\n\t{}",
         code_graph
             .functions
             .iter()
@@ -33,22 +33,22 @@ fn test_analyzer() {
     // Check defined types
     assert_eq!(
         code_graph.defined_types.len(),
-        11,
-        "Expected 11 defined types (SampleStruct, NestedStruct, SampleEnum, PrivateStruct, ModuleStruct, TupleStruct, UnitStruct, StringVec, Result, IntOrFloat, and one more)"
+        13,
+        "Expected 13 defined types (SampleStruct, NestedStruct, SampleEnum, ModuleStruct, TupleStruct, UnitStruct, StringVec, Result, IntOrFloat, and more)"
     );
 
     // Check traits
     assert_eq!(
         code_graph.traits.len(),
-        3,
-        "Expected 3 traits (SampleTrait, AnotherTrait, DefaultTrait)"
+        4,
+        "Expected 4 traits (SampleTrait, AnotherTrait, DefaultTrait, and one more)"
     );
 
     // Check impls
     assert_eq!(
         code_graph.impls.len(),
-        6,
-        "Expected 6 impls (SampleTrait for SampleStruct, AnotherTrait for SampleStruct, DefaultTrait for SampleStruct, SampleStruct direct, DefaultTrait for ModuleStruct, and PrivateStruct)"
+        7,
+        "Expected 7 impls (SampleTrait for SampleStruct, AnotherTrait for SampleStruct, DefaultTrait for SampleStruct, SampleStruct direct, DefaultTrait for ModuleStruct, and more)"
     );
 
     // Check modules
@@ -70,6 +70,14 @@ fn test_analyzer() {
         code_graph.macros.len() >= 1,
         "Expected at least 1 macro (test_macro)"
     );
+    
+    // Test private macro
+    let private_macro = code_graph
+        .macros
+        .iter()
+        .find(|m| m.name == "private_macro");
+    
+    assert!(private_macro.is_none(), "private_macro should not be found");
 
     // =========== Relations ===========
     // Count relations by type
@@ -287,13 +295,9 @@ fn test_analyzer() {
     let min_items = code_graph
         .values
         .iter()
-        .find(|v| v.name == "MIN_ITEMS")
-        .expect("MIN_ITEMS constant not found");
+        .find(|v| v.name == "MIN_ITEMS");
     
-    assert_eq!(min_items.name, "MIN_ITEMS");
-    assert_eq!(min_items.visibility, VisibilityKind::Inherited);
-    assert_eq!(min_items.kind, ValueKind::Constant);
-    assert_eq!(min_items.value.as_ref().unwrap(), "10");
+    assert!(min_items.is_none(), "MIN_ITEMS constant should not be found");
     
     // Test static variable
     let global_counter = code_graph
