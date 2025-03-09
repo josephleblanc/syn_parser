@@ -181,7 +181,7 @@ macro_rules! test_macro {
 
 /// A procedural macro example (this would normally be in a proc-macro crate)
 #[proc_macro]
-pub fn example_proc_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn example_proc_macro(input: &str) -> String {
     // This is just for demonstration, not actually functional
-    input
+    input.to_string()
 }
