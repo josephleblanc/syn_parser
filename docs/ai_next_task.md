@@ -12,10 +12,10 @@
    - [x] Track which external dependencies are being used
 
 3. **Type Aliases, Unions, and Trait Aliases**:
-   - [ ] Extend `TypeDefNode` enum to include these additional type definitions
-   - [ ] Add support for parsing type aliases
-   - [ ] Add support for parsing unions
-   - [ ] Add support for parsing trait aliases
+   - [x] Extend `TypeDefNode` enum to include these additional type definitions
+   - [x] Add support for parsing type aliases
+   - [x] Add support for parsing unions
+   - [x] Add support for parsing trait aliases
 
 4. **Constants and Statics**:
    - [ ] Add `ValueNode` to represent constants and static variables
