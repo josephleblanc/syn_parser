@@ -48,8 +48,28 @@ fn test_analyzer() {
     assert_eq!(
         code_graph.impls.len(),
         7,
-        "Expected 7 impls (SampleTrait for SampleStruct, AnotherTrait for SampleStruct, DefaultTrait for SampleStruct, SampleStruct direct, DefaultTrait for ModuleStruct, and others)"
+        "Expected 7 impls (SampleTrait for SampleStruct, AnotherTrait for SampleStruct, DefaultTrait for SampleStruct, Direct impl for SampleStruct, DefaultTrait for ModuleStruct, and others)\nFound:\n\t{:?}",
+        code_graph.impls.iter().map(|imp| {
+            if let Some(trait_type) = imp.trait_type {
+                if let Some(trait_type) = code_graph.type_graph.iter().find(|t| t.id == trait_type) {
+                    if let TypeKind::Named { path, .. } = &trait_type.kind {
+                        return format!("{} for {}", path.last().unwrap_or(&"UnknownTrait".to_string()), get_self_type_name(&code_graph, imp.self_type));
+                    }
+                }
+            }
+            format!("Direct impl for {}", get_self_type_name(&code_graph, imp.self_type))
+        }).collect::<Vec<String>>()
     );
+
+    // Helper function to get self type name
+    fn get_self_type_name(code_graph: &CodeGraph, self_type_id: TypeId) -> String {
+        if let Some(self_type) = code_graph.type_graph.iter().find(|t| t.id == self_type_id) {
+            if let TypeKind::Named { path, .. } = &self_type.kind {
+                return path.last().unwrap_or(&"UnknownType".to_string()).to_string();
+            }
+        }
+        "UnknownType".to_string()
+    }
 
     // Check modules
     assert_eq!(
