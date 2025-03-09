@@ -95,8 +95,7 @@ pub enum TypeDefNode {
     Enum(EnumNode),
 }
 
-impl TypeDefNode {
-}
+impl TypeDefNode {}
 
 // ANCHOR: StructNode
 // Represents a struct definition
@@ -292,8 +291,7 @@ pub enum VisibilityKind {
     Inherited,               // Default visibility
 }
 
-impl VisibilityKind {
-}
+impl VisibilityKind {}
 
 // ANCHOR: Relation
 // Represents a relation between nodes
@@ -821,8 +819,6 @@ impl<'a> CodeVisitor<'a> {
 impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     // Visit function definitions
     fn visit_item_fn(&mut self, func: &'ast ItemFn) {
-        println!("Visiting function: {}", func.sig.ident.to_string()); // Debug line
-
         let fn_id = self.state.next_node_id();
         let fn_name = func.sig.ident.to_string();
 
@@ -1046,31 +1042,15 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 path: path.clone(),
             });
             let trait_id = self.state.get_or_create_type(&ty);
-            println!("Trait type ID: {:?}", trait_id); // Debug line
             trait_id
         });
-
-        println!("Trait type ID after map: {:?}", trait_type_id); // Debug line
-
-        // Ensure that the trait_type_id is correctly set
-        if let Some(trait_id) = trait_type_id {
-            println!("Trait ID found: {:?}", trait_id); // Debug line
-        } else {
-            println!("No trait ID found"); // Debug line
-        }
 
         // Process methods
         let mut methods = Vec::new();
         for item in &item_impl.items {
             if let syn::ImplItem::Fn(method) = item {
-                println!("Visiting method: {}", method.sig.ident.to_string()); // Debug line
-
                 let method_node_id = self.state.next_node_id();
                 let method_name = method.sig.ident.to_string();
-
-                if method_name == "new" {
-                    println!("Found new method: {}", method_name); // Debug line
-                }
 
                 // Process method parameters
                 let mut parameters = Vec::new();
@@ -1271,8 +1251,6 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let module_id = self.state.next_node_id();
         let module_name = module.ident.to_string();
 
-        println!("Visiting module: {}", module_name); // Debug line
-
         // Process inner items if available
         let mut submodules = Vec::new();
         let mut items = Vec::new();
@@ -1284,36 +1262,28 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
                 match item {
                     syn::Item::Fn(func) => {
-                        println!("Visiting function in module: {}", func.sig.ident.to_string()); // Debug line
                         self.visit_item_fn(func);
                     }
                     syn::Item::Struct(strct) => {
-                        println!("Visiting struct in module: {}", strct.ident.to_string()); // Debug line
                         self.visit_item_struct(strct);
                     }
                     syn::Item::Enum(enm) => {
-                        println!("Visiting enum in module: {}", enm.ident.to_string()); // Debug line
                         self.visit_item_enum(enm);
                     }
                     syn::Item::Impl(impl_block) => {
-                        println!("Visiting impl in module: {}", impl_block.self_ty.to_token_stream()); // Debug line
                         self.visit_item_impl(impl_block);
                     }
                     syn::Item::Trait(trt) => {
-                        println!("Visiting trait in module: {}", trt.ident.to_string()); // Debug line
                         self.visit_item_trait(trt);
                     }
                     syn::Item::Mod(md) => {
-                        println!("Visiting submodule in module: {}", md.ident.to_string()); // Debug line
                         submodules.push(item_id); // Add to submodules
                         self.visit_item_mod(md); // Recursive call
                     }
                     syn::Item::Use(use_item) => {
-                        println!("Visiting use in module: {}", use_item.to_token_stream()); // Debug line
                         self.visit_item_use(use_item);
                     }
                     syn::Item::ExternCrate(extern_crate) => {
-                        println!("Visiting extern crate in module: {}", extern_crate.to_token_stream()); // Debug line
                         self.visit_item_extern_crate(extern_crate);
                     }
                     // Add other item types as needed
@@ -1343,7 +1313,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
     let mut visitor_state = VisitorState::new();
-    
+
     // Create the root module first
     let root_module_id = visitor_state.next_node_id();
     visitor_state.code_graph.modules.push(ModuleNode {
@@ -1357,10 +1327,10 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
         imports: Vec::new(),
         exports: Vec::new(),
     });
-    
+
     let mut visitor = CodeVisitor::new(&mut visitor_state);
     visitor.visit_file(&file);
-    
+
     // Add relations between root module and top-level items
     for module in &visitor_state.code_graph.modules {
         if module.id != root_module_id {
@@ -1371,7 +1341,7 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
             });
         }
     }
-    
+
     Ok(visitor_state.code_graph)
 }
 
