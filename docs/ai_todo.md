@@ -2,19 +2,19 @@
 
 Here's a step-by-step approach that balances syntactic extraction with semantic relationships useful for an LLM-based code generation and refactoring system.
 
-## Step 1: Expand Item Coverage
+## Step 1: Expand Item Coverage ✓
 
-Your code already handles several important Rust items (functions, structs, enums, implementations, traits), but needs to incorporate the remaining item types:
+Your code already handles several important Rust items (functions, structs, enums, implementations, traits), and now also includes:
 
-1. **Module Structure**:
-   - Add `ModuleNode` to represent module hierarchy
-   - Track imports/exports between modules to establish cross-module relationships
-   - Store module-level documentation
+1. **Module Structure**: ✓
+   - Added `ModuleNode` to represent module hierarchy
+   - Tracking imports/exports between modules to establish cross-module relationships
+   - Storing module-level documentation
 
-2. **Use Declarations & Extern Crates**:
-   - Create `ImportNode` to represent both use statements and extern crates
-   - Establish `UseRelation` edges between items and their imports
-   - This helps track which external dependencies are being used
+2. **Use Declarations & Extern Crates**: ✓
+   - Created `ImportNode` to represent both use statements and extern crates
+   - Established `UseRelation` edges between items and their imports
+   - Now tracking which external dependencies are being used
 
 3. **Type Aliases, Unions, and Trait Aliases**:
    - Extend `TypeDefNode` enum to include these additional type definitions
@@ -210,24 +210,29 @@ fn process_call_expr(&mut self, expr_id: NodeId, expr: &ExprCall) {
 
 ## Next Immediate Steps
 
-1. **Implement Module and Use Declaration Parsing**:
-   - These are foundational for understanding code organization
-   - They establish important cross-file relationships
+1. **Complete Remaining Item Types**:
+   - Implement Type Aliases, Unions, and Trait Aliases parsing
+   - Add Constants and Statics support
+   - Implement Macros and Macro Rules parsing
 
 2. **Add Basic Function Body Analysis**:
    - Start with simple statement and expression extraction
    - Focus on variable declarations and function calls
+   - Create a `BlockNode` to represent code blocks
 
 3. **Expand Relationship Types**:
-   - Add the `Uses` relationship to track dependencies
    - Implement `Calls` relationship for function invocations
+   - Add data flow tracking between variables
+   - Create control flow relationships
 
 4. **Begin Semantic Chunking**:
    - Create a chunking strategy for embedding functions
    - Test with different context window sizes
+   - Group related items for better retrieval
 
 5. **Create Simple Graph Queries**:
    - Implement basic traversal methods for the graph
    - Support "find related code" queries
+   - Enable "find all implementations of trait X" queries
 
-This plan provides a comprehensive approach to enhancing your Rust code parser for RAG purposes, focusing on both the syntactic extraction and semantic relationships that will be most valuable for code generation and refactoring tasks.
+This plan provides a comprehensive approach to enhancing your Rust code parser for RAG purposes. You've already completed the first major milestone by implementing module structure and use declarations. The next steps will focus on completing the remaining item types and enhancing the semantic relationships that will be most valuable for code generation and refactoring tasks.

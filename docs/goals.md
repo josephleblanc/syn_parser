@@ -6,15 +6,15 @@ A step-by-step approach that balances syntactic extraction with semantic relatio
 
 Your code already handles several important Rust items (functions, structs, enums, implementations, traits), but needs to incorporate the remaining item types:
 
-1. **Module Structure**:
-   - Add `ModuleNode` to represent module hierarchy
-   - Track imports/exports between modules to establish cross-module relationships
-   - Store module-level documentation
+1. **Module Structure**: ✓
+   - Added `ModuleNode` to represent module hierarchy
+   - Tracking imports/exports between modules to establish cross-module relationships
+   - Storing module-level documentation
 
-2. **Use Declarations & Extern Crates**:
-   - Create `ImportNode` to represent both use statements and extern crates
-   - Establish `UseRelation` edges between items and their imports
-   - This helps track which external dependencies are being used
+2. **Use Declarations & Extern Crates**: ✓
+   - Created `ImportNode` to represent both use statements and extern crates
+   - Established `UseRelation` edges between items and their imports
+   - Now tracking which external dependencies are being used
 
 3. **Type Aliases, Unions, and Trait Aliases**:
    - Extend `TypeDefNode` enum to include these additional type definitions

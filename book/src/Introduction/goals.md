@@ -22,9 +22,9 @@ There should be a node for each kind of rust "Item" (see [rust reference](https:
 
 | Rust Items | In-Project | `syn` [Item] | Progress | Next Step |
 | --------------------- | ----------------- | ----------------------- | ----------------------- | --------------- |
-| [Module] | todo | [ItemMod] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [ExternCrate] | [Function::is_extern] | [ItemExternCrate] | ☑ Start <br> ☐ Finish | [Edges Todo] |
-| [UseDeclaration] | [RealtionKind::Uses] | [ItemUse] | ☑ Start <br> ☐ Finish | [Edges Todo] |
+| [Module] | [ModuleNode] | [ItemMod] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
+| [ExternCrate] | [ImportNode::ExternCrate] | [ItemExternCrate] | ☑ Start <br> ☑ Finish | [Edges Todo] |
+| [UseDeclaration] | [ImportNode::UseStatement] | [ItemUse] | ☑ Start <br> ☑ Finish | [Edges Todo] |
 | [Function] | todo | [ItemFn] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
 | [TypeAlias] | todo | [ItemType] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
 | [Struct] | todo | [ItemStruct] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
@@ -77,5 +77,7 @@ There should be a node for each kind of rust "Item" (see [rust reference](https:
 
 [Nodes Todo]:./todo_nodes.md
 [Edges Todo]:./todo_edges.md
-[RealtionKind::Uses]:./nodes.md
-[Function::is_extern]:./nodes.md
+[ModuleNode]:./nodes.md
+[ImportNode::ExternCrate]:./nodes.md
+[ImportNode::UseStatement]:./nodes.md
+[RealtionKind::Uses]:./edges.md
