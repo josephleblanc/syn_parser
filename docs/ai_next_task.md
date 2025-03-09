@@ -21,6 +21,7 @@
    - [ ] Add `ValueNode` to represent constants and static variables
    - [ ] Track type information and initialization expressions
    - [ ] Parse visibility and attributes for constants/statics
+   - [ ] Add tests for constants and statics
 
 5. **Macros and Macro Rules**:
    - [ ] Create `MacroNode` to capture macro definitions

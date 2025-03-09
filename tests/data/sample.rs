@@ -136,3 +136,19 @@ pub struct TupleStruct(pub String, pub i32);
 
 // Unit struct
 pub struct UnitStruct;
+
+/// Type alias example
+pub type StringVec = Vec<String>;
+
+/// Generic type alias
+pub type Result<T> = std::result::Result<T, String>;
+
+/// Union example for memory-efficient storage
+#[repr(C)]
+pub union IntOrFloat {
+    pub i: i32,
+    pub f: f32,
+}
+
+/// Trait alias example
+pub trait SerializeDeserialize = Serialize + Deserialize;

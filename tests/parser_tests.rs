@@ -33,8 +33,8 @@ fn test_analyzer() {
     // Check defined types
     assert_eq!(
         code_graph.defined_types.len(),
-        8,
-        "Expected 8 defined types (SampleStruct, NestedStruct, SampleEnum, PrivateStruct, ModuleStruct, TupleStruct, UnitStruct, and one more)"
+        12,
+        "Expected 12 defined types (SampleStruct, NestedStruct, SampleEnum, PrivateStruct, ModuleStruct, TupleStruct, UnitStruct, StringVec, Result, IntOrFloat, SerializeDeserialize, and one more)"
     );
 
     // Check traits
@@ -180,6 +180,97 @@ fn test_analyzer() {
             0,
             "Expected 0 fields in UnitStruct"
         );
+    }
+
+    // =========== Type Alias Tests ===========
+    let string_vec_alias = code_graph
+        .defined_types
+        .iter()
+        .find(|def| match def {
+            TypeDefNode::TypeAlias(ta) => ta.name == "StringVec",
+            _ => false,
+        })
+        .expect("StringVec type alias not found");
+
+    if let TypeDefNode::TypeAlias(type_alias) = string_vec_alias {
+        assert_eq!(type_alias.name, "StringVec");
+        assert_eq!(type_alias.visibility, VisibilityKind::Public);
+        assert!(
+            type_alias.docstring.is_some(),
+            "Expected docstring for StringVec"
+        );
+        assert!(type_alias.docstring.as_ref().unwrap().contains("Type alias example"));
+    }
+
+    let result_alias = code_graph
+        .defined_types
+        .iter()
+        .find(|def| match def {
+            TypeDefNode::TypeAlias(ta) => ta.name == "Result",
+            _ => false,
+        })
+        .expect("Result type alias not found");
+
+    if let TypeDefNode::TypeAlias(type_alias) = result_alias {
+        assert_eq!(type_alias.name, "Result");
+        assert_eq!(type_alias.visibility, VisibilityKind::Public);
+        assert_eq!(type_alias.generic_params.len(), 1);
+        assert_eq!(
+            if let GenericParamKind::Type { name, .. } = &type_alias.generic_params[0].kind {
+                name
+            } else {
+                "Not a GenericParamKind::Type"
+            },
+            "T"
+        );
+    }
+
+    // =========== Union Tests ===========
+    let int_or_float = code_graph
+        .defined_types
+        .iter()
+        .find(|def| match def {
+            TypeDefNode::Union(u) => u.name == "IntOrFloat",
+            _ => false,
+        })
+        .expect("IntOrFloat union not found");
+
+    if let TypeDefNode::Union(union_node) = int_or_float {
+        assert_eq!(union_node.name, "IntOrFloat");
+        assert_eq!(union_node.visibility, VisibilityKind::Public);
+        assert_eq!(union_node.fields.len(), 2);
+        
+        // Check field names
+        let field_names: Vec<Option<String>> = union_node.fields.iter()
+            .map(|f| f.name.clone())
+            .collect();
+        assert!(field_names.contains(&Some("i".to_string())));
+        assert!(field_names.contains(&Some("f".to_string())));
+        
+        // Check attributes
+        assert!(union_node.attributes.iter().any(|attr| attr.name == "repr"));
+        
+        // Check docstring
+        assert!(union_node.docstring.is_some());
+        assert!(union_node.docstring.as_ref().unwrap().contains("memory-efficient storage"));
+    }
+
+    // =========== Trait Alias Tests ===========
+    let serialize_deserialize = code_graph
+        .defined_types
+        .iter()
+        .find(|def| match def {
+            TypeDefNode::TraitAlias(ta) => ta.name == "SerializeDeserialize",
+            _ => false,
+        })
+        .expect("SerializeDeserialize trait alias not found");
+
+    if let TypeDefNode::TraitAlias(trait_alias) = serialize_deserialize {
+        assert_eq!(trait_alias.name, "SerializeDeserialize");
+        assert_eq!(trait_alias.visibility, VisibilityKind::Public);
+        assert_eq!(trait_alias.trait_bounds.len(), 2);
+        assert!(trait_alias.docstring.is_some());
+        assert!(trait_alias.docstring.as_ref().unwrap().contains("Trait alias example"));
     }
 
     // =========== Enum Tests ===========
