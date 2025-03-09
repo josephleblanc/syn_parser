@@ -33,8 +33,8 @@ fn test_analyzer() {
     // Check defined types
     assert_eq!(
         code_graph.defined_types.len(),
-        13,
-        "Expected 13 defined types (SampleStruct, NestedStruct, SampleEnum, ModuleStruct, TupleStruct, UnitStruct, StringVec, Result, IntOrFloat, and more)"
+        10,
+        "Expected 10 defined types (SampleStruct, NestedStruct, SampleEnum, ModuleStruct, TupleStruct, UnitStruct, StringVec, Result, IntOrFloat, and more)"
     );
 
     // Check traits

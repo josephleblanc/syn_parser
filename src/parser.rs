@@ -446,18 +446,6 @@ impl VisitorState {
         }
     }
 
-    fn record_dependency(&mut self, from: NodeId, to: NodeId, kind: RelationKind) {
-        let from_idx = *self
-            .node_map
-            .entry(from)
-            .or_insert_with(|| self.dependency_graph.add_node(from));
-        let to_idx = *self
-            .node_map
-            .entry(to)
-            .or_insert_with(|| self.dependency_graph.add_node(to));
-        self.dependency_graph.add_edge(from_idx, to_idx, kind);
-    }
-
     fn next_node_id(&mut self) -> NodeId {
         let id = self.next_node_id;
         self.next_node_id += 1;
