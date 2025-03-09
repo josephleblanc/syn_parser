@@ -96,12 +96,6 @@ pub enum TypeDefNode {
 }
 
 impl TypeDefNode {
-    pub fn id(&self) -> NodeId {
-        match self {
-            TypeDefNode::Struct(s) => s.id,
-            TypeDefNode::Enum(e) => e.id,
-        }
-    }
 }
 
 // ANCHOR: StructNode
@@ -299,12 +293,6 @@ pub enum VisibilityKind {
 }
 
 impl VisibilityKind {
-    pub fn is_restricted(&self) -> bool {
-        if let VisibilityKind::Restricted(_) = self {
-            return true;
-        }
-        false
-    }
 }
 
 // ANCHOR: Relation
@@ -1079,6 +1067,10 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
                 let method_node_id = self.state.next_node_id();
                 let method_name = method.sig.ident.to_string();
+
+                if method_name == "new" {
+                    println!("Found new method: {}", method_name); // Debug line
+                }
 
                 // Process method parameters
                 let mut parameters = Vec::new();

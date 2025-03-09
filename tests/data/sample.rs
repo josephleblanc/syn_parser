@@ -92,7 +92,6 @@ pub enum SampleEnum<T> {
 
 // Private module for testing visibility
 mod private_module {
-    use super::*;
 
     struct PrivateStruct {
         private_field: String,
