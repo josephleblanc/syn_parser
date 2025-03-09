@@ -1304,7 +1304,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                         self.visit_item_enum(enm);
                     }
                     syn::Item::Impl(impl_block) => {
-                        println!("Visiting impl in module: {:?}", impl_block.self_ty); // Debug line
+                        println!("Visiting impl in module: {}", impl_block.self_ty.to_token_stream()); // Debug line
                         self.visit_item_impl(impl_block);
                     }
                     syn::Item::Trait(trt) => {
@@ -1317,11 +1317,11 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                         self.visit_item_mod(md); // Recursive call
                     }
                     syn::Item::Use(use_item) => {
-                        println!("Visiting use in module: {:?}", use_item); // Debug line
+                        println!("Visiting use in module: {}", use_item.to_token_stream()); // Debug line
                         self.visit_item_use(use_item);
                     }
                     syn::Item::ExternCrate(extern_crate) => {
-                        println!("Visiting extern crate in module: {:?}", extern_crate); // Debug line
+                        println!("Visiting extern crate in module: {}", extern_crate.to_token_stream()); // Debug line
                         self.visit_item_extern_crate(extern_crate);
                     }
                     // Add other item types as needed
