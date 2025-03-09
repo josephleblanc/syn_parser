@@ -524,8 +524,7 @@ impl VisitorState {
                                         related_types.push(self.get_or_create_type(arg_type));
                                     }
                                     GenericArgument::AssocType(assoc_type) => {
-                                        related_types
-                                            .push(self.process_associated_type(&assoc_type.path));
+                                        related_types.push(self.process_associated_type(&assoc_type.path));
                                     }
                                     // Process other generic arguments if needed
                                     _ => {}
