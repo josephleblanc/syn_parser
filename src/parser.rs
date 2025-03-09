@@ -420,6 +420,8 @@ struct VisitorState {
     type_map: HashMap<String, TypeId>,
 }
 
+use petgraph::Graph;
+
 impl VisitorState {
     fn new() -> Self {
         Self {
@@ -437,7 +439,15 @@ impl VisitorState {
             next_node_id: 0,
             next_type_id: 0,
             type_map: HashMap::new(),
+            dependency_graph: Graph::new(),
+            node_map: HashMap::new(),
         }
+    }
+
+    fn record_dependency(&mut self, from: NodeId, to: NodeId, kind: RelationKind) {
+        let from_idx = *self.node_map.entry(from).or_insert_with(|| self.dependency_graph.add_node(from));
+        let to_idx = *self.node_map.entry(to).or_insert_with(|| self.dependency_graph.add_node(to));
+        self.dependency_graph.add_edge(from_idx, to_idx, kind);
     }
 
     fn next_node_id(&mut self) -> NodeId {
@@ -477,6 +487,12 @@ impl VisitorState {
 
     // Process a type and get its kind and related types
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
+        fn process_associated_type(&mut self, ty: &syn::TypePath) -> TypeId {
+            let path_segments = ty.path.segments.iter().map(|s| s.ident.to_string()).collect();
+            self.get_or_create_named_type(&path_segments, ty)
+        }
+
+        match ty {
         match ty {
             Type::Path(TypePath { path, qself }) => {
                 let mut related_types = Vec::new();
@@ -494,6 +510,9 @@ impl VisitorState {
                                 match arg {
                                     GenericArgument::Type(arg_type) => {
                                         related_types.push(self.get_or_create_type(arg_type));
+                                    }
+                                    GenericArgument::AssocType(assoc_type) => {
+                                        related_types.push(self.process_associated_type(&assoc_type.path));
                                     }
                                     // Process other generic arguments if needed
                                     _ => {}
