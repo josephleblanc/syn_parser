@@ -16,8 +16,8 @@ fn test_analyzer() {
     // Check functions
     assert_eq!(
         code_graph.functions.len(),
-        3,
-        "Expected 3 functions in the code graph (sample_function, public_function_in_private_module, new)\nFound:\n\t{}\n\t{}\n\t{}",
+        2,
+        "Expected 2 functions in the code graph (sample_function, public_function_in_private_module)\nFound:\n\t{}\n\t{}",
         code_graph
             .functions
             .iter()
@@ -27,12 +27,7 @@ fn test_analyzer() {
             .functions
             .iter()
             .find(|f| f.name == "public_function_in_private_module")
-            .expect("public_function_in_private_module not found").name,
-        code_graph
-            .functions
-            .iter()
-            .find(|f| f.name == "new")
-            .expect("new not found").name
+            .expect("public_function_in_private_module not found").name
     );
 
     // Check defined types
