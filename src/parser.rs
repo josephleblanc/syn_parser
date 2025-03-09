@@ -424,8 +424,6 @@ struct VisitorState {
     type_map: HashMap<String, TypeId>,
     dependency_graph: petgraph::Graph<NodeId, RelationKind>,
     node_map: HashMap<NodeId, petgraph::graph::NodeIndex>,
-    dependency_graph: Graph<NodeId, RelationKind>,
-    node_map: HashMap<NodeId, petgraph::graph::NodeIndex>,
 }
 
 impl VisitorState {
