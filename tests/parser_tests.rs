@@ -57,6 +57,13 @@ fn test_analyzer() {
         3,
         "Expected 3 modules (root, private_module, public_module)"
     );
+    
+    // Check constants and statics
+    assert_eq!(
+        code_graph.values.len(),
+        4,
+        "Expected 4 values (MAX_ITEMS, MIN_ITEMS, GLOBAL_COUNTER, MUTABLE_COUNTER)"
+    );
 
     // =========== Relations ===========
     // Count relations by type
@@ -254,6 +261,57 @@ fn test_analyzer() {
         assert!(union_node.docstring.is_some());
         assert!(union_node.docstring.as_ref().unwrap().contains("memory-efficient storage"));
     }
+
+    // =========== Constants and Statics Tests ===========
+    // Test public constant
+    let max_items = code_graph
+        .values
+        .iter()
+        .find(|v| v.name == "MAX_ITEMS")
+        .expect("MAX_ITEMS constant not found");
+    
+    assert_eq!(max_items.name, "MAX_ITEMS");
+    assert_eq!(max_items.visibility, VisibilityKind::Public);
+    assert_eq!(max_items.kind, ValueKind::Constant);
+    assert_eq!(max_items.value.as_ref().unwrap(), "100");
+    assert!(max_items.docstring.is_some());
+    assert!(max_items.docstring.as_ref().unwrap().contains("public constant"));
+    
+    // Test private constant
+    let min_items = code_graph
+        .values
+        .iter()
+        .find(|v| v.name == "MIN_ITEMS")
+        .expect("MIN_ITEMS constant not found");
+    
+    assert_eq!(min_items.name, "MIN_ITEMS");
+    assert_eq!(min_items.visibility, VisibilityKind::Inherited);
+    assert_eq!(min_items.kind, ValueKind::Constant);
+    assert_eq!(min_items.value.as_ref().unwrap(), "10");
+    
+    // Test static variable
+    let global_counter = code_graph
+        .values
+        .iter()
+        .find(|v| v.name == "GLOBAL_COUNTER")
+        .expect("GLOBAL_COUNTER static not found");
+    
+    assert_eq!(global_counter.name, "GLOBAL_COUNTER");
+    assert_eq!(global_counter.visibility, VisibilityKind::Public);
+    assert!(matches!(global_counter.kind, ValueKind::Static { is_mutable: false }));
+    assert_eq!(global_counter.value.as_ref().unwrap(), "0");
+    
+    // Test mutable static variable
+    let mutable_counter = code_graph
+        .values
+        .iter()
+        .find(|v| v.name == "MUTABLE_COUNTER")
+        .expect("MUTABLE_COUNTER static not found");
+    
+    assert_eq!(mutable_counter.name, "MUTABLE_COUNTER");
+    assert_eq!(mutable_counter.visibility, VisibilityKind::Public);
+    assert!(matches!(mutable_counter.kind, ValueKind::Static { is_mutable: true }));
+    assert_eq!(mutable_counter.value.as_ref().unwrap(), "0");
 
 
     // =========== Enum Tests ===========

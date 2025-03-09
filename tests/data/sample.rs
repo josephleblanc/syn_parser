@@ -149,3 +149,15 @@ pub union IntOrFloat {
     pub i: i32,
     pub f: f32,
 }
+
+/// A public constant with documentation
+pub const MAX_ITEMS: usize = 100;
+
+/// A private constant
+const MIN_ITEMS: usize = 10;
+
+/// A public static variable
+pub static GLOBAL_COUNTER: i32 = 0;
+
+/// A mutable static variable
+pub static mut MUTABLE_COUNTER: i32 = 0;
