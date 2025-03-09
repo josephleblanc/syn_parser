@@ -1842,40 +1842,43 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
     // Visit constant items
     fn visit_item_const(&mut self, item_const: &'ast syn::ItemConst) {
-        let const_id = self.state.next_node_id();
-        let const_name = item_const.ident.to_string();
+        // Check if the constant is public
+        if matches!(item_const.vis, Visibility::Public(_)) {
+            let const_id = self.state.next_node_id();
+            let const_name = item_const.ident.to_string();
 
-        // Process the type
-        let type_id = self.state.get_or_create_type(&item_const.ty);
+            // Process the type
+            let type_id = self.state.get_or_create_type(&item_const.ty);
 
-        // Extract the value expression as a string
-        let value = Some(item_const.expr.to_token_stream().to_string());
+            // Extract the value expression as a string
+            let value = Some(item_const.expr.to_token_stream().to_string());
 
-        // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_const.attrs);
-        let attributes = self.state.extract_attributes(&item_const.attrs);
+            // Extract doc comments and other attributes
+            let docstring = self.state.extract_docstring(&item_const.attrs);
+            let attributes = self.state.extract_attributes(&item_const.attrs);
 
-        // Create the constant node
-        let const_node = ValueNode {
-            id: const_id,
-            name: const_name,
-            visibility: self.state.convert_visibility(&item_const.vis),
-            type_id,
-            kind: ValueKind::Constant,
-            value,
-            attributes,
-            docstring,
-        };
+            // Create the constant node
+            let const_node = ValueNode {
+                id: const_id,
+                name: const_name,
+                visibility: self.state.convert_visibility(&item_const.vis),
+                type_id,
+                kind: ValueKind::Constant,
+                value,
+                attributes,
+                docstring,
+            };
 
-        // Add the constant to the code graph
-        self.state.code_graph.values.push(const_node);
+            // Add the constant to the code graph
+            self.state.code_graph.values.push(const_node);
 
-        // Add relation between constant and its type
-        self.state.code_graph.relations.push(Relation {
-            source: const_id,
-            target: type_id,
-            kind: RelationKind::ValueType,
-        });
+            // Add relation between constant and its type
+            self.state.code_graph.relations.push(Relation {
+                source: const_id,
+                target: type_id,
+                kind: RelationKind::ValueType,
+            });
+        }
 
         // Continue visiting
         visit::visit_item_const(self, item_const);
@@ -1883,42 +1886,45 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
     // Visit static items
     fn visit_item_static(&mut self, item_static: &'ast syn::ItemStatic) {
-        let static_id = self.state.next_node_id();
-        let static_name = item_static.ident.to_string();
+        // Check if the static variable is public
+        if matches!(item_static.vis, Visibility::Public(_)) {
+            let static_id = self.state.next_node_id();
+            let static_name = item_static.ident.to_string();
 
-        // Process the type
-        let type_id = self.state.get_or_create_type(&item_static.ty);
+            // Process the type
+            let type_id = self.state.get_or_create_type(&item_static.ty);
 
-        // Extract the value expression as a string
-        let value = Some(item_static.expr.to_token_stream().to_string());
+            // Extract the value expression as a string
+            let value = Some(item_static.expr.to_token_stream().to_string());
 
-        // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_static.attrs);
-        let attributes = self.state.extract_attributes(&item_static.attrs);
+            // Extract doc comments and other attributes
+            let docstring = self.state.extract_docstring(&item_static.attrs);
+            let attributes = self.state.extract_attributes(&item_static.attrs);
 
-        // Create the static node
-        let static_node = ValueNode {
-            id: static_id,
-            name: static_name,
-            visibility: self.state.convert_visibility(&item_static.vis),
-            type_id,
-            kind: ValueKind::Static {
-                is_mutable: matches!(item_static.mutability, syn::StaticMutability::Mut(_)),
-            },
-            value,
-            attributes,
-            docstring,
-        };
+            // Create the static node
+            let static_node = ValueNode {
+                id: static_id,
+                name: static_name,
+                visibility: self.state.convert_visibility(&item_static.vis),
+                type_id,
+                kind: ValueKind::Static {
+                    is_mutable: matches!(item_static.mutability, syn::StaticMutability::Mut(_)),
+                },
+                value,
+                attributes,
+                docstring,
+            };
 
-        // Add the static to the code graph
-        self.state.code_graph.values.push(static_node);
+            // Add the static to the code graph
+            self.state.code_graph.values.push(static_node);
 
-        // Add relation between static and its type
-        self.state.code_graph.relations.push(Relation {
-            source: static_id,
-            target: type_id,
-            kind: RelationKind::ValueType,
-        });
+            // Add relation between static and its type
+            self.state.code_graph.relations.push(Relation {
+                source: static_id,
+                target: type_id,
+                kind: RelationKind::ValueType,
+            });
+        }
 
         // Continue visiting
         visit::visit_item_static(self, item_static);
