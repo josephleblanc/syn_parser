@@ -28,9 +28,26 @@ Your code already handles several important Rust items (functions, structs, enum
 5. **Macros and Macro Rules**:
    - Create `MacroNode` to capture macro definitions
    - Record macro invocations as `MacroUseRelation`
-   - This is critical for understanding Rust's meta-programming features
+   - Track macro usage across the codebase
 
-## Step 2: Enhance Function and Block Analysis
+## Step 2: Prepare Data for Analysis
+
+1. **Relationship Modeling**:
+   - Implement `Calls` relationship for function invocations
+   - Add data flow tracking between variables
+   - Create control flow relationships
+
+2. **Semantic Chunking for Embeddings**:
+   - Create a chunking strategy for embedding functions
+   - Group related items for better retrieval
+   - Define boundaries for context windows
+
+3. **Graph Query Support**:
+   - Implement basic traversal methods for the graph
+   - Support "find related code" queries
+   - Enable "find all implementations of trait X" queries
+
+## Step 3: Function Body Analysis (Future Work)
 
 1. **Function Body Extraction**:
    - Create a `BlockNode` to represent code blocks
@@ -47,25 +64,7 @@ Your code already handles several important Rust items (functions, structs, enum
    - Track data dependencies between statements
    - Identify mutable vs immutable access patterns
 
-## Step 3: Relationship Modeling
-
-1. **Direct Relationships**:
-   - Function calls (`CallsRelation`)
-   - Type containment (`ContainsRelation`)
-   - Trait implementations (`ImplementsRelation`)
-   - Type conversions/coercions (`ConvertToRelation`)
-
-2. **Semantic Relationships**:
-   - Function similarity (based on parameter/return types)
-   - Type hierarchy relationships
-   - Producer/consumer relationships (functions producing values consumed by others)
-
-3. **Dependency Graph**:
-   - Add `DependsOn` relationships to show item interdependencies
-   - Create a directed acyclic graph (DAG) of dependencies
-   - Useful for understanding code organization
-
-## Step 4: Semantic Chunking for Embeddings
+## Step 4: Advanced Semantic Analysis (Future Work)
 
 1. **Natural Code Boundaries**:
    - Individual functions with their docstrings

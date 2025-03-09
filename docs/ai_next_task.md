@@ -25,4 +25,4 @@
 5. **Macros and Macro Rules**:
    - [ ] Create `MacroNode` to capture macro definitions
    - [ ] Record macro invocations as `MacroUseRelation`
-   - [ ] Parse macro rules and expansion patterns
+   - [ ] Track macro usage across the codebase

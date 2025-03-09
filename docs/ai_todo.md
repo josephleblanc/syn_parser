@@ -213,26 +213,26 @@ fn process_call_expr(&mut self, expr_id: NodeId, expr: &ExprCall) {
 1. **Complete Remaining Item Types**:
    - Implement Type Aliases, Unions, and Trait Aliases parsing
    - Add Constants and Statics support
-   - Implement Macros and Macro Rules parsing
+   - Implement Macros and basic Macro Rules parsing
 
-2. **Add Basic Function Body Analysis**:
-   - Start with simple statement and expression extraction
-   - Focus on variable declarations and function calls
-   - Create a `BlockNode` to represent code blocks
-
-3. **Expand Relationship Types**:
+2. **Expand Relationship Types**:
    - Implement `Calls` relationship for function invocations
    - Add data flow tracking between variables
    - Create control flow relationships
 
-4. **Begin Semantic Chunking**:
+3. **Begin Semantic Chunking**:
    - Create a chunking strategy for embedding functions
    - Test with different context window sizes
    - Group related items for better retrieval
 
-5. **Create Simple Graph Queries**:
+4. **Create Simple Graph Queries**:
    - Implement basic traversal methods for the graph
    - Support "find related code" queries
    - Enable "find all implementations of trait X" queries
 
-This plan provides a comprehensive approach to enhancing your Rust code parser for RAG purposes. You've already completed the first major milestone by implementing module structure and use declarations. The next steps will focus on completing the remaining item types and enhancing the semantic relationships that will be most valuable for code generation and refactoring tasks.
+5. **Add Basic Function Body Analysis**:
+   - Start with simple statement and expression extraction
+   - Focus on variable declarations and function calls
+   - Create a `BlockNode` to represent code blocks
+
+This plan provides a comprehensive approach to enhancing your Rust code parser for RAG purposes. You've already completed the first major milestone by implementing module structure and use declarations. The next steps will focus on completing the remaining item types and preparing the data structures needed for effective retrieval. The priority is on building a complete representation of the code that can be effectively chunked and indexed, rather than on detailed analysis of function bodies.
