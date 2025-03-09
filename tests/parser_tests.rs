@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use syn_parser::parser::*;
+use syn_parser::parser::TypeId;
 mod data;
 #[test]
 fn test_analyzer() {

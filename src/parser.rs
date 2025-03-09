@@ -15,7 +15,7 @@ use syn::{
 };
 
 // Type ID for internal references
-type TypeId = usize;
+pub type TypeId = usize;
 
 // Main structure representing the entire code graph
 #[derive(Debug, Serialize, Deserialize)]

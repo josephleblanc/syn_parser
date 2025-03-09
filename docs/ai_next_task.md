@@ -15,5 +15,5 @@
 4. **Update test expectations**:
    - Confirm expected impl count remains 7 as parser now correctly identifies all implementations
 
-6. **Final test run**:
+5. **Final test run**:
    - Run `cargo test` to ensure all tests pass after adjustments
