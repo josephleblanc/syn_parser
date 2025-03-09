@@ -1323,6 +1323,37 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             trait_id
         });
 
+        // Skip impl blocks for non-public traits
+        if let Some(trait_type_id) = trait_type_id {
+            if let Some(trait_type) = self
+                .state
+                .code_graph
+                .type_graph
+                .iter()
+                .find(|t| t.id == trait_type_id)
+            {
+                if let TypeKind::Named { path, .. } = &trait_type.kind {
+                    let trait_name = path.last().unwrap_or(&String::new());
+                    let trait_def = self
+                        .state
+                        .code_graph
+                        .traits
+                        .iter()
+                        .find(|t| t.name == *trait_name);
+
+                    if let Some(trait_def) = trait_def {
+                        if !matches!(trait_def.visibility, VisibilityKind::Public) {
+                            // Skip this impl as the trait is not public
+                            return;
+                        }
+                    } else {
+                        // Trait definition not found, skip this impl
+                        return;
+                    }
+                }
+            }
+        }
+
         // Process methods
         let mut methods = Vec::new();
         for item in &item_impl.items {
