@@ -412,12 +412,16 @@ pub enum RelationKind {
 pub type NodeId = usize;
 
 // State for the visitor
+use petgraph::Graph;
+
 struct VisitorState {
     code_graph: CodeGraph,
     next_node_id: NodeId,
     next_type_id: TypeId,
     // Maps existing types to their IDs to avoid duplication
     type_map: HashMap<String, TypeId>,
+    dependency_graph: Graph<NodeId, RelationKind>,
+    node_map: HashMap<NodeId, petgraph::graph::NodeIndex>,
 }
 
 use petgraph::Graph;
@@ -885,25 +889,51 @@ impl VisitorState {
     //         .collect()
     // }
 
-    fn parse_attribute(attr: &syn::Attribute) -> Option<Attribute> {
-        let path = attr.path().to_token_stream().to_string();
-        let args = match &attr.meta {
-            syn::Meta::List(list) => list
-                .tokens
-                .to_string()
-                .split(',')
-                .map(|s| s.trim().to_string())
-                .collect(),
-            syn::Meta::NameValue(name_value) => {
-                vec![name_value.value.to_token_stream().to_string()]
+    use syn::punctuated::Punctuated;
+    use syn::token::Comma;
+    use syn::Meta;
+
+    fn parse_attribute(attr: &syn::Attribute) -> Attribute {
+        let name = attr.path().to_token_stream().to_string();
+        let mut args = Vec::new();
+
+        match &attr.meta {
+            syn::Meta::List(list) => {
+                for nested in list.nested.iter() {
+                    if let syn::NestedMeta::Meta(meta) = nested {
+                        match meta {
+                            Meta::List(list) => {
+                                args.extend(list.nested.iter().flat_map(|nested| {
+                                    if let syn::NestedMeta::Meta(meta) = nested {
+                                        meta.to_token_stream().to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                }));
+                            }
+                            Meta::NameValue(name_value) => {
+                                args.push(name_value.value.to_token_stream().to_string());
+                            }
+                            Meta::Path(path) => {
+                                args.push(path.to_token_stream().to_string());
+                            }
+                        }
+                    }
+                }
             }
-            _ => Vec::new(),
-        };
-        Some(Attribute {
-            name: path,
+            syn::Meta::NameValue(name_value) => {
+                args.push(name_value.value.to_token_stream().to_string());
+            }
+            syn::Meta::Path(path) => {
+                args.push(path.to_token_stream().to_string());
+            }
+        }
+
+        Attribute {
+            name,
             args,
-            value: None,
-        })
+            value: None, // Add span information for error reporting if needed
+        }
     }
     fn extract_attributes(&self, attrs: &[syn::Attribute]) -> Vec<Attribute> {
         attrs
