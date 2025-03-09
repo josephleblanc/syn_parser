@@ -74,6 +74,7 @@ pub struct FunctionNode {
     pub generic_params: Vec<GenericParamNode>,
     pub attributes: Vec<Attribute>,
     pub docstring: Option<String>,
+    // add `body` field AI!
 }
 //ANCHOR_END: ItemFn
 
@@ -199,7 +200,7 @@ pub struct GenericParamNode {
 // Represent an attribute
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Attribute {
-    pub kind: String,          // e.g., "derive", "cfg", "serde"
+    pub name: String,          // e.g., "derive", "cfg", "serde"
     pub args: Vec<String>,     // Arguments or parameters of the attribute
     pub value: Option<String>, // Optional value (e.g., for `#[attr = "value"]`)
 }
@@ -295,6 +296,15 @@ pub enum VisibilityKind {
     Crate,
     Restricted(Vec<String>), // Path components of restricted visibility
     Inherited,               // Default visibility
+}
+
+impl VisibilityKind {
+    pub fn is_restricted(&self) -> bool {
+        if let VisibilityKind::Restricted(_) = self {
+            return true;
+        }
+        false
+    }
 }
 
 // ANCHOR: Relation
@@ -795,7 +805,7 @@ impl VisitorState {
             _ => Vec::new(),
         };
         Some(Attribute {
-            kind: path,
+            name: path,
             args,
             value: None,
         })
@@ -908,7 +918,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             fields.push(field_node);
         }
 
-        // Process generic parameters
+        // Process gTraiteneric parameters
         let generic_params = self.state.process_generics(&item_struct.generics);
 
         // Extract doc comments and other attributes
