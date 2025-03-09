@@ -1,4 +1,3 @@
-use petgraph::Graph;
 use quote::ToTokens;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::{Deserialize, Serialize};
@@ -1932,66 +1931,65 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
     // Visit macro definitions (macro_rules!)
     fn visit_item_macro(&mut self, item_macro: &'ast syn::ItemMacro) {
-        // Only process public macros
-        if matches!(item_macro.vis, Visibility::Public(_)) {
-            let macro_id = self.state.next_node_id();
-
-            // Get the macro name
-            let macro_name = item_macro
-                .ident
-                .as_ref()
-                .map(|ident| ident.to_string())
-                .unwrap_or_else(|| "unnamed_macro".to_string());
-
-            // Extract the macro body
-            let body = Some(item_macro.mac.tokens.to_string());
-
-            // Extract doc comments and other attributes
-            let docstring = self.state.extract_docstring(&item_macro.attrs);
-            let attributes = self.state.extract_attributes(&item_macro.attrs);
-
-            // Parse macro rules (simplified approach)
-            let mut rules = Vec::new();
-            let tokens_str = item_macro.mac.tokens.to_string();
-
-            // Very basic parsing of macro rules - in a real implementation,
-            // you would want to use a more sophisticated approach
-            for (_i, rule) in tokens_str.split(";").enumerate() {
-                if rule.trim().is_empty() {
-                    continue;
-                }
-
-                // Try to split the rule into pattern and expansion
-                if let Some(idx) = rule.find("=>") {
-                    let pattern = rule[..idx].trim().to_string();
-                    let expansion = rule[(idx + 2)..].trim().to_string();
-
-                    rules.push(MacroRuleNode {
-                        id: self.state.next_node_id(),
-                        pattern,
-                        expansion,
-                    });
-                }
-            }
-
-            // Create the macro node
-            let macro_node = MacroNode {
-                id: macro_id,
-                name: macro_name,
-                visibility: self.state.convert_visibility(&item_macro.vis),
-                kind: MacroKind::DeclarativeMacro,
-                rules,
-                attributes,
-                docstring,
-                body,
-            };
-
-            // Add the macro to the code graph
-            self.state.code_graph.macros.push(macro_node);
+        // Only process macros with #[macro_export]
+        if !item_macro.attrs.iter().any(|attr| attr.path().is_ident("macro_export")) {
+            return;
         }
 
-        // Continue visiting
-        visit::visit_item_macro(self, item_macro);
+        let macro_id = self.state.next_node_id();
+
+        // Get the macro name
+        let macro_name = item_macro
+            .ident
+            .as_ref()
+            .map(|ident| ident.to_string())
+            .unwrap_or_else(|| "unnamed_macro".to_string());
+
+        // Extract the macro body
+        let body = Some(item_macro.mac.tokens.to_string());
+
+        // Extract doc comments and other attributes
+        let docstring = self.state.extract_docstring(&item_macro.attrs);
+        let attributes = self.state.extract_attributes(&item_macro.attrs);
+
+        // Parse macro rules (simplified approach)
+        let mut rules = Vec::new();
+        let tokens_str = item_macro.mac.tokens.to_string();
+
+        // Very basic parsing of macro rules - in a real implementation,
+        // you would want to use a more sophisticated approach
+        for (_i, rule) in tokens_str.split(";").enumerate() {
+            if rule.trim().is_empty() {
+                continue;
+            }
+
+            // Try to split the rule into pattern and expansion
+            if let Some(idx) = rule.find("=>") {
+                let pattern = rule[..idx].trim().to_string();
+                let expansion = rule[(idx + 2)..].trim().to_string();
+
+                rules.push(MacroRuleNode {
+                    id: self.state.next_node_id(),
+                    pattern,
+                    expansion,
+                });
+            }
+        }
+
+        // Create the macro node
+        let macro_node = MacroNode {
+            id: macro_id,
+            name: macro_name,
+            visibility: VisibilityKind::Public, // Macros with #[macro_export] are public
+            kind: MacroKind::DeclarativeMacro,
+            rules,
+            attributes,
+            docstring,
+            body,
+        };
+
+        // Add the macro to the code graph
+        self.state.code_graph.macros.push(macro_node);
     }
 
     // Visit macro invocations
