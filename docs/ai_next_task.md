@@ -1,6 +1,19 @@
 
 # AI task: Address Critical Code Improvements Needed
 
+## Immediate Fixes
+
+1. **Fix Temporary Value Drop Error in `src/parser.rs`**
+   - Replace the temporary `String` with a `String` variable that outlives the closure.
+   - Change the line:
+     ```rust
+     let _name = path.last().unwrap_or(&String::new());
+     ```
+     to:
+     ```rust
+     let trait_name = path.last().unwrap_or(&String::new()).to_string();
+     ```
+
 Finish implementing the following:
 
 ## 1 Type Resolution Refactor
