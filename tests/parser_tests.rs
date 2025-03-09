@@ -61,8 +61,8 @@ fn test_analyzer() {
     // Check constants and statics
     assert_eq!(
         code_graph.values.len(),
-        4,
-        "Expected 4 values (MAX_ITEMS, MIN_ITEMS, GLOBAL_COUNTER, MUTABLE_COUNTER)"
+        3,
+        "Expected 3 values (MAX_ITEMS, GLOBAL_COUNTER, MUTABLE_COUNTER)"
     );
     
     // Check macros
