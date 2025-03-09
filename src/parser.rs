@@ -1351,6 +1351,59 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             exports: Vec::new(),
         });
 
+        // Add "Contains" relations between the module and its items
+        if let Some((_, mod_items)) = &module.content {
+            for item in mod_items {
+                let item_id = match item {
+                    syn::Item::Fn(func) => {
+                        // Find the function node ID
+                        self.state.code_graph.functions.iter()
+                            .find(|f| f.name == func.sig.ident.to_string())
+                            .map(|f| f.id)
+                    },
+                    syn::Item::Struct(strct) => {
+                        // Find the struct node ID
+                        self.state.code_graph.defined_types.iter()
+                            .find(|def| match def {
+                                TypeDefNode::Struct(s) => s.name == strct.ident.to_string(),
+                                _ => false,
+                            })
+                            .map(|def| match def {
+                                TypeDefNode::Struct(s) => s.id,
+                                _ => 0, // Should never happen
+                            })
+                    },
+                    syn::Item::Enum(enm) => {
+                        // Find the enum node ID
+                        self.state.code_graph.defined_types.iter()
+                            .find(|def| match def {
+                                TypeDefNode::Enum(e) => e.name == enm.ident.to_string(),
+                                _ => false,
+                            })
+                            .map(|def| match def {
+                                TypeDefNode::Enum(e) => e.id,
+                                _ => 0, // Should never happen
+                            })
+                    },
+                    syn::Item::Trait(trt) => {
+                        // Find the trait node ID
+                        self.state.code_graph.traits.iter()
+                            .find(|t| t.name == trt.ident.to_string())
+                            .map(|t| t.id)
+                    },
+                    _ => None,
+                };
+
+                if let Some(id) = item_id {
+                    self.state.code_graph.relations.push(Relation {
+                        source: module_id,
+                        target: id,
+                        kind: RelationKind::Contains,
+                    });
+                }
+            }
+        }
+
         // Continue visiting inner items (this is redundant now, remove it)
         // visit::visit_item_mod(self, module);
     }
