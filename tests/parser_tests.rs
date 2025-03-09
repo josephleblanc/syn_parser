@@ -116,6 +116,38 @@ fn test_analyzer() {
         code_graph.traits[0].id
     );
 
+    // Check the second impl block
+    let impl_node2 = &code_graph.impls[1];
+    println!("Impl node 2: {:?}", impl_node2);
+    assert_eq!(impl_node2.methods.len(), 1, "Expected 1 method for impl 2");
+    assert_eq!(
+        impl_node2.generic_params.len(),
+        1,
+        "Expected 1 generic parameter for impl 2"
+    );
+    assert!(
+        impl_node2.trait_type == Some(code_graph.traits[1].id),
+        "Expected trait type to match trait id for impl 2, found {:?} != {:?}",
+        impl_node2.trait_type,
+        code_graph.traits[1].id
+    );
+
+    // Check the third impl block
+    let impl_node3 = &code_graph.impls[2];
+    println!("Impl node 3: {:?}", impl_node3);
+    assert_eq!(impl_node3.methods.len(), 1, "Expected 1 method for impl 3");
+    assert_eq!(
+        impl_node3.generic_params.len(),
+        0,
+        "Expected 0 generic parameters for impl 3"
+    );
+    assert!(
+        impl_node3.trait_type == Some(code_graph.traits[2].id),
+        "Expected trait type to match trait id for impl 3, found {:?} != {:?}",
+        impl_node3.trait_type,
+        code_graph.traits[2].id
+    );
+
     // Add more checks if needed
 
     // Check specific module details

@@ -1052,6 +1052,13 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         println!("Trait type ID after map: {:?}", trait_type_id);
 
+        // Ensure that the trait_type_id is correctly set
+        if let Some(trait_id) = trait_type_id {
+            println!("Trait ID found: {:?}", trait_id);
+        } else {
+            println!("No trait ID found");
+        }
+
         // Process methods
         let mut methods = Vec::new();
         for item in &item_impl.items {
