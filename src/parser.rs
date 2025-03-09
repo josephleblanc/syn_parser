@@ -833,6 +833,8 @@ impl<'a> CodeVisitor<'a> {
 impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     // Visit function definitions
     fn visit_item_fn(&mut self, func: &'ast ItemFn) {
+        println!("Visiting function: {}", func.sig.ident.to_string()); // Debug line
+
         let fn_id = self.state.next_node_id();
         let fn_name = func.sig.ident.to_string();
 
