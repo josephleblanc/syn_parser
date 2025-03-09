@@ -1729,7 +1729,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             visibility: self.state.convert_visibility(&item_static.vis),
             type_id,
             kind: ValueKind::Static { 
-                is_mutable: item_static.mutability.is_some() 
+                is_mutable: matches!(item_static.mutability, syn::StaticMutability::Mut(_))
             },
             value,
             attributes,
