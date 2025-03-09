@@ -297,6 +297,7 @@ pub enum VisibilityKind {
     Inherited,               // Default visibility
 }
 
+// ANCHOR: Relation
 // Represents a relation between nodes
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Relation {
@@ -321,6 +322,7 @@ pub enum RelationKind {
     Uses,
 }
 //ANCHOR_END: Uses
+//ANCHOR_END: Relation
 
 // Unique ID for a node in the graph
 pub type NodeId = usize;

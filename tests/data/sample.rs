@@ -8,8 +8,6 @@ trait PrintDebug: Debug {
     }
 }
 
-impl<T: Debug> PrintDebug for T {}
-
 #[derive(Debug)]
 struct SampleStruct<T> {
     field: T,
@@ -40,8 +38,8 @@ impl<T: Debug> SampleTrait<T> for SampleStruct<T> {
     }
 }
 
-struct NestedStruct {
-    nested_field: i32,
+pub struct NestedStruct {
+    pub nested_field: i32,
 }
 
 impl std::fmt::Debug for NestedStruct {

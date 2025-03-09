@@ -11,9 +11,19 @@ which will be useful to our purpose of creating a graph. Much of this data is
 accessible in an easily processable form through the `syn` crate, which is what
 this project uses to traverse the source file's syntax tree. The data
 structures in the `syn` crate are then parsed into the nodes defined in this
-project. 
+project.
 
 While parsing the syntax tree for nodes, some relations can be extracted as
-well. For example, when parsing the raw 
+well. For example, when parsing the raw
 
-## Nodes
+## Relation
+
+<details>
+  <summary><code>Relation::RelationKind</code></summary>
+
+```rust,no_run,noplayground
+{{#include ../../../src/parser.rs:Relation}}
+}
+```
+
+</details>
