@@ -1459,6 +1459,19 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     println!("Found trait implementation: {:?}", path);
                 }
             }
+
+            // Debug: Print self type information
+            if let Some(self_type) = self
+                .state
+                .code_graph
+                .type_graph
+                .iter()
+                .find(|t| t.id == self_type_id)
+            {
+                if let TypeKind::Named { path, .. } = &self_type.kind {
+                    println!("Self type: {:?}", path);
+                }
+            }
         }
 
         visit::visit_item_impl(self, item_impl);
