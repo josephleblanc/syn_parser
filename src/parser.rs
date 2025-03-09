@@ -447,8 +447,14 @@ impl VisitorState {
     }
 
     fn record_dependency(&mut self, from: NodeId, to: NodeId, kind: RelationKind) {
-        let from_idx = *self.node_map.entry(from).or_insert_with(|| self.dependency_graph.add_node(from));
-        let to_idx = *self.node_map.entry(to).or_insert_with(|| self.dependency_graph.add_node(to));
+        let from_idx = *self
+            .node_map
+            .entry(from)
+            .or_insert_with(|| self.dependency_graph.add_node(from));
+        let to_idx = *self
+            .node_map
+            .entry(to)
+            .or_insert_with(|| self.dependency_graph.add_node(to));
         self.dependency_graph.add_edge(from_idx, to_idx, kind);
     }
 
@@ -888,7 +894,8 @@ impl VisitorState {
 
         match &attr.meta {
             syn::Meta::List(list) => {
-                let parser = syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated;
+                let parser =
+                    syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated;
                 let nested_metas = parser.parse2(list.tokens.clone()).unwrap_or_default();
                 for meta in nested_metas {
                     args.push(meta.to_token_stream().to_string());
@@ -1107,17 +1114,21 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         // Store struct info only if public
         if matches!(item_struct.vis, Visibility::Public(_)) {
-            self.state.code_graph.defined_types.push(TypeDefNode::Struct(StructNode {
-                id: struct_id,
-                name: struct_name,
-                visibility: self.state.convert_visibility(&item_struct.vis),
-                fields,
-                generic_params,
-                attributes,
-                docstring,
-            }));
+            self.state
+                .code_graph
+                .defined_types
+                .push(TypeDefNode::Struct(StructNode {
+                    id: struct_id,
+                    name: struct_name,
+                    visibility: self.state.convert_visibility(&item_struct.vis),
+                    fields,
+                    generic_params,
+                    attributes,
+                    docstring,
+                }));
 
-        visit::visit_item_struct(self, item_struct);
+            visit::visit_item_struct(self, item_struct);
+        }
     }
 
     // Visit type alias definitions
@@ -1137,17 +1148,21 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         // Store type alias info only if public
         if matches!(item_type.vis, Visibility::Public(_)) {
-            self.state.code_graph.defined_types.push(TypeDefNode::TypeAlias(TypeAliasNode {
-                id: type_alias_id,
-                name: type_alias_name,
-                visibility: self.state.convert_visibility(&item_type.vis),
-                type_id,
-                generic_params,
-                attributes,
-                docstring,
-            }));
+            self.state
+                .code_graph
+                .defined_types
+                .push(TypeDefNode::TypeAlias(TypeAliasNode {
+                    id: type_alias_id,
+                    name: type_alias_name,
+                    visibility: self.state.convert_visibility(&item_type.vis),
+                    type_id,
+                    generic_params,
+                    attributes,
+                    docstring,
+                }));
 
-        visit::visit_item_type(self, item_type);
+            visit::visit_item_type(self, item_type);
+        }
     }
 
     // Visit union definitions
@@ -1189,17 +1204,21 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         // Store union info only if public
         if matches!(item_union.vis, Visibility::Public(_)) {
-            self.state.code_graph.defined_types.push(TypeDefNode::Union(UnionNode {
-                id: union_id,
-                name: union_name,
-                visibility: self.state.convert_visibility(&item_union.vis),
-                fields,
-                generic_params,
-                attributes,
-                docstring,
-            }));
+            self.state
+                .code_graph
+                .defined_types
+                .push(TypeDefNode::Union(UnionNode {
+                    id: union_id,
+                    name: union_name,
+                    visibility: self.state.convert_visibility(&item_union.vis),
+                    fields,
+                    generic_params,
+                    attributes,
+                    docstring,
+                }));
 
-        visit::visit_item_union(self, item_union);
+            visit::visit_item_union(self, item_union);
+        }
     }
 
     // Visit enum definitions
@@ -1287,17 +1306,21 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         // Store enum info only if public
         if matches!(item_enum.vis, Visibility::Public(_)) {
-            self.state.code_graph.defined_types.push(TypeDefNode::Enum(EnumNode {
-                id: enum_id,
-                name: enum_name,
-                visibility: self.state.convert_visibility(&item_enum.vis),
-                variants,
-                generic_params,
-                attributes,
-                docstring,
-            }));
+            self.state
+                .code_graph
+                .defined_types
+                .push(TypeDefNode::Enum(EnumNode {
+                    id: enum_id,
+                    name: enum_name,
+                    visibility: self.state.convert_visibility(&item_enum.vis),
+                    variants,
+                    generic_params,
+                    attributes,
+                    docstring,
+                }));
 
-        visit::visit_item_enum(self, item_enum);
+            visit::visit_item_enum(self, item_enum);
+        }
     }
 
     // Visit impl blocks
@@ -1617,7 +1640,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         self.state.code_graph.modules.push(ModuleNode {
             id: module_id,
             name: module_name,
-            visibility: visibility,
+            visibility,
             attributes: self.state.extract_attributes(&module.attrs),
             docstring: self.state.extract_docstring(&module.attrs),
             submodules,
