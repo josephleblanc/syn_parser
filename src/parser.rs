@@ -1166,6 +1166,13 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 target: trait_type_id,
                 kind: RelationKind::ImplementsTrait,
             });
+            
+            // Debug: Print trait type information
+            if let Some(trait_type) = self.state.code_graph.type_graph.iter().find(|t| t.id == trait_type_id) {
+                if let TypeKind::Named { path, .. } = &trait_type.kind {
+                    println!("Found trait implementation: {:?}", path);
+                }
+            }
         }
 
         visit::visit_item_impl(self, item_impl);

@@ -315,11 +315,15 @@ fn test_analyzer() {
         .impls
         .iter()
         .find(|imp| {
-            imp.trait_type.is_some()
-                && code_graph
-                    .traits
-                    .iter()
-                    .any(|t| Some(t.id) == imp.trait_type && t.name == "SampleTrait")
+            if let Some(trait_id) = imp.trait_type {
+                // Find the trait node in type_graph
+                if let Some(trait_type) = code_graph.type_graph.iter().find(|t| t.id == trait_id) {
+                    if let TypeKind::Named { path, .. } = &trait_type.kind {
+                        return !path.is_empty() && path.last().unwrap() == "SampleTrait";
+                    }
+                }
+            }
+            false
         })
         .expect("Implementation of SampleTrait not found");
 
