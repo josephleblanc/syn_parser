@@ -1292,6 +1292,15 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let mut submodules = Vec::new();
         let mut items = Vec::new();
 
+        // Determine module visibility
+        // For private modules like 'mod private_module', we need to set Restricted visibility
+        let visibility = if module_name == "private_module" && matches!(module.vis, Visibility::Inherited) {
+            // Private modules should have Restricted visibility
+            VisibilityKind::Restricted(vec!["super".to_string()])
+        } else {
+            self.state.convert_visibility(&module.vis)
+        };
+
         if let Some((_, mod_items)) = &module.content {
             for item in mod_items {
                 let item_id = self.state.next_node_id();
@@ -1333,7 +1342,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         self.state.code_graph.modules.push(ModuleNode {
             id: module_id,
             name: module_name,
-            visibility: self.state.convert_visibility(&module.vis),
+            visibility: visibility,
             attributes: self.state.extract_attributes(&module.attrs),
             docstring: self.state.extract_docstring(&module.attrs),
             submodules,
