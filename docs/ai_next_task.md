@@ -7,7 +7,8 @@
    - Replace the temporary `String` with a `String` variable that outlives the closure.
    - Change the line:
      ```rust
-     let _name = path.last().unwrap_or(&String::new());
+     let last_segment = path.last().unwrap_or(&String::new());
+     let _name = last_segment;
      ```
      to:
      ```rust
