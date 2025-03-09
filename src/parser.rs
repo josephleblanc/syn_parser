@@ -6,8 +6,7 @@ use std::collections::HashMap;
 use std::fs::File as FsFile;
 use std::io::Write;
 use std::path::Path;
-use syn::punctuated::Punctuated;
-use syn::token::Comma;
+use syn::nested_meta::NestedMeta;
 use syn::ItemMod;
 use syn::Meta;
 use syn::{
@@ -448,17 +447,6 @@ impl VisitorState {
         }
     }
 
-    fn record_dependency(&mut self, from: NodeId, to: NodeId, kind: RelationKind) {
-        let from_idx = *self
-            .node_map
-            .entry(from)
-            .or_insert_with(|| self.dependency_graph.add_node(from));
-        let to_idx = *self
-            .node_map
-            .entry(to)
-            .or_insert_with(|| self.dependency_graph.add_node(to));
-        self.dependency_graph.add_edge(from_idx, to_idx, kind);
-    }
 
     fn next_node_id(&mut self) -> NodeId {
         let id = self.next_node_id;
@@ -470,6 +458,10 @@ impl VisitorState {
         let id = self.next_type_id;
         self.next_type_id += 1;
         id
+    }
+
+    fn process_associated_type(&mut self, ty: &Type) -> TypeId {
+        self.get_or_create_type(ty)
     }
 
     // Get or create a type ID
@@ -497,13 +489,7 @@ impl VisitorState {
 
     // Process a type and get its kind and related types
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
-        let path_segments = ty
-            .path
-            .segments
-            .iter()
-            .map(|s| s.ident.to_string())
-            .collect();
-        self.get_or_create_named_type(&path_segments, ty);
+        let mut related_types = Vec::new();
 
         match ty {
             Type::Path(TypePath { path, qself }) => {
@@ -524,7 +510,7 @@ impl VisitorState {
                                         related_types.push(self.get_or_create_type(arg_type));
                                     }
                                     GenericArgument::AssocType(assoc_type) => {
-                                        related_types.push(self.process_associated_type(&assoc_type.path));
+                                        related_types.push(self.process_associated_type(&assoc_type.ty));
                                     }
                                     // Process other generic arguments if needed
                                     _ => {}
@@ -904,11 +890,11 @@ impl VisitorState {
         match &attr.meta {
             syn::Meta::List(list) => {
                 for nested in list.nested.iter() {
-                    if let syn::NestedMeta::Meta(meta) = nested {
+                    if let NestedMeta::Meta(meta) = nested {
                         match meta {
                             Meta::List(list) => {
                                 args.extend(list.nested.iter().flat_map(|nested| {
-                                    if let syn::NestedMeta::Meta(meta) = nested {
+                                    if let NestedMeta::Meta(meta) = nested {
                                         meta.to_token_stream().to_string()
                                     } else {
                                         String::new()
@@ -943,7 +929,7 @@ impl VisitorState {
         attrs
             .iter()
             .filter(|attr| !attr.path().is_ident("doc")) // Skip doc comments
-            .filter_map(|attr| VisitorState::parse_attribute(attr))
+            .map(|attr| VisitorState::parse_attribute(attr))
             .collect()
     }
 }
