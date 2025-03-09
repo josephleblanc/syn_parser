@@ -1,3 +1,4 @@
+use petgraph::Graph;
 use quote::ToTokens;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::{Deserialize, Serialize};
@@ -5,7 +6,10 @@ use std::collections::HashMap;
 use std::fs::File as FsFile;
 use std::io::Write;
 use std::path::Path;
+use syn::punctuated::Punctuated;
+use syn::token::Comma;
 use syn::ItemMod;
+use syn::Meta;
 use syn::{
     visit::{self, Visit},
     AngleBracketedGenericArguments, FnArg, GenericArgument, Generics, ItemEnum, ItemFn, ItemImpl,
@@ -412,8 +416,6 @@ pub enum RelationKind {
 pub type NodeId = usize;
 
 // State for the visitor
-use petgraph::Graph;
-
 struct VisitorState {
     code_graph: CodeGraph,
     next_node_id: NodeId,
@@ -423,8 +425,6 @@ struct VisitorState {
     dependency_graph: Graph<NodeId, RelationKind>,
     node_map: HashMap<NodeId, petgraph::graph::NodeIndex>,
 }
-
-use petgraph::Graph;
 
 impl VisitorState {
     fn new() -> Self {
@@ -449,8 +449,14 @@ impl VisitorState {
     }
 
     fn record_dependency(&mut self, from: NodeId, to: NodeId, kind: RelationKind) {
-        let from_idx = *self.node_map.entry(from).or_insert_with(|| self.dependency_graph.add_node(from));
-        let to_idx = *self.node_map.entry(to).or_insert_with(|| self.dependency_graph.add_node(to));
+        let from_idx = *self
+            .node_map
+            .entry(from)
+            .or_insert_with(|| self.dependency_graph.add_node(from));
+        let to_idx = *self
+            .node_map
+            .entry(to)
+            .or_insert_with(|| self.dependency_graph.add_node(to));
         self.dependency_graph.add_edge(from_idx, to_idx, kind);
     }
 
@@ -491,12 +497,14 @@ impl VisitorState {
 
     // Process a type and get its kind and related types
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
-        fn process_associated_type(&mut self, ty: &syn::TypePath) -> TypeId {
-            let path_segments = ty.path.segments.iter().map(|s| s.ident.to_string()).collect();
-            self.get_or_create_named_type(&path_segments, ty)
-        }
+        let path_segments = ty
+            .path
+            .segments
+            .iter()
+            .map(|s| s.ident.to_string())
+            .collect();
+        self.get_or_create_named_type(&path_segments, ty);
 
-        match ty {
         match ty {
             Type::Path(TypePath { path, qself }) => {
                 let mut related_types = Vec::new();
@@ -516,7 +524,8 @@ impl VisitorState {
                                         related_types.push(self.get_or_create_type(arg_type));
                                     }
                                     GenericArgument::AssocType(assoc_type) => {
-                                        related_types.push(self.process_associated_type(&assoc_type.path));
+                                        related_types
+                                            .push(self.process_associated_type(&assoc_type.path));
                                     }
                                     // Process other generic arguments if needed
                                     _ => {}
@@ -889,10 +898,6 @@ impl VisitorState {
     //         .collect()
     // }
 
-    use syn::punctuated::Punctuated;
-    use syn::token::Comma;
-    use syn::Meta;
-
     fn parse_attribute(attr: &syn::Attribute) -> Attribute {
         let name = attr.path().to_token_stream().to_string();
         let mut args = Vec::new();
@@ -953,29 +958,29 @@ impl<'a> CodeVisitor<'a> {
     fn new(state: &'a mut VisitorState) -> Self {
         Self { state }
     }
-    
+
     // Helper method to extract path segments from a use tree
     fn extract_use_path(use_tree: &syn::UseTree, path_segments: &mut Vec<String>) {
         match use_tree {
             syn::UseTree::Path(path) => {
                 path_segments.push(path.ident.to_string());
                 CodeVisitor::extract_use_path(&path.tree, path_segments);
-            },
+            }
             syn::UseTree::Name(name) => {
                 path_segments.push(name.ident.to_string());
-            },
+            }
             syn::UseTree::Rename(rename) => {
                 path_segments.push(format!("{} as {}", rename.ident, rename.rename));
-            },
+            }
             syn::UseTree::Glob(_) => {
                 path_segments.push("*".to_string());
-            },
+            }
             syn::UseTree::Group(group) => {
                 for tree in &group.items {
                     let mut new_path = path_segments.clone();
                     CodeVisitor::extract_use_path(tree, &mut new_path);
                 }
-            },
+            }
         }
     }
 }
@@ -985,47 +990,57 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     fn visit_item_fn(&mut self, func: &'ast ItemFn) {
         // Check if this function is a procedural macro
         let is_proc_macro = func.attrs.iter().any(|attr| {
-            attr.path().is_ident("proc_macro") || 
-            attr.path().is_ident("proc_macro_derive") ||
-            attr.path().is_ident("proc_macro_attribute")
+            attr.path().is_ident("proc_macro")
+                || attr.path().is_ident("proc_macro_derive")
+                || attr.path().is_ident("proc_macro_attribute")
         });
-        
+
         if is_proc_macro {
             let macro_id = self.state.next_node_id();
             let macro_name = func.sig.ident.to_string();
-            
+
             // Determine the kind of procedural macro
-            let proc_macro_kind = if func.attrs.iter().any(|attr| attr.path().is_ident("proc_macro_derive")) {
+            let proc_macro_kind = if func
+                .attrs
+                .iter()
+                .any(|attr| attr.path().is_ident("proc_macro_derive"))
+            {
                 ProcMacroKind::Derive
-            } else if func.attrs.iter().any(|attr| attr.path().is_ident("proc_macro_attribute")) {
+            } else if func
+                .attrs
+                .iter()
+                .any(|attr| attr.path().is_ident("proc_macro_attribute"))
+            {
                 ProcMacroKind::Attribute
             } else {
                 ProcMacroKind::Function
             };
-            
+
             // Extract doc comments and other attributes
             let docstring = self.state.extract_docstring(&func.attrs);
             let attributes = self.state.extract_attributes(&func.attrs);
-            
+
             // Extract function body as a string
             let body = Some(func.block.to_token_stream().to_string());
-            
+
             // Create the macro node
             let macro_node = MacroNode {
                 id: macro_id,
                 name: macro_name,
                 visibility: self.state.convert_visibility(&func.vis),
-                kind: MacroKind::ProcedureMacro { kind: proc_macro_kind },
+                kind: MacroKind::ProcedureMacro {
+                    kind: proc_macro_kind,
+                },
                 rules: Vec::new(), // Procedural macros don't have declarative rules
                 attributes,
                 docstring,
                 body,
             };
-            
+
             // Add the macro to the code graph
             self.state.code_graph.macros.push(macro_node);
         }
-        
+
         let fn_id = self.state.next_node_id();
         let fn_name = func.sig.ident.to_string();
 
@@ -1224,7 +1239,6 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         visit::visit_item_union(self, item_union);
     }
-
 
     // Visit enum definitions
     fn visit_item_enum(&mut self, item_enum: &'ast ItemEnum) {
@@ -1435,9 +1449,15 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 target: trait_type_id,
                 kind: RelationKind::ImplementsTrait,
             });
-            
+
             // Debug: Print trait type information
-            if let Some(trait_type) = self.state.code_graph.type_graph.iter().find(|t| t.id == trait_type_id) {
+            if let Some(trait_type) = self
+                .state
+                .code_graph
+                .type_graph
+                .iter()
+                .find(|t| t.id == trait_type_id)
+            {
                 if let TypeKind::Named { path, .. } = &trait_type.kind {
                     println!("Found trait implementation: {:?}", path);
                 }
@@ -1496,7 +1516,10 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 let attributes = self.state.extract_attributes(&method.attrs);
 
                 // Extract method body if available (trait methods may have default implementations)
-                let body = method.default.as_ref().map(|block| block.to_token_stream().to_string());
+                let body = method
+                    .default
+                    .as_ref()
+                    .map(|block| block.to_token_stream().to_string());
 
                 // Store method info
                 let method_node = FunctionNode {
@@ -1570,12 +1593,13 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         // Determine module visibility
         // For private modules like 'mod private_module', we need to set Restricted visibility
-        let visibility = if module_name == "private_module" && matches!(module.vis, Visibility::Inherited) {
-            // Private modules should have Restricted visibility
-            VisibilityKind::Restricted(vec!["super".to_string()])
-        } else {
-            self.state.convert_visibility(&module.vis)
-        };
+        let visibility =
+            if module_name == "private_module" && matches!(module.vis, Visibility::Inherited) {
+                // Private modules should have Restricted visibility
+                VisibilityKind::Restricted(vec!["super".to_string()])
+            } else {
+                self.state.convert_visibility(&module.vis)
+            };
 
         if let Some((_, mod_items)) = &module.content {
             for item in mod_items {
@@ -1648,13 +1672,19 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 let item_id = match item {
                     syn::Item::Fn(func) => {
                         // Find the function node ID
-                        self.state.code_graph.functions.iter()
+                        self.state
+                            .code_graph
+                            .functions
+                            .iter()
                             .find(|f| f.name == func.sig.ident.to_string())
                             .map(|f| f.id)
-                    },
+                    }
                     syn::Item::Struct(strct) => {
                         // Find the struct node ID
-                        self.state.code_graph.defined_types.iter()
+                        self.state
+                            .code_graph
+                            .defined_types
+                            .iter()
                             .find(|def| match def {
                                 TypeDefNode::Struct(s) => s.name == strct.ident.to_string(),
                                 _ => false,
@@ -1663,10 +1693,13 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                                 TypeDefNode::Struct(s) => s.id,
                                 _ => 0, // Should never happen
                             })
-                    },
+                    }
                     syn::Item::Enum(enm) => {
                         // Find the enum node ID
-                        self.state.code_graph.defined_types.iter()
+                        self.state
+                            .code_graph
+                            .defined_types
+                            .iter()
                             .find(|def| match def {
                                 TypeDefNode::Enum(e) => e.name == enm.ident.to_string(),
                                 _ => false,
@@ -1675,22 +1708,30 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                                 TypeDefNode::Enum(e) => e.id,
                                 _ => 0, // Should never happen
                             })
-                    },
+                    }
                     syn::Item::Type(type_alias) => {
                         // Find the type alias node ID
-                        self.state.code_graph.defined_types.iter()
+                        self.state
+                            .code_graph
+                            .defined_types
+                            .iter()
                             .find(|def| match def {
-                                TypeDefNode::TypeAlias(ta) => ta.name == type_alias.ident.to_string(),
+                                TypeDefNode::TypeAlias(ta) => {
+                                    ta.name == type_alias.ident.to_string()
+                                }
                                 _ => false,
                             })
                             .map(|def| match def {
                                 TypeDefNode::TypeAlias(ta) => ta.id,
                                 _ => 0, // Should never happen
                             })
-                    },
+                    }
                     syn::Item::Union(union_def) => {
                         // Find the union node ID
-                        self.state.code_graph.defined_types.iter()
+                        self.state
+                            .code_graph
+                            .defined_types
+                            .iter()
                             .find(|def| match def {
                                 TypeDefNode::Union(u) => u.name == union_def.ident.to_string(),
                                 _ => false,
@@ -1699,35 +1740,55 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                                 TypeDefNode::Union(u) => u.id,
                                 _ => 0, // Should never happen
                             })
-                    },
+                    }
                     syn::Item::Trait(trt) => {
                         // Find the trait node ID
-                        self.state.code_graph.traits.iter()
+                        self.state
+                            .code_graph
+                            .traits
+                            .iter()
                             .find(|t| t.name == trt.ident.to_string())
                             .map(|t| t.id)
-                    },
+                    }
                     syn::Item::Const(item_const) => {
                         // Find the constant node ID
-                        self.state.code_graph.values.iter()
-                            .find(|v| v.name == item_const.ident.to_string() && v.kind == ValueKind::Constant)
+                        self.state
+                            .code_graph
+                            .values
+                            .iter()
+                            .find(|v| {
+                                v.name == item_const.ident.to_string()
+                                    && v.kind == ValueKind::Constant
+                            })
                             .map(|v| v.id)
-                    },
+                    }
                     syn::Item::Static(item_static) => {
                         // Find the static node ID
-                        self.state.code_graph.values.iter()
-                            .find(|v| v.name == item_static.ident.to_string() && matches!(v.kind, ValueKind::Static { .. }))
+                        self.state
+                            .code_graph
+                            .values
+                            .iter()
+                            .find(|v| {
+                                v.name == item_static.ident.to_string()
+                                    && matches!(v.kind, ValueKind::Static { .. })
+                            })
                             .map(|v| v.id)
-                    },
+                    }
                     syn::Item::Macro(item_macro) => {
                         // Find the macro node ID
-                        let macro_name = item_macro.ident.as_ref()
+                        let macro_name = item_macro
+                            .ident
+                            .as_ref()
                             .map(|ident| ident.to_string())
                             .unwrap_or_else(|| "unnamed_macro".to_string());
-                        
-                        self.state.code_graph.macros.iter()
+
+                        self.state
+                            .code_graph
+                            .macros
+                            .iter()
                             .find(|m| m.name == macro_name)
                             .map(|m| m.id)
-                    },
+                    }
                     _ => None,
                 };
 
@@ -1744,19 +1805,19 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         // Continue visiting inner items (this is redundant now, remove it)
         // visit::visit_item_mod(self, module);
     }
-    
+
     // Visit use statements
     fn visit_item_use(&mut self, use_item: &'ast syn::ItemUse) {
         // Create an import node
         let import_id = self.state.next_node_id();
-        
+
         // Process the use path
         let mut path_segments = Vec::new();
         let current_path = &use_item.tree;
-        
+
         // Extract path segments from the use tree
         CodeVisitor::extract_use_path(current_path, &mut path_segments);
-        
+
         // Create relations for the used types
         if !path_segments.is_empty() {
             // Create a synthetic type for the imported item
@@ -1769,7 +1830,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 },
                 related_types: Vec::new(),
             });
-            
+
             // Add a Uses relation
             self.state.code_graph.relations.push(Relation {
                 source: import_id,
@@ -1777,19 +1838,19 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 kind: RelationKind::Uses,
             });
         }
-        
+
         // Continue visiting
         visit::visit_item_use(self, use_item);
     }
-    
+
     // Visit extern crate statements
     fn visit_item_extern_crate(&mut self, extern_crate: &'ast syn::ItemExternCrate) {
         // Create an import node for extern crate
         let import_id = self.state.next_node_id();
-        
+
         // Get the crate name
         let crate_name = extern_crate.ident.to_string();
-        
+
         // Create a synthetic type for the extern crate
         let type_id = self.state.next_type_id();
         self.state.code_graph.type_graph.push(TypeNode {
@@ -1800,33 +1861,33 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             },
             related_types: Vec::new(),
         });
-        
+
         // Add a Uses relation
         self.state.code_graph.relations.push(Relation {
             source: import_id,
             target: type_id,
             kind: RelationKind::Uses,
         });
-        
+
         // Continue visiting
         visit::visit_item_extern_crate(self, extern_crate);
     }
-    
+
     // Visit constant items
     fn visit_item_const(&mut self, item_const: &'ast syn::ItemConst) {
         let const_id = self.state.next_node_id();
         let const_name = item_const.ident.to_string();
-        
+
         // Process the type
         let type_id = self.state.get_or_create_type(&item_const.ty);
-        
+
         // Extract the value expression as a string
         let value = Some(item_const.expr.to_token_stream().to_string());
-        
+
         // Extract doc comments and other attributes
         let docstring = self.state.extract_docstring(&item_const.attrs);
         let attributes = self.state.extract_attributes(&item_const.attrs);
-        
+
         // Create the constant node
         let const_node = ValueNode {
             id: const_id,
@@ -1838,96 +1899,98 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             attributes,
             docstring,
         };
-        
+
         // Add the constant to the code graph
         self.state.code_graph.values.push(const_node);
-        
+
         // Add relation between constant and its type
         self.state.code_graph.relations.push(Relation {
             source: const_id,
             target: type_id,
             kind: RelationKind::ValueType,
         });
-        
+
         // Continue visiting
         visit::visit_item_const(self, item_const);
     }
-    
+
     // Visit static items
     fn visit_item_static(&mut self, item_static: &'ast syn::ItemStatic) {
         let static_id = self.state.next_node_id();
         let static_name = item_static.ident.to_string();
-        
+
         // Process the type
         let type_id = self.state.get_or_create_type(&item_static.ty);
-        
+
         // Extract the value expression as a string
         let value = Some(item_static.expr.to_token_stream().to_string());
-        
+
         // Extract doc comments and other attributes
         let docstring = self.state.extract_docstring(&item_static.attrs);
         let attributes = self.state.extract_attributes(&item_static.attrs);
-        
+
         // Create the static node
         let static_node = ValueNode {
             id: static_id,
             name: static_name,
             visibility: self.state.convert_visibility(&item_static.vis),
             type_id,
-            kind: ValueKind::Static { 
-                is_mutable: matches!(item_static.mutability, syn::StaticMutability::Mut(_))
+            kind: ValueKind::Static {
+                is_mutable: matches!(item_static.mutability, syn::StaticMutability::Mut(_)),
             },
             value,
             attributes,
             docstring,
         };
-        
+
         // Add the static to the code graph
         self.state.code_graph.values.push(static_node);
-        
+
         // Add relation between static and its type
         self.state.code_graph.relations.push(Relation {
             source: static_id,
             target: type_id,
             kind: RelationKind::ValueType,
         });
-        
+
         // Continue visiting
         visit::visit_item_static(self, item_static);
     }
-    
+
     // Visit macro definitions (macro_rules!)
     fn visit_item_macro(&mut self, item_macro: &'ast syn::ItemMacro) {
         let macro_id = self.state.next_node_id();
-        
+
         // Get the macro name
-        let macro_name = item_macro.ident.as_ref()
+        let macro_name = item_macro
+            .ident
+            .as_ref()
             .map(|ident| ident.to_string())
             .unwrap_or_else(|| "unnamed_macro".to_string());
-        
+
         // Extract the macro body
         let body = Some(item_macro.mac.tokens.to_string());
-        
+
         // Extract doc comments and other attributes
         let docstring = self.state.extract_docstring(&item_macro.attrs);
         let attributes = self.state.extract_attributes(&item_macro.attrs);
-        
+
         // Parse macro rules (simplified approach)
         let mut rules = Vec::new();
         let tokens_str = item_macro.mac.tokens.to_string();
-        
+
         // Very basic parsing of macro rules - in a real implementation,
         // you would want to use a more sophisticated approach
         for (_i, rule) in tokens_str.split(";").enumerate() {
             if rule.trim().is_empty() {
                 continue;
             }
-            
+
             // Try to split the rule into pattern and expansion
             if let Some(idx) = rule.find("=>") {
                 let pattern = rule[..idx].trim().to_string();
                 let expansion = rule[(idx + 2)..].trim().to_string();
-                
+
                 rules.push(MacroRuleNode {
                     id: self.state.next_node_id(),
                     pattern,
@@ -1935,7 +1998,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 });
             }
         }
-        
+
         // Create the macro node
         let macro_node = MacroNode {
             id: macro_id,
@@ -1947,27 +2010,30 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             docstring,
             body,
         };
-        
+
         // Add the macro to the code graph
         self.state.code_graph.macros.push(macro_node);
-        
+
         // Continue visiting
         visit::visit_item_macro(self, item_macro);
     }
-    
-    
+
     // Visit macro invocations
     fn visit_macro(&mut self, mac: &'ast syn::Macro) {
         // Create a node ID for this macro invocation
         let invocation_id = self.state.next_node_id();
-        
+
         // Get the macro name
         let macro_path = mac.path.to_token_stream().to_string();
-        
+
         // Find if this macro is defined in our code graph
-        let defined_macro = self.state.code_graph.macros.iter()
+        let defined_macro = self
+            .state
+            .code_graph
+            .macros
+            .iter()
             .find(|m| m.name == macro_path.split("::").last().unwrap_or(&macro_path));
-        
+
         if let Some(defined_macro) = defined_macro {
             // Add a relation between the invocation and the macro definition
             self.state.code_graph.relations.push(Relation {
@@ -1976,7 +2042,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 kind: RelationKind::MacroUse,
             });
         }
-        
+
         // Continue visiting
         visit::visit_macro(self, mac);
     }
