@@ -33,8 +33,8 @@ fn test_analyzer() {
     // Check defined types
     assert_eq!(
         code_graph.defined_types.len(),
-        12,
-        "Expected 12 defined types (SampleStruct, NestedStruct, SampleEnum, PrivateStruct, ModuleStruct, TupleStruct, UnitStruct, StringVec, Result, IntOrFloat, SerializeDeserialize, and one more)"
+        11,
+        "Expected 11 defined types (SampleStruct, NestedStruct, SampleEnum, PrivateStruct, ModuleStruct, TupleStruct, UnitStruct, StringVec, Result, IntOrFloat, and one more)"
     );
 
     // Check traits
@@ -255,23 +255,6 @@ fn test_analyzer() {
         assert!(union_node.docstring.as_ref().unwrap().contains("memory-efficient storage"));
     }
 
-    // =========== Trait Alias Tests ===========
-    let serialize_deserialize = code_graph
-        .defined_types
-        .iter()
-        .find(|def| match def {
-            TypeDefNode::TraitAlias(ta) => ta.name == "SerializeDeserialize",
-            _ => false,
-        })
-        .expect("SerializeDeserialize trait alias not found");
-
-    if let TypeDefNode::TraitAlias(trait_alias) = serialize_deserialize {
-        assert_eq!(trait_alias.name, "SerializeDeserialize");
-        assert_eq!(trait_alias.visibility, VisibilityKind::Public);
-        assert_eq!(trait_alias.trait_bounds.len(), 2);
-        assert!(trait_alias.docstring.is_some());
-        assert!(trait_alias.docstring.as_ref().unwrap().contains("Trait alias example"));
-    }
 
     // =========== Enum Tests ===========
     let sample_enum = code_graph

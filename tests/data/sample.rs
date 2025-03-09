@@ -149,6 +149,3 @@ pub union IntOrFloat {
     pub i: i32,
     pub f: f32,
 }
-
-/// Trait alias example
-pub trait SerializeDeserialize = Serialize + Deserialize;

@@ -88,14 +88,13 @@ pub struct ParameterNode {
     pub is_self: bool,
 }
 
-// Represents a type definition (struct, enum, type alias, union, or trait alias)
+// Represents a type definition (struct, enum, type alias, or union)
 #[derive(Debug, Serialize, Deserialize)]
 pub enum TypeDefNode {
     Struct(StructNode),
     Enum(EnumNode),
     TypeAlias(TypeAliasNode),
     Union(UnionNode),
-    TraitAlias(TraitAliasNode),
 }
 
 impl TypeDefNode {}
@@ -167,18 +166,6 @@ pub struct UnionNode {
     pub name: String,
     pub visibility: VisibilityKind,
     pub fields: Vec<FieldNode>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-
-// Represents a trait alias (trait NewTrait = OldTrait)
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TraitAliasNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub trait_bounds: Vec<TypeId>,
     pub generic_params: Vec<GenericParamNode>,
     pub attributes: Vec<Attribute>,
     pub docstring: Option<String>,
@@ -1082,47 +1069,6 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         visit::visit_item_union(self, item_union);
     }
 
-    // Visit trait alias definitions
-    fn visit_item_trait_alias(&mut self, item_trait_alias: &'ast syn::ItemTraitAlias) {
-        let trait_alias_id = self.state.next_node_id();
-        let trait_alias_name = item_trait_alias.ident.to_string();
-
-        // Process trait bounds
-        let trait_bounds: Vec<TypeId> = item_trait_alias
-            .bounds
-            .iter()
-            .map(|bound| {
-                let ty = Type::TraitObject(syn::TypeTraitObject {
-                    dyn_token: None,
-                    bounds: syn::punctuated::Punctuated::from_iter(vec![bound.clone()]),
-                });
-                self.state.get_or_create_type(&ty)
-            })
-            .collect();
-
-        // Process generic parameters
-        let generic_params = self.state.process_generics(&item_trait_alias.generics);
-
-        // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_trait_alias.attrs);
-        let attributes = self.state.extract_attributes(&item_trait_alias.attrs);
-
-        // Store trait alias info
-        self.state
-            .code_graph
-            .defined_types
-            .push(TypeDefNode::TraitAlias(TraitAliasNode {
-                id: trait_alias_id,
-                name: trait_alias_name,
-                visibility: self.state.convert_visibility(&item_trait_alias.vis),
-                trait_bounds,
-                generic_params,
-                attributes,
-                docstring,
-            }));
-
-        visit::visit_item_trait_alias(self, item_trait_alias);
-    }
 
     // Visit enum definitions
     fn visit_item_enum(&mut self, item_enum: &'ast ItemEnum) {
@@ -1502,9 +1448,6 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     syn::Item::Union(union_def) => {
                         self.visit_item_union(union_def);
                     }
-                    syn::Item::TraitAlias(trait_alias) => {
-                        self.visit_item_trait_alias(trait_alias);
-                    }
                     syn::Item::Mod(md) => {
                         submodules.push(item_id); // Add to submodules
                         self.visit_item_mod(md); // Recursive call
@@ -1589,18 +1532,6 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                             })
                             .map(|def| match def {
                                 TypeDefNode::Union(u) => u.id,
-                                _ => 0, // Should never happen
-                            })
-                    },
-                    syn::Item::TraitAlias(trait_alias) => {
-                        // Find the trait alias node ID
-                        self.state.code_graph.defined_types.iter()
-                            .find(|def| match def {
-                                TypeDefNode::TraitAlias(ta) => ta.name == trait_alias.ident.to_string(),
-                                _ => false,
-                            })
-                            .map(|def| match def {
-                                TypeDefNode::TraitAlias(ta) => ta.id,
                                 _ => 0, // Should never happen
                             })
                     },
