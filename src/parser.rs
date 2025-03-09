@@ -460,10 +460,6 @@ impl VisitorState {
         id
     }
 
-    fn process_associated_type(&mut self, ty: &Type) -> TypeId {
-        self.get_or_create_type(ty)
-    }
-
     // Get or create a type ID
     fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
         // Convert type to a string representation for caching
@@ -510,7 +506,7 @@ impl VisitorState {
                                         related_types.push(self.get_or_create_type(arg_type));
                                     }
                                     GenericArgument::AssocType(assoc_type) => {
-                                        related_types.push(self.process_associated_type(&assoc_type.ty));
+                                        related_types.push(self.get_or_create_type(&assoc_type.ty));
                                     }
                                     // Process other generic arguments if needed
                                     _ => {}
@@ -889,25 +885,9 @@ impl VisitorState {
 
         match &attr.meta {
             syn::Meta::List(list) => {
-                for nested in list.nested.iter() {
-                    if let NestedMeta::Meta(meta) = nested {
-                        match meta {
-                            Meta::List(list) => {
-                                args.extend(list.nested.iter().flat_map(|nested| {
-                                    if let NestedMeta::Meta(meta) = nested {
-                                        meta.to_token_stream().to_string()
-                                    } else {
-                                        String::new()
-                                    }
-                                }));
-                            }
-                            Meta::NameValue(name_value) => {
-                                args.push(name_value.value.to_token_stream().to_string());
-                            }
-                            Meta::Path(path) => {
-                                args.push(path.to_token_stream().to_string());
-                            }
-                        }
+                for nested in &list.nested {
+                    if let syn::NestedMeta::Meta(meta) = nested {
+                        args.push(meta.to_token_stream().to_string());
                     }
                 }
             }
@@ -922,14 +902,14 @@ impl VisitorState {
         Attribute {
             name,
             args,
-            value: Some(attr.tokens.to_string()), // Capture span info via tokens
+            value: Some(attr.tokens.to_string()),
         }
     }
     fn extract_attributes(&self, attrs: &[syn::Attribute]) -> Vec<Attribute> {
         attrs
             .iter()
             .filter(|attr| !attr.path().is_ident("doc")) // Skip doc comments
-            .map(|attr| VisitorState::parse_attribute(attr))
+            .map(VisitorState::parse_attribute)
             .collect()
     }
 }
@@ -2077,13 +2057,7 @@ pub fn save_graph(code_graph: &CodeGraph, output_path: &Path) -> std::io::Result
     Ok(())
 }
     fn record_dependency(&mut self, from: NodeId, to: NodeId, kind: RelationKind) {
-        let from_idx = *self
-            .node_map
-            .entry(from)
-            .or_insert_with(|| self.dependency_graph.add_node(from));
-        let to_idx = *self
-            .node_map
-            .entry(to)
-            .or_insert_with(|| self.dependency_graph.add_node(to));
+        let from_idx = *self.node_map.entry(from).or_insert_with(|| self.dependency_graph.add_node(from));
+        let to_idx = *self.node_map.entry(to).or_insert_with(|| self.dependency_graph.add_node(to));
         self.dependency_graph.add_edge(from_idx, to_idx, kind);
     }
