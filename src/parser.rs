@@ -814,6 +814,31 @@ impl<'a> CodeVisitor<'a> {
     fn new(state: &'a mut VisitorState) -> Self {
         Self { state }
     }
+    
+    // Helper method to extract path segments from a use tree
+    fn extract_use_path(use_tree: &syn::UseTree, path_segments: &mut Vec<String>) {
+        match use_tree {
+            syn::UseTree::Path(path) => {
+                path_segments.push(path.ident.to_string());
+                CodeVisitor::extract_use_path(&path.tree, path_segments);
+            },
+            syn::UseTree::Name(name) => {
+                path_segments.push(name.ident.to_string());
+            },
+            syn::UseTree::Rename(rename) => {
+                path_segments.push(format!("{} as {}", rename.ident, rename.rename));
+            },
+            syn::UseTree::Glob(_) => {
+                path_segments.push("*".to_string());
+            },
+            syn::UseTree::Group(group) => {
+                for tree in &group.items {
+                    let mut new_path = path_segments.clone();
+                    CodeVisitor::extract_use_path(tree, &mut new_path);
+                }
+            },
+        }
+    }
 }
 
 impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
@@ -1316,10 +1341,10 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         
         // Process the use path
         let mut path_segments = Vec::new();
-        let mut current_path = &use_item.tree;
+        let current_path = &use_item.tree;
         
         // Extract path segments from the use tree
-        self.extract_use_path(current_path, &mut path_segments);
+        CodeVisitor::extract_use_path(current_path, &mut path_segments);
         
         // Create relations for the used types
         if !path_segments.is_empty() {
@@ -1344,31 +1369,6 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         
         // Continue visiting
         visit::visit_item_use(self, use_item);
-    }
-    
-    // Helper method to extract path segments from a use tree
-    fn extract_use_path(&self, use_tree: &syn::UseTree, path_segments: &mut Vec<String>) {
-        match use_tree {
-            syn::UseTree::Path(path) => {
-                path_segments.push(path.ident.to_string());
-                self.extract_use_path(&path.tree, path_segments);
-            },
-            syn::UseTree::Name(name) => {
-                path_segments.push(name.ident.to_string());
-            },
-            syn::UseTree::Rename(rename) => {
-                path_segments.push(format!("{} as {}", rename.ident, rename.rename));
-            },
-            syn::UseTree::Glob(_) => {
-                path_segments.push("*".to_string());
-            },
-            syn::UseTree::Group(group) => {
-                for tree in &group.items {
-                    let mut new_path = path_segments.clone();
-                    self.extract_use_path(tree, &mut new_path);
-                }
-            },
-        }
     }
     
     // Visit extern crate statements
