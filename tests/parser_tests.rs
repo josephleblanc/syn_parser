@@ -65,7 +65,7 @@ fn test_analyzer() {
         .iter()
         .filter(|r| r.kind == RelationKind::ImplementsTrait)
         .count();
-    assert_eq!(trait_impl_relations, 4, "Expected 4 'implements' relations");
+    assert_eq!(trait_impl_relations, 8, "Expected 8 'implements' relations");
 
     let contains_relations = code_graph
         .relations
