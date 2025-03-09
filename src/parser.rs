@@ -1557,7 +1557,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         // Store trait info
         let trait_node = TraitNode {
             id: trait_id,
-            name: trait_name,
+            name: trait_name.clone(),
             visibility: self.state.convert_visibility(&item_trait.vis),
             methods,
             generic_params,
