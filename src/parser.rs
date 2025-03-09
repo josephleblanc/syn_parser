@@ -1343,8 +1343,35 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
     let mut visitor_state = VisitorState::new();
+    
+    // Create the root module first
+    let root_module_id = visitor_state.next_node_id();
+    visitor_state.code_graph.modules.push(ModuleNode {
+        id: root_module_id,
+        name: "root".to_string(),
+        visibility: VisibilityKind::Inherited,
+        attributes: Vec::new(),
+        docstring: None,
+        submodules: Vec::new(),
+        items: Vec::new(),
+        imports: Vec::new(),
+        exports: Vec::new(),
+    });
+    
     let mut visitor = CodeVisitor::new(&mut visitor_state);
     visitor.visit_file(&file);
+    
+    // Add relations between root module and top-level items
+    for module in &visitor_state.code_graph.modules {
+        if module.id != root_module_id {
+            visitor_state.code_graph.relations.push(Relation {
+                source: root_module_id,
+                target: module.id,
+                kind: RelationKind::Contains,
+            });
+        }
+    }
+    
     Ok(visitor_state.code_graph)
 }
 
