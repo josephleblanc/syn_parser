@@ -1,52 +1,71 @@
 (
     functions: [
         (
-            id: 31,
+            id: 38,
             name: "sample_function",
-            visibility: Inherited,
+            visibility: Public,
             parameters: [
                 (
-                    id: 32,
-                    name: Some("arg"),
-                    type_id: 5,
+                    id: 39,
+                    name: Some("param1"),
+                    type_id: 10,
+                    is_mutable: false,
+                    is_self: false,
+                ),
+                (
+                    id: 40,
+                    name: Some("param2"),
+                    type_id: 19,
                     is_mutable: false,
                     is_self: false,
                 ),
             ],
-            return_type: None,
+            return_type: Some(10),
             generic_params: [
                 (
-                    id: 33,
+                    id: 41,
                     kind: Type(
                         name: "T",
                         bounds: [
-                            21,
+                            20,
                         ],
                         default: None,
                     ),
                 ),
             ],
             attributes: [],
+            docstring: Some("A public function that takes various parameters"),
+            body: Some("{ let local_var = param1 . field . clone () ; SampleStruct { field : local_var } }"),
+        ),
+        (
+            id: 56,
+            name: "public_function_in_private_module",
+            visibility: Public,
+            parameters: [],
+            return_type: Some(25),
+            generic_params: [],
+            attributes: [],
             docstring: None,
+            body: Some("{ \"I\'m public but in a private module\" }"),
         ),
     ],
     defined_types: [
         Struct((
-            id: 3,
+            id: 2,
             name: "SampleStruct",
-            visibility: Inherited,
+            visibility: Public,
             fields: [
                 (
-                    id: 4,
+                    id: 3,
                     name: Some("field"),
-                    type_id: 5,
-                    visibility: Inherited,
+                    type_id: 1,
+                    visibility: Public,
                     attributes: [],
                 ),
             ],
             generic_params: [
                 (
-                    id: 5,
+                    id: 4,
                     kind: Type(
                         name: "T",
                         bounds: [],
@@ -56,35 +75,52 @@
             ],
             attributes: [
                 (
-                    kind: "derive",
+                    name: "derive",
                     args: [
                         "Debug",
                     ],
                     value: None,
                 ),
             ],
-            docstring: None,
+            docstring: Some("A sample struct with a generic parameter\n\nThis docstring tests multi-line documentation"),
+        )),
+        Struct((
+            id: 36,
+            name: "NestedStruct",
+            visibility: Public,
+            fields: [
+                (
+                    id: 37,
+                    name: Some("nested_field"),
+                    type_id: 17,
+                    visibility: Public,
+                    attributes: [],
+                ),
+            ],
+            generic_params: [],
+            attributes: [],
+            docstring: Some("A nested struct inside the module"),
         )),
         Enum((
-            id: 10,
+            id: 42,
             name: "SampleEnum",
-            visibility: Inherited,
+            visibility: Public,
             variants: [
                 (
-                    id: 11,
+                    id: 43,
                     name: "Variant1",
                     fields: [],
                     discriminant: None,
                     attributes: [],
                 ),
                 (
-                    id: 12,
+                    id: 44,
                     name: "Variant2",
                     fields: [
                         (
-                            id: 13,
+                            id: 45,
                             name: None,
-                            type_id: 5,
+                            type_id: 1,
                             visibility: Inherited,
                             attributes: [],
                         ),
@@ -95,36 +131,99 @@
             ],
             generic_params: [
                 (
-                    id: 14,
+                    id: 46,
                     kind: Type(
                         name: "T",
-                        bounds: [
-                            8,
-                        ],
+                        bounds: [],
                         default: None,
                     ),
                 ),
             ],
             attributes: [
                 (
-                    kind: "derive",
+                    name: "derive",
                     args: [
                         "Debug",
                     ],
                     value: None,
                 ),
             ],
+            docstring: Some("Sample enum with different variant types"),
+        )),
+        Struct((
+            id: 49,
+            name: "PrivateStruct",
+            visibility: Inherited,
+            fields: [
+                (
+                    id: 50,
+                    name: Some("private_field"),
+                    type_id: 9,
+                    visibility: Inherited,
+                    attributes: [],
+                ),
+            ],
+            generic_params: [],
+            attributes: [],
             docstring: None,
         )),
         Struct((
-            id: 25,
-            name: "NestedStruct",
+            id: 61,
+            name: "ModuleStruct",
             visibility: Public,
             fields: [
                 (
-                    id: 26,
-                    name: Some("nested_field"),
-                    type_id: 14,
+                    id: 62,
+                    name: Some("module_field"),
+                    type_id: 9,
+                    visibility: Public,
+                    attributes: [],
+                ),
+            ],
+            generic_params: [],
+            attributes: [],
+            docstring: Some("Struct inside a public module"),
+        )),
+        Enum((
+            id: 69,
+            name: "ModuleEnum",
+            visibility: Public,
+            variants: [
+                (
+                    id: 70,
+                    name: "First",
+                    fields: [],
+                    discriminant: Some("1"),
+                    attributes: [],
+                ),
+                (
+                    id: 71,
+                    name: "Second",
+                    fields: [],
+                    discriminant: Some("2"),
+                    attributes: [],
+                ),
+            ],
+            generic_params: [],
+            attributes: [],
+            docstring: Some("Enum with discriminants"),
+        )),
+        Struct((
+            id: 72,
+            name: "TupleStruct",
+            visibility: Public,
+            fields: [
+                (
+                    id: 73,
+                    name: None,
+                    type_id: 9,
+                    visibility: Public,
+                    attributes: [],
+                ),
+                (
+                    id: 74,
+                    name: None,
+                    type_id: 17,
                     visibility: Public,
                     attributes: [],
                 ),
@@ -133,61 +232,88 @@
             attributes: [],
             docstring: None,
         )),
+        Struct((
+            id: 75,
+            name: "UnitStruct",
+            visibility: Public,
+            fields: [],
+            generic_params: [],
+            attributes: [],
+            docstring: None,
+        )),
+        TypeAlias((
+            id: 76,
+            name: "StringVec",
+            visibility: Public,
+            type_id: 29,
+            generic_params: [],
+            attributes: [],
+            docstring: Some("Type alias example"),
+        )),
+        TypeAlias((
+            id: 77,
+            name: "Result",
+            visibility: Public,
+            type_id: 30,
+            generic_params: [
+                (
+                    id: 78,
+                    kind: Type(
+                        name: "T",
+                        bounds: [],
+                        default: None,
+                    ),
+                ),
+            ],
+            attributes: [],
+            docstring: Some("Generic type alias"),
+        )),
+        Union((
+            id: 79,
+            name: "IntOrFloat",
+            visibility: Public,
+            fields: [
+                (
+                    id: 80,
+                    name: Some("i"),
+                    type_id: 17,
+                    visibility: Public,
+                    attributes: [],
+                ),
+                (
+                    id: 81,
+                    name: Some("f"),
+                    type_id: 31,
+                    visibility: Public,
+                    attributes: [],
+                ),
+            ],
+            generic_params: [],
+            attributes: [
+                (
+                    name: "repr",
+                    args: [
+                        "C",
+                    ],
+                    value: None,
+                ),
+            ],
+            docstring: Some("Union example for memory-efficient storage"),
+        )),
     ],
     type_graph: [
-        (
-            id: 1,
-            kind: Named(
-                path: [
-                    "Self",
-                ],
-                is_fully_qualified: false,
-            ),
-            related_types: [],
-        ),
-        (
-            id: 2,
-            kind: Reference(
-                lifetime: None,
-                is_mutable: false,
-            ),
-            related_types: [
-                1,
-            ],
-        ),
         (
             id: 0,
             kind: Named(
                 path: [
-                    "Self",
-                ],
-                is_fully_qualified: false,
-            ),
-            related_types: [
-                2,
-            ],
-        ),
-        (
-            id: 3,
-            kind: Named(
-                path: [
-                    "Debug",
+                    "proc_macro",
                 ],
                 is_fully_qualified: false,
             ),
             related_types: [],
         ),
         (
-            id: 4,
-            kind: TraitObject(
-                dyn_token: false,
-            ),
-            related_types: [
-                3,
-            ],
-        ),
-        (
-            id: 5,
+            id: 1,
             kind: Named(
                 path: [
                     "T",
@@ -197,22 +323,64 @@
             related_types: [],
         ),
         (
-            id: 6,
+            id: 3,
             kind: Named(
                 path: [
-                    "SampleStruct",
+                    "Self",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [],
+        ),
+        (
+            id: 4,
+            kind: Reference(
+                lifetime: None,
+                is_mutable: false,
+            ),
+            related_types: [
+                3,
+            ],
+        ),
+        (
+            id: 2,
+            kind: Named(
+                path: [
+                    "Self",
                 ],
                 is_fully_qualified: false,
             ),
             related_types: [
-                5,
+                4,
+            ],
+        ),
+        (
+            id: 5,
+            kind: Named(
+                path: [
+                    "Self",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [
+                4,
+            ],
+        ),
+        (
+            id: 6,
+            kind: Reference(
+                lifetime: None,
+                is_mutable: false,
+            ),
+            related_types: [
+                1,
             ],
         ),
         (
             id: 7,
             kind: Named(
                 path: [
-                    "Debug",
+                    "bool",
                 ],
                 is_fully_qualified: false,
             ),
@@ -222,33 +390,35 @@
             id: 8,
             kind: Named(
                 path: [
-                    "Debug",
-                ],
-                is_fully_qualified: false,
-            ),
-            related_types: [],
-        ),
-        (
-            id: 9,
-            kind: Named(
-                path: [
                     "Self",
                 ],
                 is_fully_qualified: false,
             ),
             related_types: [
-                2,
+                4,
             ],
+        ),
+        (
+            id: 9,
+            kind: Named(
+                path: [
+                    "String",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [],
         ),
         (
             id: 10,
             kind: Named(
                 path: [
-                    "Debug",
+                    "SampleStruct",
                 ],
                 is_fully_qualified: false,
             ),
-            related_types: [],
+            related_types: [
+                1,
+            ],
         ),
         (
             id: 11,
@@ -259,7 +429,7 @@
                 is_fully_qualified: false,
             ),
             related_types: [
-                5,
+                1,
             ],
         ),
         (
@@ -271,34 +441,38 @@
                 is_fully_qualified: false,
             ),
             related_types: [
-                2,
+                4,
             ],
         ),
         (
             id: 13,
             kind: Named(
                 path: [
-                    "Debug",
+                    "AnotherTrait",
                 ],
                 is_fully_qualified: false,
             ),
-            related_types: [],
+            related_types: [
+                1,
+            ],
         ),
         (
             id: 14,
             kind: Named(
                 path: [
-                    "i32",
+                    "Self",
                 ],
                 is_fully_qualified: false,
             ),
-            related_types: [],
+            related_types: [
+                4,
+            ],
         ),
         (
             id: 15,
             kind: Named(
                 path: [
-                    "NestedStruct",
+                    "DefaultTrait",
                 ],
                 is_fully_qualified: false,
             ),
@@ -308,33 +482,29 @@
             id: 16,
             kind: Named(
                 path: [
-                    "std",
-                    "fmt",
-                    "Debug",
+                    "Self",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [
+                4,
+            ],
+        ),
+        (
+            id: 17,
+            kind: Named(
+                path: [
+                    "i32",
                 ],
                 is_fully_qualified: false,
             ),
             related_types: [],
         ),
         (
-            id: 17,
-            kind: Named(
-                path: [
-                    "Self",
-                ],
-                is_fully_qualified: false,
-            ),
-            related_types: [
-                2,
-            ],
-        ),
-        (
             id: 18,
             kind: Named(
                 path: [
-                    "std",
-                    "fmt",
-                    "Formatter",
+                    "NestedStruct",
                 ],
                 is_fully_qualified: false,
             ),
@@ -344,7 +514,7 @@
             id: 19,
             kind: Reference(
                 lifetime: None,
-                is_mutable: true,
+                is_mutable: false,
             ),
             related_types: [
                 18,
@@ -354,9 +524,7 @@
             id: 20,
             kind: Named(
                 path: [
-                    "std",
-                    "fmt",
-                    "Result",
+                    "Clone",
                 ],
                 is_fully_qualified: false,
             ),
@@ -366,7 +534,7 @@
             id: 21,
             kind: Named(
                 path: [
-                    "Debug",
+                    "PrivateStruct",
                 ],
                 is_fully_qualified: false,
             ),
@@ -376,16 +544,67 @@
             id: 22,
             kind: Named(
                 path: [
-                    "test_dir",
-                    "example_file",
-                    "UtilsTrait",
+                    "Self",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [
+                4,
+            ],
+        ),
+        (
+            id: 23,
+            kind: Named(
+                path: [
+                    "str",
                 ],
                 is_fully_qualified: false,
             ),
             related_types: [],
         ),
         (
-            id: 23,
+            id: 24,
+            kind: Reference(
+                lifetime: None,
+                is_mutable: false,
+            ),
+            related_types: [
+                23,
+            ],
+        ),
+        (
+            id: 25,
+            kind: Reference(
+                lifetime: Some("static"),
+                is_mutable: false,
+            ),
+            related_types: [
+                23,
+            ],
+        ),
+        (
+            id: 26,
+            kind: Named(
+                path: [
+                    "super",
+                    "*",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [],
+        ),
+        (
+            id: 27,
+            kind: Named(
+                path: [
+                    "ModuleStruct",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [],
+        ),
+        (
+            id: 28,
             kind: Named(
                 path: [
                     "Self",
@@ -393,25 +612,79 @@
                 is_fully_qualified: false,
             ),
             related_types: [
-                2,
+                4,
             ],
+        ),
+        (
+            id: 29,
+            kind: Named(
+                path: [
+                    "Vec",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [
+                9,
+            ],
+        ),
+        (
+            id: 30,
+            kind: Named(
+                path: [
+                    "std",
+                    "result",
+                    "Result",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [
+                1,
+                9,
+            ],
+        ),
+        (
+            id: 31,
+            kind: Named(
+                path: [
+                    "f32",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [],
+        ),
+        (
+            id: 32,
+            kind: Named(
+                path: [
+                    "usize",
+                ],
+                is_fully_qualified: false,
+            ),
+            related_types: [],
         ),
     ],
     impls: [
         (
-            id: 6,
-            self_type: 6,
-            trait_type: None,
+            id: 18,
+            self_type: 10,
+            trait_type: Some(11),
             methods: [
                 (
-                    id: 7,
-                    name: "new",
+                    id: 19,
+                    name: "trait_method",
                     visibility: Inherited,
                     parameters: [
                         (
-                            id: 8,
-                            name: Some("field"),
-                            type_id: 5,
+                            id: 20,
+                            name: Some("self"),
+                            type_id: 12,
+                            is_mutable: false,
+                            is_self: true,
+                        ),
+                        (
+                            id: 21,
+                            name: Some("param"),
+                            type_id: 1,
                             is_mutable: false,
                             is_self: false,
                         ),
@@ -420,125 +693,12 @@
                     generic_params: [],
                     attributes: [],
                     docstring: None,
+                    body: Some("{ self . field . clone () }"),
                 ),
             ],
             generic_params: [
                 (
-                    id: 9,
-                    kind: Type(
-                        name: "T",
-                        bounds: [
-                            7,
-                        ],
-                        default: None,
-                    ),
-                ),
-            ],
-        ),
-        (
-            id: 20,
-            self_type: 6,
-            trait_type: Some(11),
-            methods: [
-                (
-                    id: 21,
-                    name: "sample_method",
-                    visibility: Inherited,
-                    parameters: [
-                        (
-                            id: 22,
-                            name: Some("self"),
-                            type_id: 12,
-                            is_mutable: false,
-                            is_self: true,
-                        ),
-                        (
-                            id: 23,
-                            name: Some("arg"),
-                            type_id: 5,
-                            is_mutable: false,
-                            is_self: false,
-                        ),
-                    ],
-                    return_type: None,
-                    generic_params: [],
-                    attributes: [],
-                    docstring: None,
-                ),
-            ],
-            generic_params: [
-                (
-                    id: 24,
-                    kind: Type(
-                        name: "T",
-                        bounds: [
-                            13,
-                        ],
-                        default: None,
-                    ),
-                ),
-            ],
-        ),
-        (
-            id: 27,
-            self_type: 15,
-            trait_type: Some(16),
-            methods: [
-                (
-                    id: 28,
-                    name: "fmt",
-                    visibility: Inherited,
-                    parameters: [
-                        (
-                            id: 29,
-                            name: Some("self"),
-                            type_id: 17,
-                            is_mutable: false,
-                            is_self: true,
-                        ),
-                        (
-                            id: 30,
-                            name: Some("f"),
-                            type_id: 19,
-                            is_mutable: false,
-                            is_self: false,
-                        ),
-                    ],
-                    return_type: Some(20),
-                    generic_params: [],
-                    attributes: [],
-                    docstring: None,
-                ),
-            ],
-            generic_params: [],
-        ),
-        (
-            id: 34,
-            self_type: 6,
-            trait_type: Some(22),
-            methods: [
-                (
-                    id: 35,
-                    name: "util_method",
-                    visibility: Inherited,
-                    parameters: [
-                        (
-                            id: 36,
-                            name: Some("self"),
-                            type_id: 23,
-                            is_mutable: false,
-                            is_self: true,
-                        ),
-                    ],
-                    return_type: None,
-                    generic_params: [],
-                    attributes: [],
-                    docstring: None,
-                ),
-            ],
-            generic_params: [
-                (
-                    id: 37,
+                    id: 22,
                     kind: Type(
                         name: "T",
                         bounds: [],
@@ -547,127 +707,339 @@
                 ),
             ],
         ),
-    ],
-    traits: [
         (
-            id: 0,
-            name: "PrintDebug",
-            visibility: Inherited,
+            id: 23,
+            self_type: 10,
+            trait_type: Some(13),
             methods: [
                 (
-                    id: 1,
-                    name: "print_debug",
-                    visibility: Public,
+                    id: 24,
+                    name: "another_method",
+                    visibility: Inherited,
                     parameters: [
                         (
-                            id: 2,
+                            id: 25,
                             name: Some("self"),
-                            type_id: 0,
-                            is_mutable: false,
-                            is_self: true,
-                        ),
-                    ],
-                    return_type: None,
-                    generic_params: [],
-                    attributes: [],
-                    docstring: None,
-                ),
-            ],
-            generic_params: [],
-            super_traits: [
-                4,
-            ],
-            attributes: [],
-            docstring: None,
-        ),
-        (
-            id: 15,
-            name: "SampleTrait",
-            visibility: Inherited,
-            methods: [
-                (
-                    id: 16,
-                    name: "sample_method",
-                    visibility: Public,
-                    parameters: [
-                        (
-                            id: 17,
-                            name: Some("self"),
-                            type_id: 9,
+                            type_id: 14,
                             is_mutable: false,
                             is_self: true,
                         ),
                         (
-                            id: 18,
-                            name: Some("arg"),
-                            type_id: 5,
+                            id: 26,
+                            name: Some("param"),
+                            type_id: 6,
                             is_mutable: false,
                             is_self: false,
                         ),
                     ],
-                    return_type: None,
+                    return_type: Some(7),
                     generic_params: [],
                     attributes: [],
                     docstring: None,
+                    body: Some("{ & self . field == param }"),
                 ),
             ],
             generic_params: [
                 (
-                    id: 19,
+                    id: 27,
                     kind: Type(
                         name: "T",
-                        bounds: [
-                            10,
-                        ],
+                        bounds: [],
+                        default: None,
+                    ),
+                ),
+            ],
+        ),
+        (
+            id: 28,
+            self_type: 10,
+            trait_type: Some(15),
+            methods: [],
+            generic_params: [
+                (
+                    id: 29,
+                    kind: Type(
+                        name: "T",
+                        bounds: [],
+                        default: None,
+                    ),
+                ),
+            ],
+        ),
+        (
+            id: 30,
+            self_type: 10,
+            trait_type: None,
+            methods: [
+                (
+                    id: 31,
+                    name: "new",
+                    visibility: Public,
+                    parameters: [
+                        (
+                            id: 32,
+                            name: Some("field"),
+                            type_id: 1,
+                            is_mutable: false,
+                            is_self: false,
+                        ),
+                    ],
+                    return_type: Some(3),
+                    generic_params: [],
+                    attributes: [],
+                    docstring: Some("Constructor method"),
+                    body: Some("{ SampleStruct { field } }"),
+                ),
+                (
+                    id: 33,
+                    name: "use_field",
+                    visibility: Public,
+                    parameters: [
+                        (
+                            id: 34,
+                            name: Some("self"),
+                            type_id: 16,
+                            is_mutable: false,
+                            is_self: true,
+                        ),
+                    ],
+                    return_type: Some(6),
+                    generic_params: [],
+                    attributes: [],
+                    docstring: Some("Method that uses the field"),
+                    body: Some("{ & self . field }"),
+                ),
+            ],
+            generic_params: [
+                (
+                    id: 35,
+                    kind: Type(
+                        name: "T",
+                        bounds: [],
+                        default: None,
+                    ),
+                ),
+            ],
+        ),
+        (
+            id: 52,
+            self_type: 21,
+            trait_type: None,
+            methods: [
+                (
+                    id: 53,
+                    name: "private_method",
+                    visibility: Inherited,
+                    parameters: [
+                        (
+                            id: 54,
+                            name: Some("self"),
+                            type_id: 22,
+                            is_mutable: false,
+                            is_self: true,
+                        ),
+                    ],
+                    return_type: Some(24),
+                    generic_params: [],
+                    attributes: [],
+                    docstring: None,
+                    body: Some("{ & self . private_field }"),
+                ),
+            ],
+            generic_params: [],
+        ),
+        (
+            id: 64,
+            self_type: 27,
+            trait_type: Some(15),
+            methods: [
+                (
+                    id: 65,
+                    name: "default_method",
+                    visibility: Inherited,
+                    parameters: [
+                        (
+                            id: 66,
+                            name: Some("self"),
+                            type_id: 28,
+                            is_mutable: false,
+                            is_self: true,
+                        ),
+                    ],
+                    return_type: Some(9),
+                    generic_params: [],
+                    attributes: [],
+                    docstring: None,
+                    body: Some("{ format ! (\"Custom implementation: {}\" , self . module_field) }"),
+                ),
+            ],
+            generic_params: [],
+        ),
+    ],
+    traits: [
+        (
+            id: 5,
+            name: "SampleTrait",
+            visibility: Public,
+            methods: [
+                (
+                    id: 6,
+                    name: "trait_method",
+                    visibility: Public,
+                    parameters: [
+                        (
+                            id: 7,
+                            name: Some("self"),
+                            type_id: 2,
+                            is_mutable: false,
+                            is_self: true,
+                        ),
+                        (
+                            id: 8,
+                            name: Some("param"),
+                            type_id: 1,
+                            is_mutable: false,
+                            is_self: false,
+                        ),
+                    ],
+                    return_type: Some(1),
+                    generic_params: [],
+                    attributes: [],
+                    docstring: Some("Method in trait"),
+                    body: None,
+                ),
+            ],
+            generic_params: [
+                (
+                    id: 9,
+                    kind: Type(
+                        name: "T",
+                        bounds: [],
                         default: None,
                     ),
                 ),
             ],
             super_traits: [],
             attributes: [],
-            docstring: None,
+            docstring: Some("First trait for testing trait implementations"),
+        ),
+        (
+            id: 10,
+            name: "AnotherTrait",
+            visibility: Public,
+            methods: [
+                (
+                    id: 11,
+                    name: "another_method",
+                    visibility: Public,
+                    parameters: [
+                        (
+                            id: 12,
+                            name: Some("self"),
+                            type_id: 5,
+                            is_mutable: false,
+                            is_self: true,
+                        ),
+                        (
+                            id: 13,
+                            name: Some("param"),
+                            type_id: 6,
+                            is_mutable: false,
+                            is_self: false,
+                        ),
+                    ],
+                    return_type: Some(7),
+                    generic_params: [],
+                    attributes: [],
+                    docstring: Some("Another method in trait"),
+                    body: None,
+                ),
+            ],
+            generic_params: [
+                (
+                    id: 14,
+                    kind: Type(
+                        name: "T",
+                        bounds: [],
+                        default: None,
+                    ),
+                ),
+            ],
+            super_traits: [],
+            attributes: [],
+            docstring: Some("Second trait for testing multiple trait implementations"),
+        ),
+        (
+            id: 15,
+            name: "DefaultTrait",
+            visibility: Public,
+            methods: [
+                (
+                    id: 16,
+                    name: "default_method",
+                    visibility: Public,
+                    parameters: [
+                        (
+                            id: 17,
+                            name: Some("self"),
+                            type_id: 8,
+                            is_mutable: false,
+                            is_self: true,
+                        ),
+                    ],
+                    return_type: Some(9),
+                    generic_params: [],
+                    attributes: [],
+                    docstring: None,
+                    body: Some("{ \"Default implementation\" . to_string () }"),
+                ),
+            ],
+            generic_params: [],
+            super_traits: [],
+            attributes: [],
+            docstring: Some("Testing default trait with blanket implementation"),
         ),
     ],
     relations: [
         (
             source: 1,
-            target: 2,
-            kind: FunctionParameter,
+            target: 0,
+            kind: Uses,
         ),
         (
-            source: 0,
-            target: 4,
-            kind: Inherits,
-        ),
-        (
-            source: 3,
-            target: 4,
+            source: 2,
+            target: 3,
             kind: StructField,
         ),
         (
-            source: 7,
+            source: 6,
+            target: 7,
+            kind: FunctionParameter,
+        ),
+        (
+            source: 6,
             target: 8,
             kind: FunctionParameter,
         ),
         (
-            source: 7,
+            source: 6,
             target: 1,
             kind: FunctionReturn,
         ),
         (
-            source: 6,
-            target: 6,
-            kind: ImplementsFor,
-        ),
-        (
-            source: 10,
-            target: 11,
-            kind: EnumVariant,
-        ),
-        (
-            source: 10,
+            source: 11,
             target: 12,
-            kind: EnumVariant,
+            kind: FunctionParameter,
+        ),
+        (
+            source: 11,
+            target: 13,
+            kind: FunctionParameter,
+        ),
+        (
+            source: 11,
+            target: 7,
+            kind: FunctionReturn,
         ),
         (
             source: 16,
@@ -676,57 +1048,67 @@
         ),
         (
             source: 16,
-            target: 18,
+            target: 9,
+            kind: FunctionReturn,
+        ),
+        (
+            source: 19,
+            target: 20,
             kind: FunctionParameter,
         ),
         (
-            source: 21,
-            target: 22,
+            source: 19,
+            target: 21,
             kind: FunctionParameter,
         ),
         (
-            source: 21,
-            target: 23,
-            kind: FunctionParameter,
+            source: 19,
+            target: 1,
+            kind: FunctionReturn,
         ),
         (
-            source: 20,
-            target: 6,
+            source: 18,
+            target: 10,
             kind: ImplementsTrait,
         ),
         (
-            source: 20,
+            source: 18,
             target: 11,
             kind: ImplementsTrait,
         ),
         (
-            source: 25,
+            source: 24,
+            target: 25,
+            kind: FunctionParameter,
+        ),
+        (
+            source: 24,
             target: 26,
-            kind: StructField,
-        ),
-        (
-            source: 28,
-            target: 29,
             kind: FunctionParameter,
         ),
         (
-            source: 28,
-            target: 30,
-            kind: FunctionParameter,
-        ),
-        (
-            source: 28,
-            target: 20,
+            source: 24,
+            target: 7,
             kind: FunctionReturn,
         ),
         (
-            source: 27,
-            target: 15,
+            source: 23,
+            target: 10,
             kind: ImplementsTrait,
         ),
         (
-            source: 27,
-            target: 16,
+            source: 23,
+            target: 13,
+            kind: ImplementsTrait,
+        ),
+        (
+            source: 28,
+            target: 10,
+            kind: ImplementsTrait,
+        ),
+        (
+            source: 28,
+            target: 15,
             kind: ImplementsTrait,
         ),
         (
@@ -735,20 +1117,315 @@
             kind: FunctionParameter,
         ),
         (
-            source: 35,
-            target: 36,
+            source: 31,
+            target: 3,
+            kind: FunctionReturn,
+        ),
+        (
+            source: 33,
+            target: 34,
             kind: FunctionParameter,
         ),
         (
-            source: 34,
+            source: 33,
             target: 6,
+            kind: FunctionReturn,
+        ),
+        (
+            source: 30,
+            target: 10,
+            kind: ImplementsFor,
+        ),
+        (
+            source: 36,
+            target: 37,
+            kind: StructField,
+        ),
+        (
+            source: 38,
+            target: 39,
+            kind: FunctionParameter,
+        ),
+        (
+            source: 38,
+            target: 40,
+            kind: FunctionParameter,
+        ),
+        (
+            source: 38,
+            target: 10,
+            kind: FunctionReturn,
+        ),
+        (
+            source: 42,
+            target: 43,
+            kind: EnumVariant,
+        ),
+        (
+            source: 42,
+            target: 44,
+            kind: EnumVariant,
+        ),
+        (
+            source: 49,
+            target: 50,
+            kind: StructField,
+        ),
+        (
+            source: 53,
+            target: 54,
+            kind: FunctionParameter,
+        ),
+        (
+            source: 53,
+            target: 24,
+            kind: FunctionReturn,
+        ),
+        (
+            source: 52,
+            target: 21,
+            kind: ImplementsFor,
+        ),
+        (
+            source: 56,
+            target: 25,
+            kind: FunctionReturn,
+        ),
+        (
+            source: 47,
+            target: 49,
+            kind: Contains,
+        ),
+        (
+            source: 47,
+            target: 56,
+            kind: Contains,
+        ),
+        (
+            source: 59,
+            target: 26,
+            kind: Uses,
+        ),
+        (
+            source: 61,
+            target: 62,
+            kind: StructField,
+        ),
+        (
+            source: 65,
+            target: 66,
+            kind: FunctionParameter,
+        ),
+        (
+            source: 65,
+            target: 9,
+            kind: FunctionReturn,
+        ),
+        (
+            source: 64,
+            target: 27,
             kind: ImplementsTrait,
         ),
         (
-            source: 34,
-            target: 22,
+            source: 64,
+            target: 15,
             kind: ImplementsTrait,
         ),
+        (
+            source: 69,
+            target: 70,
+            kind: EnumVariant,
+        ),
+        (
+            source: 69,
+            target: 71,
+            kind: EnumVariant,
+        ),
+        (
+            source: 57,
+            target: 61,
+            kind: Contains,
+        ),
+        (
+            source: 57,
+            target: 69,
+            kind: Contains,
+        ),
+        (
+            source: 72,
+            target: 73,
+            kind: StructField,
+        ),
+        (
+            source: 72,
+            target: 74,
+            kind: StructField,
+        ),
+        (
+            source: 79,
+            target: 80,
+            kind: StructField,
+        ),
+        (
+            source: 79,
+            target: 81,
+            kind: StructField,
+        ),
+        (
+            source: 82,
+            target: 32,
+            kind: ValueType,
+        ),
+        (
+            source: 83,
+            target: 32,
+            kind: ValueType,
+        ),
+        (
+            source: 84,
+            target: 17,
+            kind: ValueType,
+        ),
+        (
+            source: 85,
+            target: 17,
+            kind: ValueType,
+        ),
+        (
+            source: 0,
+            target: 47,
+            kind: Contains,
+        ),
+        (
+            source: 0,
+            target: 57,
+            kind: Contains,
+        ),
     ],
-    modules: [],
+    modules: [
+        (
+            id: 0,
+            name: "root",
+            visibility: Inherited,
+            attributes: [],
+            docstring: None,
+            submodules: [],
+            items: [],
+            imports: [],
+            exports: [],
+        ),
+        (
+            id: 47,
+            name: "private_module",
+            visibility: Restricted([
+                "super",
+            ]),
+            attributes: [],
+            docstring: None,
+            submodules: [],
+            items: [
+                48,
+                51,
+                55,
+            ],
+            imports: [],
+            exports: [],
+        ),
+        (
+            id: 57,
+            name: "public_module",
+            visibility: Public,
+            attributes: [],
+            docstring: None,
+            submodules: [],
+            items: [
+                58,
+                60,
+                63,
+                68,
+            ],
+            imports: [],
+            exports: [],
+        ),
+    ],
+    values: [
+        (
+            id: 82,
+            name: "MAX_ITEMS",
+            visibility: Public,
+            type_id: 32,
+            kind: Constant,
+            value: Some("100"),
+            attributes: [],
+            docstring: Some("A public constant with documentation"),
+        ),
+        (
+            id: 83,
+            name: "MIN_ITEMS",
+            visibility: Inherited,
+            type_id: 32,
+            kind: Constant,
+            value: Some("10"),
+            attributes: [],
+            docstring: Some("A private constant"),
+        ),
+        (
+            id: 84,
+            name: "GLOBAL_COUNTER",
+            visibility: Public,
+            type_id: 17,
+            kind: Static(
+                is_mutable: false,
+            ),
+            value: Some("0"),
+            attributes: [],
+            docstring: Some("A public static variable"),
+        ),
+        (
+            id: 85,
+            name: "MUTABLE_COUNTER",
+            visibility: Public,
+            type_id: 17,
+            kind: Static(
+                is_mutable: true,
+            ),
+            value: Some("0"),
+            attributes: [],
+            docstring: Some("A mutable static variable"),
+        ),
+    ],
+    macros: [
+        (
+            id: 86,
+            name: "test_macro",
+            visibility: Inherited,
+            kind: DeclarativeMacro,
+            rules: [
+                (
+                    id: 87,
+                    pattern: "()",
+                    expansion: "{ println ! (\"Hello from macro!\")",
+                ),
+                (
+                    id: 88,
+                    pattern: "($ expr : expr)",
+                    expansion: "{ println ! (\"Expression: {}\" , $ expr)",
+                ),
+                (
+                    id: 89,
+                    pattern: "($ name : ident , $ value : expr)",
+                    expansion: "{ println ! (\"{} = {}\" , stringify ! ($ name) , $ value)",
+                ),
+            ],
+            attributes: [
+                (
+                    name: "macro_export",
+                    args: [],
+                    value: None,
+                ),
+            ],
+            docstring: Some("A simple macro for testing"),
+            body: Some("() => { println ! (\"Hello from macro!\") ; } ; ($ expr : expr) => { println ! (\"Expression: {}\" , $ expr) ; } ; ($ name : ident , $ value : expr) => { println ! (\"{} = {}\" , stringify ! ($ name) , $ value) ; } ;"),
+        ),
+    ],
 )

@@ -2,7 +2,7 @@
 //! Sample module for testing the code graph builder
 //!
 //! This module contains various Rust constructs to test parsing.
-
+use proc_macro;
 /// A sample struct with a generic parameter
 ///
 /// This docstring tests multi-line documentation
@@ -177,11 +177,4 @@ macro_rules! test_macro {
     ($name:ident, $value:expr) => {
         println!("{} = {}", stringify!($name), $value);
     };
-}
-
-/// A procedural macro example (this would normally be in a proc-macro crate)
-#[proc_macro]
-pub fn example_proc_macro(input: &str) -> String {
-    // This is just for demonstration, not actually functional
-    input.to_string()
 }
