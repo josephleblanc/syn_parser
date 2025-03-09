@@ -11,7 +11,7 @@ and documentation generation.
 
 This project aims to achieve the goal of creating a RAG database for code by
 parsing rust source files into structs that
-can be used as-is or saved using `serde` to a `ron` file.
+can be used as-is or saved using `serde` to a `ron` or `json` file.
 
 For construction of a heterogeneous graph, we identify `Item`s with [`syn`] that
 will form nodes in the graph, and use static analysis to identify edge relations.
