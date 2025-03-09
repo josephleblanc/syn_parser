@@ -1279,6 +1279,8 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let module_id = self.state.next_node_id();
         let module_name = module.ident.to_string();
 
+        println!("Visiting module: {}", module_name); // Debug line
+
         // Process inner items if available
         let mut submodules = Vec::new();
         let mut items = Vec::new();
@@ -1290,28 +1292,36 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
                 match item {
                     syn::Item::Fn(func) => {
+                        println!("Visiting function in module: {}", func.sig.ident.to_string()); // Debug line
                         self.visit_item_fn(func);
                     }
                     syn::Item::Struct(strct) => {
+                        println!("Visiting struct in module: {}", strct.ident.to_string()); // Debug line
                         self.visit_item_struct(strct);
                     }
                     syn::Item::Enum(enm) => {
+                        println!("Visiting enum in module: {}", enm.ident.to_string()); // Debug line
                         self.visit_item_enum(enm);
                     }
                     syn::Item::Impl(impl_block) => {
+                        println!("Visiting impl in module: {:?}", impl_block.self_ty); // Debug line
                         self.visit_item_impl(impl_block);
                     }
                     syn::Item::Trait(trt) => {
+                        println!("Visiting trait in module: {}", trt.ident.to_string()); // Debug line
                         self.visit_item_trait(trt);
                     }
                     syn::Item::Mod(md) => {
+                        println!("Visiting submodule in module: {}", md.ident.to_string()); // Debug line
                         submodules.push(item_id); // Add to submodules
                         self.visit_item_mod(md); // Recursive call
                     }
                     syn::Item::Use(use_item) => {
+                        println!("Visiting use in module: {:?}", use_item); // Debug line
                         self.visit_item_use(use_item);
                     }
                     syn::Item::ExternCrate(extern_crate) => {
+                        println!("Visiting extern crate in module: {:?}", extern_crate); // Debug line
                         self.visit_item_extern_crate(extern_crate);
                     }
                     // Add other item types as needed
