@@ -74,7 +74,7 @@ pub struct FunctionNode {
     pub generic_params: Vec<GenericParamNode>,
     pub attributes: Vec<Attribute>,
     pub docstring: Option<String>,
-    // add `body` field AI!
+    pub body: Option<String>,
 }
 //ANCHOR_END: ItemFn
 
@@ -883,6 +883,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let docstring = self.state.extract_docstring(&func.attrs);
         let attributes = self.state.extract_attributes(&func.attrs);
 
+        // Extract function body as a string
+        let body = Some(func.block.to_token_stream().to_string());
+
         // Store function info
         self.state.code_graph.functions.push(FunctionNode {
             id: fn_id,
@@ -893,6 +896,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             generic_params,
             attributes,
             docstring,
+            body,
         });
 
         // Continue visiting the function body
@@ -1113,6 +1117,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 let docstring = self.state.extract_docstring(&method.attrs);
                 let attributes = self.state.extract_attributes(&method.attrs);
 
+                // Extract method body as a string
+                let body = Some(method.block.to_token_stream().to_string());
+
                 // Store method info
                 let method_node = FunctionNode {
                     id: method_node_id,
@@ -1123,6 +1130,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     generic_params,
                     attributes,
                     docstring,
+                    body,
                 };
                 methods.push(method_node);
             }
@@ -1211,6 +1219,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 let docstring = self.state.extract_docstring(&method.attrs);
                 let attributes = self.state.extract_attributes(&method.attrs);
 
+                // Extract method body if available (trait methods may have default implementations)
+                let body = method.default.as_ref().map(|block| block.to_token_stream().to_string());
+
                 // Store method info
                 let method_node = FunctionNode {
                     id: method_node_id,
@@ -1221,6 +1232,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     generic_params,
                     attributes,
                     docstring,
+                    body,
                 };
                 methods.push(method_node);
             }

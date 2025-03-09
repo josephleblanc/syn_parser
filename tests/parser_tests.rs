@@ -275,7 +275,7 @@ fn test_analyzer() {
     assert!(sample_function.docstring.is_some());
 
     // Check parameter types
-    assert!(sample_function.parameters[0].type_id != sample_function.parameters[0].type_id);
+    assert!(sample_function.parameters[0].type_id != sample_function.parameters[1].type_id);
 
     // Check return type
     assert!(sample_function.return_type.is_some());
