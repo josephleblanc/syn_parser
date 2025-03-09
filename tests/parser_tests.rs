@@ -48,7 +48,7 @@ fn test_analyzer() {
     assert_eq!(
         code_graph.impls.len(),
         7,
-        "Expected 7 impls (SampleTrait for SampleStruct, AnotherTrait for SampleStruct, DefaultTrait for SampleStruct, SampleStruct direct, DefaultTrait for ModuleStruct, and more)"
+        "Expected 7 impls (SampleTrait for SampleStruct, AnotherTrait for SampleStruct, DefaultTrait for SampleStruct, SampleStruct direct, DefaultTrait for ModuleStruct, ModuleStruct's DefaultTrait impl, and more)"
     );
 
     // Check modules
