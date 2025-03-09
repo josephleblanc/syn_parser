@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::fs::File as FsFile;
 use std::io::Write;
 use std::path::Path;
-use syn::nested_meta::NestedMeta;
+use syn::parse::Parser;
 use syn::ItemMod;
 use syn::Meta;
 use syn::{
