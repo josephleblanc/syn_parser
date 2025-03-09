@@ -2,8 +2,19 @@
 //! Sample module for testing the code graph builder
 //!
 //! This module contains various Rust constructs to test parsing.
-use proc_macro;
 /// A sample struct with a generic parameter
+<>>>>>>> REPLACE
+```
+
+tests/data/sample.rs
+```rust
+<<<<<< SEARCH
+    // Private macro
+    macro_rules! private_macro {
+        () => {
+            println!("This is a private macro");
+        };
+    };
 ///
 /// This docstring tests multi-line documentation
 #[derive(Debug)]

@@ -8,7 +8,6 @@ use std::io::Write;
 use std::path::Path;
 use syn::parse::Parser;
 use syn::ItemMod;
-use syn::Meta;
 use syn::{
     visit::{self, Visit},
     AngleBracketedGenericArguments, FnArg, GenericArgument, Generics, ItemEnum, ItemFn, ItemImpl,
@@ -1106,11 +1105,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let docstring = self.state.extract_docstring(&item_struct.attrs);
         let attributes = self.state.extract_attributes(&item_struct.attrs);
 
-        // Store struct info
-        self.state
-            .code_graph
-            .defined_types
-            .push(TypeDefNode::Struct(StructNode {
+        // Store struct info only if public
+        if matches!(item_struct.vis, Visibility::Public(_)) {
+            self.state.code_graph.defined_types.push(TypeDefNode::Struct(StructNode {
                 id: struct_id,
                 name: struct_name,
                 visibility: self.state.convert_visibility(&item_struct.vis),
@@ -1138,11 +1135,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let docstring = self.state.extract_docstring(&item_type.attrs);
         let attributes = self.state.extract_attributes(&item_type.attrs);
 
-        // Store type alias info
-        self.state
-            .code_graph
-            .defined_types
-            .push(TypeDefNode::TypeAlias(TypeAliasNode {
+        // Store type alias info only if public
+        if matches!(item_type.vis, Visibility::Public(_)) {
+            self.state.code_graph.defined_types.push(TypeDefNode::TypeAlias(TypeAliasNode {
                 id: type_alias_id,
                 name: type_alias_name,
                 visibility: self.state.convert_visibility(&item_type.vis),
@@ -1192,11 +1187,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let docstring = self.state.extract_docstring(&item_union.attrs);
         let attributes = self.state.extract_attributes(&item_union.attrs);
 
-        // Store union info
-        self.state
-            .code_graph
-            .defined_types
-            .push(TypeDefNode::Union(UnionNode {
+        // Store union info only if public
+        if matches!(item_union.vis, Visibility::Public(_)) {
+            self.state.code_graph.defined_types.push(TypeDefNode::Union(UnionNode {
                 id: union_id,
                 name: union_name,
                 visibility: self.state.convert_visibility(&item_union.vis),
@@ -1292,11 +1285,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let docstring = self.state.extract_docstring(&item_enum.attrs);
         let attributes = self.state.extract_attributes(&item_enum.attrs);
 
-        // Store enum info
-        self.state
-            .code_graph
-            .defined_types
-            .push(TypeDefNode::Enum(EnumNode {
+        // Store enum info only if public
+        if matches!(item_enum.vis, Visibility::Public(_)) {
+            self.state.code_graph.defined_types.push(TypeDefNode::Enum(EnumNode {
                 id: enum_id,
                 name: enum_name,
                 visibility: self.state.convert_visibility(&item_enum.vis),
