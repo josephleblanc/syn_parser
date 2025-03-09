@@ -1,61 +1,139 @@
-#![allow(dead_code)]
-use super::test_dir;
-use std::fmt::Debug;
+#![allow(dead_code, unused_variables)]
+//! Sample module for testing the code graph builder
+//!
+//! This module contains various Rust constructs to test parsing.
 
-trait PrintDebug: Debug {
-    fn print_debug(&self) {
-        println!("{:?}", self);
+/// A sample struct with a generic parameter
+///
+/// This docstring tests multi-line documentation
+#[derive(Debug)]
+pub struct SampleStruct<T> {
+    pub field: T,
+}
+
+/// First trait for testing trait implementations
+pub trait SampleTrait<T> {
+    /// Method in trait
+    fn trait_method(&self, param: T) -> T;
+}
+
+/// Second trait for testing multiple trait implementations
+pub trait AnotherTrait<T> {
+    /// Another method in trait
+    fn another_method(&self, param: &T) -> bool;
+}
+
+/// Testing default trait with blanket implementation
+pub trait DefaultTrait {
+    fn default_method(&self) -> String {
+        "Default implementation".to_string()
     }
 }
 
-#[derive(Debug)]
-struct SampleStruct<T> {
-    field: T,
+/// Implementation of SampleTrait for SampleStruct
+impl<T> SampleTrait<T> for SampleStruct<T>
+where
+    T: Clone,
+{
+    fn trait_method(&self, param: T) -> T {
+        self.field.clone()
+    }
 }
 
-impl<T: Debug> SampleStruct<T> {
-    fn new(field: T) -> Self {
+/// Implementation of AnotherTrait for SampleStruct
+impl<T> AnotherTrait<T> for SampleStruct<T>
+where
+    T: PartialEq,
+{
+    fn another_method(&self, param: &T) -> bool {
+        &self.field == param
+    }
+}
+
+// Implementation of DefaultTrait for SampleStruct
+impl<T> DefaultTrait for SampleStruct<T> {}
+
+// Direct implementation for SampleStruct
+impl<T> SampleStruct<T> {
+    /// Constructor method
+    pub fn new(field: T) -> Self {
         SampleStruct { field }
     }
-}
 
-#[derive(Debug)]
-enum SampleEnum<T: Debug> {
-    Variant1,
-    Variant2(T),
-}
-
-trait SampleTrait<T: Debug> {
-    fn sample_method(&self, arg: T);
-}
-
-impl<T: Debug> SampleTrait<T> for SampleStruct<T> {
-    fn sample_method(&self, arg: T) {
-        println!(
-            "SampleStruct implementation of sample_method with arg: {:?}",
-            arg
-        );
+    /// Method that uses the field
+    pub fn use_field(&self) -> &T {
+        &self.field
     }
 }
 
+/// A nested struct inside the module
 pub struct NestedStruct {
     pub nested_field: i32,
 }
 
-impl std::fmt::Debug for NestedStruct {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("NestedStruct")
-            .field("nested_field", &self.nested_field)
-            .finish()
+/// A public function that takes various parameters
+pub fn sample_function<T: Clone>(
+    param1: SampleStruct<T>,
+    param2: &NestedStruct,
+) -> SampleStruct<T> {
+    // Create a local variable
+    let local_var = param1.field.clone();
+
+    // Construct and return a new struct
+    SampleStruct { field: local_var }
+}
+
+/// Sample enum with different variant types
+#[derive(Debug)]
+pub enum SampleEnum<T> {
+    Variant1,
+    Variant2(T),
+}
+
+// Private module for testing visibility
+mod private_module {
+    use super::*;
+
+    struct PrivateStruct {
+        private_field: String,
+    }
+
+    impl PrivateStruct {
+        fn private_method(&self) -> &str {
+            &self.private_field
+        }
+    }
+
+    pub fn public_function_in_private_module() -> &'static str {
+        "I'm public but in a private module"
     }
 }
 
-fn sample_function<T: Debug>(arg: T) {
-    println!("Hello, world with arg: {:?}", arg);
-}
+// Public module with nested types
+pub mod public_module {
+    use super::*;
 
-impl<T> test_dir::example_file::UtilsTrait for SampleStruct<T> {
-    fn util_method(&self) {
-        println!("Util method for SampleStruct");
+    /// Struct inside a public module
+    pub struct ModuleStruct {
+        pub module_field: String,
+    }
+
+    /// Implementation of a trait from parent module
+    impl DefaultTrait for ModuleStruct {
+        fn default_method(&self) -> String {
+            format!("Custom implementation: {}", self.module_field)
+        }
+    }
+
+    /// Enum with discriminants
+    pub enum ModuleEnum {
+        First = 1,
+        Second = 2,
     }
 }
+
+// Tuple struct
+pub struct TupleStruct(pub String, pub i32);
+
+// Unit struct
+pub struct UnitStruct;
