@@ -1,6 +1,13 @@
 
-pub trait SampleTrait {
-    fn sample_method(&self) -> String;
+// Trait with associated types and where clauses
+pub trait ComplexTrait<T: Clone> where T: Send {
+    type AssocType;
+    fn method(&self) -> Result<T, Self::AssocType>;
+    
+    #[allow(unused)]
+    fn default_impl(&self) -> String {
+        "default".into()
+    }
 }
 
 pub trait DefaultTrait {
