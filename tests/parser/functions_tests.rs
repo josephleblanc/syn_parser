@@ -1,6 +1,6 @@
 use crate::common::*;
-use src::parser::nodes::*;
-use src::parser::types::*;
+use crate::parser::nodes::*;
+use crate::parser::types::*;
 
 #[test]
 fn test_regular_function_parsing() {
