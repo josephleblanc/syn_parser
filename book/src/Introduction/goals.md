@@ -19,6 +19,7 @@ will form nodes in the graph, and use static analysis to identify edge relations
 ## Nodes
 
 There should be a node for each kind of rust "Item" (see [rust reference](https://doc.rust-lang.org/reference/items.html)).
+// update the table below given the current state of the project AI!
 
 | Rust Items | In-Project | `syn` [Item] | Progress | Next Step |
 | --------------------- | ----------------- | ----------------------- | ----------------------- | --------------- |
@@ -80,4 +81,3 @@ There should be a node for each kind of rust "Item" (see [rust reference](https:
 [ModuleNode]:./nodes.md
 [ImportNode::ExternCrate]:./nodes.md
 [ImportNode::UseStatement]:./nodes.md
-[RealtionKind::Uses]:./edges.md
