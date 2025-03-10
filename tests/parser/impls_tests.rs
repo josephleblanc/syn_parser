@@ -29,7 +29,7 @@ fn test_impl_for_trait() {
     assert_eq!(trait_methods[0].name, "sample_method");
 
     if let Some(trait_type_id) = impl_node.trait_type {
-        let trait_node = graph.traits.iter().find(|t| t.id == trait_type_id).expect("Trait not found");
+        let trait_node = find_trait_by_name(&graph, "SampleTrait").expect("Trait not found");
         assert_eq!(trait_node.name, "SampleTrait");
         assert_eq!(trait_node.methods.len(), 1);
         assert_eq!(trait_node.methods[0].name, "sample_method");
@@ -72,7 +72,7 @@ fn test_generic_impl_for_trait() {
     assert_eq!(trait_methods[0].name, "generic_method");
 
     if let Some(trait_type_id) = impl_node.trait_type {
-        let trait_node = graph.traits.iter().find(|t| t.id == trait_type_id).expect("Trait not found");
+        let trait_node = find_trait_by_name(&graph, "GenericTrait").expect("Trait not found");
         assert_eq!(trait_node.name, "GenericTrait");
         assert_eq!(trait_node.methods.len(), 1);
         assert_eq!(trait_node.methods[0].name, "generic_method");
