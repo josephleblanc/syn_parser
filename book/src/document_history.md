@@ -51,4 +51,10 @@ Your code already handles several important Rust items (functions, structs, enum
 
 ## Make visitor more modular
 
+I've been running into problems regarding the size of the visitor.rs file lately. It is big enough that it fills the context window of aider LLMs more often than not (almost always causing problems around ~30k tokens).
+
+This almost certainly means it is way too big, and avoiding a core
+functionality because it is unwieldy seems like a bad thing for both human
+documentation and ai integration.
+
 2025-03-10
