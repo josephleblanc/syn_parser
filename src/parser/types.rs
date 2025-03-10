@@ -88,8 +88,7 @@ pub struct GenericParamNode {
 
 // ANCHOR: generic_param_kind
 // Different kinds of generic parameters
-#[derive(Debug, Serialize, Deserialize)]
-#[derive(PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum GenericParamKind {
     Type {
         name: String,
@@ -115,5 +114,3 @@ pub enum VisibilityKind {
     Restricted(Vec<String>), // Path components of restricted visibility
     Inherited,               // Default visibility
 }
-
-impl VisibilityKind {}

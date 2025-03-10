@@ -12,8 +12,7 @@ use syn_parser::parser::types::*;
 fn test_regular_trait_parsing() {
     let graph = parse_fixture("traits.rs");
 
-    let sample_trait = find_trait_by_name(&graph, "SampleTrait")
-        .expect("SampleTrait not found");
+    let sample_trait = find_trait_by_name(&graph, "SampleTrait").expect("SampleTrait not found");
 
     assert_eq!(sample_trait.name, "SampleTrait");
     assert_eq!(sample_trait.visibility, VisibilityKind::Public);
@@ -25,8 +24,7 @@ fn test_regular_trait_parsing() {
 fn test_default_trait_parsing() {
     let graph = parse_fixture("traits.rs");
 
-    let default_trait = find_trait_by_name(&graph, "DefaultTrait")
-        .expect("DefaultTrait not found");
+    let default_trait = find_trait_by_name(&graph, "DefaultTrait").expect("DefaultTrait not found");
 
     assert_eq!(default_trait.name, "DefaultTrait");
     assert_eq!(default_trait.visibility, VisibilityKind::Public);
@@ -38,8 +36,7 @@ fn test_default_trait_parsing() {
 fn test_generic_trait_parsing() {
     let graph = parse_fixture("traits.rs");
 
-    let generic_trait = find_trait_by_name(&graph, "GenericTrait")
-        .expect("GenericTrait not found");
+    let generic_trait = find_trait_by_name(&graph, "GenericTrait").expect("GenericTrait not found");
 
     assert_eq!(generic_trait.name, "GenericTrait");
     assert_eq!(generic_trait.visibility, VisibilityKind::Public);
@@ -57,8 +54,8 @@ fn test_generic_trait_parsing() {
 fn test_assoc_type_trait_parsing() {
     let graph = parse_fixture("traits.rs");
 
-    let assoc_type_trait = find_trait_by_name(&graph, "assoc_type_trait")
-        .expect("assoc_type_trait not found");
+    let assoc_type_trait =
+        find_trait_by_name(&graph, "assoc_type_trait").expect("assoc_type_trait not found");
 
     assert_eq!(assoc_type_trait.name, "assoc_type_trait");
     assert_eq!(assoc_type_trait.visibility, VisibilityKind::Public);
@@ -70,7 +67,16 @@ fn test_assoc_type_trait_parsing() {
 fn test_private_trait_parsing() {
     let graph = parse_fixture("traits.rs");
 
-    let private_trait = find_trait_by_name(&graph, "PrivateTrait");
-
-    assert!(private_trait.is_none());
+    if let Some(private_trait) = find_trait_by_name(&graph, "PrivateTrait") {
+        println!(
+            "Visibility of private_trait is: {:?}",
+            private_trait.visibility
+        );
+        assert!(matches!(
+            private_trait.visibility,
+            VisibilityKind::Restricted(_)
+        ));
+    } else {
+        panic!("PrivateTrait not found in graph when using find_trait_by_name.")
+    }
 }
