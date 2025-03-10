@@ -28,7 +28,7 @@ fn test_impl_for_trait() {
     assert_eq!(trait_methods.len(), 1);
     assert_eq!(trait_methods[0].name, "sample_method");
 
-    if let Some(_trait_type_id) = impl_node.trait_type {
+    if let Some(trait_type_id) = impl_node.trait_type {
         let trait_node = find_trait_by_name(&graph, "SampleTrait").expect("Trait not found");
         assert_eq!(trait_node.name, "SampleTrait");
         assert_eq!(trait_node.methods.len(), 1);
@@ -36,6 +36,21 @@ fn test_impl_for_trait() {
     } else {
         panic!("Trait type not found in impl block");
     }
+}
+
+#[test]
+fn test_find_impl_by_name() {
+    let graph = parse_fixture("impls.rs");
+    
+    // Test finding impl for SampleTrait
+    let sample_trait_impl = find_impl_by_name(&graph, "SampleTrait").expect("Impl for SampleTrait not found");
+    assert_eq!(sample_trait_impl.methods.len(), 1);
+    assert_eq!(sample_trait_impl.methods[0].name, "sample_method");
+    
+    // Test finding impl for GenericTrait
+    let generic_trait_impl = find_impl_by_name(&graph, "GenericTrait").expect("Impl for GenericTrait not found");
+    assert_eq!(generic_trait_impl.methods.len(), 1);
+    assert_eq!(generic_trait_impl.methods[0].name, "generic_method");
 }
 
 #[test]
@@ -71,7 +86,7 @@ fn test_generic_impl_for_trait() {
     assert_eq!(trait_methods.len(), 1);
     assert_eq!(trait_methods[0].name, "generic_method");
 
-    if let Some(_trait_type_id) = impl_node.trait_type {
+    if let Some(trait_type_id) = impl_node.trait_type {
         let trait_node = find_trait_by_name(&graph, "GenericTrait").expect("Trait not found");
         assert_eq!(trait_node.name, "GenericTrait");
         assert_eq!(trait_node.methods.len(), 1);
