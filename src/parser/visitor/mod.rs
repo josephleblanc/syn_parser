@@ -93,31 +93,6 @@ impl VisitorState {
         id
     }
 
-    // Get or create a type ID
-    fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
-        // Convert type to a string representation for caching
-        let type_str = ty.to_token_stream().to_string();
-
-        if let Some(&id) = self.type_map.get(&type_str) {
-            return id;
-        }
-
-        let (type_kind, related_types) = self.process_type(ty);
-
-        let id = self.next_type_id();
-        self.type_map.insert(type_str, id);
-
-        self.code_graph.type_graph.push(TypeNode {
-            id,
-            kind: type_kind,
-            related_types,
-        });
-
-        id
-    }
-
-    // Process a type and get its kind and related types
-    fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
         let mut related_types = Vec::new();
 
         match ty {
@@ -460,34 +435,6 @@ impl VisitorState {
         params
     }
 
-    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
-        match bound {
-            syn::TypeParamBound::Trait(trait_bound) => {
-                self.get_or_create_type(&syn::Type::Path(syn::TypePath {
-                    qself: None,
-                    path: trait_bound.path.clone(),
-                }))
-            }
-            syn::TypeParamBound::Lifetime(_) => {
-                // Create a synthetic type for the lifetime bound
-                let type_id = self.next_type_id();
-                self.code_graph.type_graph.push(TypeNode {
-                    id: type_id,
-                    kind: TypeKind::Named {
-                        path: vec!["lifetime".to_string()],
-                        is_fully_qualified: false,
-                    },
-                    related_types: Vec::new(),
-                });
-                type_id
-            }
-            _ => self.next_type_id(),
-        }
-    }
-
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
-        bound.ident.to_string()
-    }
 
     // Extract doc comments from attributes
     fn extract_docstring(&self, attrs: &[syn::Attribute]) -> Option<String> {
