@@ -80,8 +80,10 @@ pub fn find_generic_param_by_name<'a>(params: &'a [GenericParamNode], name: &str
 pub fn find_impl_by_name<'a>(graph: &'a CodeGraph, name: &str) -> Option<&'a ImplNode> {
     graph.impls.iter().find(|impl_node| {
         if let Some(trait_type_id) = impl_node.trait_type {
-            if let Some(trait_node) = graph.traits.iter().find(|t| t.id == trait_type_id) {
-                return trait_node.name == name;
+            if let Some(type_node) = graph.type_graph.iter().find(|t| t.id == trait_type_id) {
+                if let TypeKind::Named { path, .. } = &type_node.kind {
+                    return path.last().map_or(false, |s| s == name);
+                }
             }
         }
         false
