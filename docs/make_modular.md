@@ -138,6 +138,9 @@ We'll need to create these directories:
  // src/serialization/mod.rs
  pub mod ron;
 
+ // Re-export for easier access
+ pub use self::ron::save_to_ron;
+
  // src/serialization/ron.rs
  use ron::ser::{to_string_pretty, PrettyConfig};
  use std::fs::File;

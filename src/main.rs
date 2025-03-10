@@ -1,6 +1,6 @@
-mod parser;
+// Use the lib.rs exports instead of direct imports from parser
 use crate::parser::analyze_code;
-use crate::parser::save_graph;
+use crate::serialization::ron::save_to_ron;
 use std::path::Path;
 
 const TARGET_FILE: &str = "src/main.rs";
@@ -11,5 +11,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let save_path = Path::new(RON_SAVE_FILE);
 
     let code_graph = analyze_code(target_path)?;
-    Ok(save_graph(&code_graph, save_path)?)
+    Ok(save_to_ron(&code_graph, save_path)?)
 }
