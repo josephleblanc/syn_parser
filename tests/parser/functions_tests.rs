@@ -1,6 +1,6 @@
 use crate::common::*;
-use syn_parser::parser::nodes::*;
-use syn_parser::parser::types::*;
+use syn_parser::parser::nodes::VisibilityKind;
+use syn_parser::parser::types::GenericParamKind;
 
 #[test]
 fn test_regular_function_parsing() {
@@ -14,7 +14,7 @@ fn test_regular_function_parsing() {
     assert!(function.parameters.is_empty());
     assert_eq!(function.return_type, None);
     assert!(function.generic_params.is_empty());
-    assert_eq!(function.attributes, vec![]);
+    assert!(function.attributes.is_empty());
     assert_eq!(function.docstring, None);
 }
 
@@ -119,7 +119,7 @@ fn test_lifetime_function_parsing() {
     
     // Check for lifetime parameter
     assert!(function.generic_params.iter().any(|param| {
-        if let GenericParamKind::Lifetime { name } = &param.kind {
+        if let GenericParamKind::Lifetime { name, .. } = &param.kind {
             name == "'a"
         } else {
             false
