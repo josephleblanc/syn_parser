@@ -1,6 +1,7 @@
 use crate::common::*;
 use syn_parser::parser::types::GenericParamKind;
 use syn_parser::parser::types::VisibilityKind;
+use syn_parser::parser::types::TypeKind;
 
 #[test]
 fn test_regular_function_parsing() {
@@ -127,7 +128,7 @@ fn test_lifetime_function_parsing() {
     assert_eq!(function.parameters.len(), 1);
     assert_eq!(function.parameters[0].name, Some("param".to_string()));
     assert_eq!(function.parameters[0].type_id, graph.type_graph.iter().find(|t| matches!(t.kind, TypeKind::Reference { lifetime: Some(ref lt), mutable: false } if lt == "'a")).map(|t| t.id).expect("Reference type with lifetime 'a' not found"));
-    assert_eq!(function.return_type, graph.type_graph.iter().find(|t| matches!(t.kind, TypeKind::Reference { lifetime: Some(ref lt), mutable: false } if lt == "'a")).map(|t| t.id).expect("Reference type with lifetime 'a' not found"));
+    assert_eq!(function.return_type, Some(graph.type_graph.iter().find(|t| matches!(t.kind, TypeKind::Reference { lifetime: Some(ref lt), mutable: false } if lt == "'a")).map(|t| t.id).expect("Reference type with lifetime 'a' not found")));
 }
 
 #[test]
