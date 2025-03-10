@@ -401,9 +401,9 @@ impl VisitorState {
                     default,
                     ..
                 }) => {
-                    let bounds: Vec<TypeId> = bounds
+                    let bounds: Vec<String> = bounds
                         .iter()
-                        .map(|bound| self.process_type_bound(bound))
+                        .map(|bound| bound.to_token_stream().to_string())
                         .collect();
                     let default_type = default.as_ref().map(|expr| self.get_or_create_type(&*expr));
 
@@ -417,10 +417,10 @@ impl VisitorState {
                     });
                 }
                 syn::GenericParam::Lifetime(lifetime_def) => {
-                    let bounds: Vec<TypeId> = lifetime_def
+                    let bounds: Vec<String> = lifetime_def
                         .bounds
                         .iter()
-                        .map(|bound| self.process_lifetime_bound(bound))
+                        .map(|bound| bound.to_token_stream().to_string())
                         .collect();
 
                     params.push(GenericParamNode {
