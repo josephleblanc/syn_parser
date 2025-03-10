@@ -36,7 +36,9 @@ pub fn find_enum_by_name<'a>(graph: &'a CodeGraph, name: &str) -> Option<&'a Enu
 
 /// Find a trait by name in the code graph
 pub fn find_trait_by_name<'a>(graph: &'a CodeGraph, name: &str) -> Option<&'a TraitNode> {
-    graph.traits.iter().find(|t| t.name == name)
+    graph.traits.iter().find(|t| t.name == name).or_else(|| {
+        graph.private_traits.iter().find(|t| t.name == name)
+    })
 }
 
 /// Find a function by name in the code graph

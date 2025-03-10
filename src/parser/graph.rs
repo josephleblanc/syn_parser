@@ -17,8 +17,10 @@ pub struct CodeGraph {
     pub type_graph: Vec<TypeNode>,
     // Implementation blocks
     pub impls: Vec<ImplNode>,
-    // Traits defined in the code
+    // Public traits defined in the code
     pub traits: Vec<TraitNode>,
+    // Private traits defined in the code
+    pub private_traits: Vec<TraitNode>,
     // Relations between nodes
     pub relations: Vec<Relation>,
     // Modules defined in the code

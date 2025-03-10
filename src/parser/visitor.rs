@@ -68,6 +68,7 @@ impl VisitorState {
                 type_graph: Vec::new(),
                 impls: Vec::new(),
                 traits: Vec::new(),
+                private_traits: Vec::new(),
                 relations: Vec::new(),
                 modules: Vec::new(),
                 values: Vec::new(),
