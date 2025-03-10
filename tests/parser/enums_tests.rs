@@ -1,9 +1,5 @@
-// Placeholder for enum parsing tests
-#[test]
-fn test_enum_parsing() {
-    // Add enum parsing tests here
-}
 use crate::common::*;
+use syn_parser::parser::types::VisibilityKind;
 
 #[test]
 fn test_enum_parsing() {
