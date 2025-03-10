@@ -75,3 +75,15 @@ pub fn find_generic_param_by_name<'a>(params: &'a [GenericParamNode], name: &str
         }
     })
 }
+
+/// Find an impl block by trait name
+pub fn find_impl_by_name<'a>(graph: &'a CodeGraph, name: &str) -> Option<&'a ImplNode> {
+    graph.impls.iter().find(|impl_node| {
+        if let Some(trait_type_id) = impl_node.trait_type {
+            if let Some(trait_node) = graph.traits.iter().find(|t| t.id == trait_type_id) {
+                return trait_node.name == name;
+            }
+        }
+        false
+    })
+}
