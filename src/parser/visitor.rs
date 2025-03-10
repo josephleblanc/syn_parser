@@ -412,7 +412,7 @@ impl VisitorState {
                             id
                         } else {
                             let id = self.next_type_id();
-                            self.get_or_create_type(&expr.into())
+                            self.get_or_create_type(&expr.into());
                             id
                         }
                     });
