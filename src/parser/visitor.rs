@@ -401,11 +401,11 @@ impl VisitorState {
                     default,
                     ..
                 }) => {
-                    let bounds: Vec<TypeId> = bounds
+                    let bounds: Vec<String> = bounds
                         .iter()
-                        .map(|bound| self.process_type_bound(bound))
+                        .map(|bound| self.process_type_bound(bound).to_string())
                         .collect();
-                    let default_type = default.as_ref().map(|ty| self.get_or_create_type(&ty));
+                    let default_type = default.as_ref().map(|expr| self.get_or_create_type(&*expr));
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
@@ -441,7 +441,6 @@ impl VisitorState {
                         kind: GenericParamKind::Const {
                             name: const_param.ident.to_string(),
                             type_id,
-                            default: default_type,
                         },
                     });
                 }
@@ -467,7 +466,7 @@ impl VisitorState {
                         segments: vec![syn::PathSegment {
                             ident: lifetime.ident.clone(),
                             arguments: syn::PathArguments::None,
-                        }],
+                        }].into_iter().collect(),
                     },
                 }))
             }
@@ -482,7 +481,7 @@ impl VisitorState {
                 segments: vec![syn::PathSegment {
                     ident: bound.ident.clone(),
                     arguments: syn::PathArguments::None,
-                }],
+                }].into_iter().collect(),
             },
         }))
     }
