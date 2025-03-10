@@ -1,7 +1,7 @@
 // Sample with various enum types
 
 // Regular enum
-pub enum SampleEnum {
+pub enum SampleEnum1 {
     Variant1,
     Variant2,
 }
