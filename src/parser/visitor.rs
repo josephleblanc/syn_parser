@@ -477,10 +477,6 @@ impl VisitorState {
     }
 
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> TypeId {
-        self.next_type_id() // Simplified since lifetimes don't need full type tracking
-    }
-
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> TypeId {
         self.get_or_create_type(&syn::Type::Path(syn::TypePath {
             qself: None,
             path: syn::Path {
