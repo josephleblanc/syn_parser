@@ -6,3 +6,8 @@
 pub mod generics;
 pub mod attributes;
 pub mod docs;
+
+// Re-export main utility functions at module level
+pub use self::generics::process_generics;
+pub use self::docs::extract_docstring;
+pub use self::attributes::{extract_attributes, parse_attribute};
