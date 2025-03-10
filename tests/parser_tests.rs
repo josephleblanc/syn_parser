@@ -1,6 +1,6 @@
 use std::path::PathBuf;
+use syn_parser::parser::TypeKind;
 use syn_parser::parser::*;
-use syn_parser::parser::TypeId;
 mod data;
 #[test]
 fn test_analyzer() {
@@ -66,7 +66,10 @@ fn test_analyzer() {
     fn get_self_type_name(code_graph: &CodeGraph, self_type_id: TypeId) -> String {
         if let Some(self_type) = code_graph.type_graph.iter().find(|t| t.id == self_type_id) {
             if let TypeKind::Named { path, .. } = &self_type.kind {
-                return path.last().unwrap_or(&"UnknownType".to_string()).to_string();
+                return path
+                    .last()
+                    .unwrap_or(&"UnknownType".to_string())
+                    .to_string();
             }
         }
         "UnknownType".to_string()
@@ -78,26 +81,23 @@ fn test_analyzer() {
         3,
         "Expected 3 modules (root, private_module, public_module)"
     );
-    
+
     // Check constants and statics
     assert_eq!(
         code_graph.values.len(),
         3,
         "Expected 3 values (MAX_ITEMS, GLOBAL_COUNTER, MUTABLE_COUNTER)"
     );
-    
+
     // Check macros
     assert!(
         code_graph.macros.len() >= 1,
         "Expected at least 1 macro (test_macro)"
     );
-    
+
     // Test private macro
-    let private_macro = code_graph
-        .macros
-        .iter()
-        .find(|m| m.name == "private_macro");
-    
+    let private_macro = code_graph.macros.iter().find(|m| m.name == "private_macro");
+
     assert!(private_macro.is_none(), "private_macro should not be found");
 
     // =========== Relations ===========
@@ -241,7 +241,11 @@ fn test_analyzer() {
             type_alias.docstring.is_some(),
             "Expected docstring for StringVec"
         );
-        assert!(type_alias.docstring.as_ref().unwrap().contains("Type alias example"));
+        assert!(type_alias
+            .docstring
+            .as_ref()
+            .unwrap()
+            .contains("Type alias example"));
     }
 
     let result_alias = code_graph
@@ -281,20 +285,23 @@ fn test_analyzer() {
         assert_eq!(union_node.name, "IntOrFloat");
         assert_eq!(union_node.visibility, VisibilityKind::Public);
         assert_eq!(union_node.fields.len(), 2);
-        
+
         // Check field names
-        let field_names: Vec<Option<String>> = union_node.fields.iter()
-            .map(|f| f.name.clone())
-            .collect();
+        let field_names: Vec<Option<String>> =
+            union_node.fields.iter().map(|f| f.name.clone()).collect();
         assert!(field_names.contains(&Some("i".to_string())));
         assert!(field_names.contains(&Some("f".to_string())));
-        
+
         // Check attributes
         assert!(union_node.attributes.iter().any(|attr| attr.name == "repr"));
-        
+
         // Check docstring
         assert!(union_node.docstring.is_some());
-        assert!(union_node.docstring.as_ref().unwrap().contains("memory-efficient storage"));
+        assert!(union_node
+            .docstring
+            .as_ref()
+            .unwrap()
+            .contains("memory-efficient storage"));
     }
 
     // =========== Constants and Statics Tests ===========
@@ -304,68 +311,86 @@ fn test_analyzer() {
         .iter()
         .find(|v| v.name == "MAX_ITEMS")
         .expect("MAX_ITEMS constant not found");
-    
+
     assert_eq!(max_items.name, "MAX_ITEMS");
     assert_eq!(max_items.visibility, VisibilityKind::Public);
     assert_eq!(max_items.kind, ValueKind::Constant);
     assert_eq!(max_items.value.as_ref().unwrap(), "100");
     assert!(max_items.docstring.is_some());
-    assert!(max_items.docstring.as_ref().unwrap().contains("public constant"));
-    
+    assert!(max_items
+        .docstring
+        .as_ref()
+        .unwrap()
+        .contains("public constant"));
+
     // Test private constant
-    let min_items = code_graph
-        .values
-        .iter()
-        .find(|v| v.name == "MIN_ITEMS");
-    
-    assert!(min_items.is_none(), "MIN_ITEMS constant should not be found");
-    
+    let min_items = code_graph.values.iter().find(|v| v.name == "MIN_ITEMS");
+
+    assert!(
+        min_items.is_none(),
+        "MIN_ITEMS constant should not be found"
+    );
+
     // Test static variable
     let global_counter = code_graph
         .values
         .iter()
         .find(|v| v.name == "GLOBAL_COUNTER")
         .expect("GLOBAL_COUNTER static not found");
-    
+
     assert_eq!(global_counter.name, "GLOBAL_COUNTER");
     assert_eq!(global_counter.visibility, VisibilityKind::Public);
-    assert!(matches!(global_counter.kind, ValueKind::Static { is_mutable: false }));
+    assert!(matches!(
+        global_counter.kind,
+        ValueKind::Static { is_mutable: false }
+    ));
     assert_eq!(global_counter.value.as_ref().unwrap(), "0");
-    
+
     // Test mutable static variable
     let mutable_counter = code_graph
         .values
         .iter()
         .find(|v| v.name == "MUTABLE_COUNTER")
         .expect("MUTABLE_COUNTER static not found");
-    
+
     assert_eq!(mutable_counter.name, "MUTABLE_COUNTER");
     assert_eq!(mutable_counter.visibility, VisibilityKind::Public);
-    assert!(matches!(mutable_counter.kind, ValueKind::Static { is_mutable: true }));
+    assert!(matches!(
+        mutable_counter.kind,
+        ValueKind::Static { is_mutable: true }
+    ));
     assert_eq!(mutable_counter.value.as_ref().unwrap(), "0");
-    
-    
+
     // =========== Macro Tests ===========
     let test_macro = code_graph
         .macros
         .iter()
         .find(|m| m.name == "test_macro")
         .expect("test_macro not found");
-    
+
     assert_eq!(test_macro.name, "test_macro");
     assert!(test_macro.docstring.is_some());
-    assert!(test_macro.docstring.as_ref().unwrap().contains("simple macro for testing"));
-    
+    assert!(test_macro
+        .docstring
+        .as_ref()
+        .unwrap()
+        .contains("simple macro for testing"));
+
     // Check macro attributes
-    assert!(test_macro.attributes.iter().any(|attr| attr.name == "macro_export"));
-    
+    assert!(test_macro
+        .attributes
+        .iter()
+        .any(|attr| attr.name == "macro_export"));
+
     // Check macro rules
-    assert!(test_macro.rules.len() >= 1, "Expected at least one rule in test_macro");
-    
+    assert!(
+        test_macro.rules.len() >= 1,
+        "Expected at least one rule in test_macro"
+    );
+
     // Check macro kind
     assert!(matches!(test_macro.kind, MacroKind::DeclarativeMacro));
-    
-    
+
     // =========== Enum Tests ===========
     let sample_enum = code_graph
         .defined_types
@@ -471,7 +496,10 @@ fn test_analyzer() {
         .find(|m| m.name == "private_module")
         .expect("private_module not found");
 
-    assert!(matches!(private_module.visibility, VisibilityKind::Restricted(_)));
+    assert!(matches!(
+        private_module.visibility,
+        VisibilityKind::Restricted(_)
+    ));
 
     let public_module = code_graph
         .modules

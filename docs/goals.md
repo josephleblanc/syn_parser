@@ -32,6 +32,38 @@ Your code already handles several important Rust items (functions, structs, enum
 
 ## Step 2: Prepare Data for Analysis
 
+### Consider integration with `sled` and `indradb`
+
+There is no reason for me to reinvent the wheel for this project. These existing projects seem to work well together (IndraDB now [supports sled])
+
+```rust
+use sled::{Db, open};
+use indradb::{Datastore, Edge, EdgeKey, Error, ModelType, Vertex, VertexKey, DataType};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let db: Db = open("your_db_path")?;
+    let datastore = Datastore::new_sled(db);
+
+    // Example: Inserting a node
+    let node_id = VertexKey::new("Node1");
+    let node = Vertex::new(node_id);
+    datastore.insert_vertex(&node)?;
+
+    // Example: Inserting an edge
+    let edge_key = EdgeKey::new("Node1", "EdgeType", "Node2");
+    let edge = Edge::new(edge_key);
+    datastore.insert_edge(&edge)?;
+
+    // Querying the graph
+    let nodes = datastore.get_vertices()?;
+    for node in nodes {
+        println!("{:?}", node);
+    }
+
+    Ok(())
+}
+```
+
 1. **Relationship Modeling**:
    - Implement `Calls` relationship for function invocations
    - Add data flow tracking between variables
@@ -230,3 +262,5 @@ fn process_call_expr(&mut self, expr_id: NodeId, expr: &ExprCall) {
    - Support "find related code" queries
 
 This plan provides a comprehensive approach to enhancing your Rust code parser for RAG purposes, focusing on both the syntactic extraction and semantic relationships that will be most valuable for code generation and refactoring tasks.
+
+[supports sled]:https://github.com/indradb/sled?tab=readme-ov-file
