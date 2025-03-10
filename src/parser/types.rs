@@ -89,6 +89,7 @@ pub struct GenericParamNode {
 // ANCHOR: generic_param_kind
 // Different kinds of generic parameters
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(PartialEq)]
 pub enum GenericParamKind {
     Type {
         name: String,
