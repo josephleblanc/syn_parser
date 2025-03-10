@@ -1,225 +1,381 @@
-# Plan
+# AI Plans For Future `ai_next_task.md` Items
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                                       Making the Project More Modular                                       ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+## Overall Goal
 
-Looking at your codebase, I can see that most of the functionality is contained in a single large file
-(src/parser.rs). This makes the code harder to maintain, understand, and test. Here are my suggestions for
-making the project more modular:
+The goal of this project is to parse rust source files into data structures
+that can be used to form a heterogeneous graph database. This database is
+intended to be used by a Retrieval Augmented Generation (RAG) pipeline for
+coding-related tasks such as code generation, code explain, code refactoring,
+and documentation generation.
 
-                                  1. Split the Parser Module into Submodules                                   
+This project aims to achieve the goal of creating a RAG database for code by
+parsing rust source files into structs that
+can be used as-is or saved using `serde` to a `ron` or `json` file.
 
-The parser.rs file (over 1800 lines) should be broken down into logical components:
+For construction of a heterogeneous graph, we identify `Item`s with [`syn`] that
+will form nodes in the graph, and use static analysis to identify edge relations.
 
- src/
- ├── parser/
- │   ├── mod.rs           # Re-exports and common functionality
- │   ├── types.rs         # Type definitions (TypeNode, TypeKind, etc.)
- │   ├── nodes.rs         # Node definitions (FunctionNode, StructNode, etc.)
- │   ├── relations.rs     # Relation definitions and handling
- │   ├── visitor.rs       # The CodeVisitor implementation
- │   ├── graph.rs         # CodeGraph structure and operations
- │   └── utils.rs         # Helper functions and utilities
+# Next Priorities
 
-                                  2. Create a Dedicated Serialization Module                                   
+Based on your ai_todo.md, I recommend this order of implementation:
 
-Move serialization logic to its own module:
+1. **Core Infrastructure**: Implement the graph database integration with sled and indradb first
+2. **Chunking**: Develop the semantic chunking system
+3. **Multi-file Analysis**: Enhance the parser to handle full projects
+4. **Relationships**: Add deeper relationship modeling (calls, data flow)
+5. **Vector Search**: Integrate with Qdrant or similar
+6. **Query API**: Build the combined graph+vector query capabilities
 
- src/
- ├── serialization/
- │   ├── mod.rs
- │   ├── ron.rs           # RON format serialization
- │   └── json.rs          # (Optional) JSON format serialization
+This approach builds foundational components first before moving to more advanced features.
 
-                                    3. Implement a Proper Module Structure                                     
+# Step-By-Step Plan
 
-Create a clearer module hierarchy in lib.rs:
+## 1. Integrating with Graph Databases
 
- pub mod parser;
- pub mod serialization;
- pub mod analysis;  // For future code analysis features
+### Implementation Steps
 
-                               4. Separate Data Structures from Processing Logic                               
+1. **Add database module**:
 
-The current design mixes data structures with processing logic. Consider:
+Modify your lib.rs to integrate with rocksdb and indradb.
 
- • Creating pure data structures with minimal dependencies
- • Implementing traits for functionality on these structures
- • Using the builder pattern for complex object construction
-
-                                         5. Add Configuration Options                                          
-
-Create a configuration module to handle parsing options:
-
- src/
- ├── config/
- │   ├── mod.rs
- │   └── options.rs       # Parsing and output options
-
-                                           6. Improve Error Handling                                           
-
-Implement a dedicated error module:
-
- src/
- ├── error.rs             # Custom error types and handling
-
-                                            7. Create a CLI Module                                             
-
-If you plan to use this as a command-line tool:
-
- src/
- ├── cli/
- │   ├── mod.rs
- │   └── commands.rs      # CLI command implementations
-
-                                            Implementation Strategy                                            
-
-I recommend implementing this refactoring incrementally:
-
- 1 First, create the directory structure
- 2 Move the type definitions to their own files
- 3 Gradually extract the visitor logic
- 4 Update imports and references
- 5 Add tests for each module
-
-                                      1. First, let's update src/lib.rs:                                       
-
-                                                                                                               
- // src/lib.rs
- pub mod parser;
- pub mod serialization;
-
-                                     2. Create a new directory structure:                                      
-
-We'll need to create these directories:
-
- • src/parser/
- • src/serialization/
-
-                                          3. Create the module files:                                          
-
-                                            For the parser module:                                             
-
-                                                                                                               
- ```rust
-   // src/parser/mod.rs                                                                                          
- mod types;                                                                                                    
- mod nodes;                                                                                                    
- mod relations;                                                                                                
- mod visitor;                                                                                                  
- mod graph;                                                                                                    
-  ```
+src/lib.rs:
 
  ```rust
-   // Re-export the main components                                                                              
- pub use self::graph::CodeGraph;                                                                               
- pub use self::visitor::analyze_code;                                                                          
- pub use self::serialization::save_graph;                                                                      
+use rocksdb::DB;
+use indradb::{Datastore, Edge, EdgeKey, Vertex, VertexKey};
+
+pub fn setup_database() -> Result<DB, Box<dyn std::error::Error>> {
+    let db = DB::open_default("your_db_path")?;
+    Ok(db)
+}
+
+pub fn create_nodes_and_edges(db: &DB) -> Result<(), Box<dyn std::error::Error>> {
+    let datastore = indradb::Datastore::new_rocksdb(db);
+
+    // Example: Inserting a node
+    let node_id = VertexKey::new("Node1");
+    let node = Vertex::new(node_id);
+    datastore.insert_vertex(&node)?;
+
+    // Example: Inserting an edge
+    let edge_key = EdgeKey::new("Node1", "EdgeType", "Node2");
+    let edge = Edge::new(edge_key);
+    datastore.insert_edge(&edge)?;
+
+    Ok(())
+}
   ```
 
- ```rust
-   // Internal module for serialization functions                                                                
- mod serialization {                                                                                           
-     use crate::serialization::ron::save_to_ron;                                                               
-     use super::graph::CodeGraph;                                                                              
-     use std::path::Path;                                                                                      
+## 2. Semantic Chunking for Embeddings
 
+### Implementation Steps
 
-     pub fn save_graph(code_graph: &CodeGraph, output_path: &Path) -> std::io::Result<()> {                    
-         save_to_ron(code_graph, output_path)                                                                  
-     }                                                                                                         
-  ```
+1. **Create chunking module**:
 
- }
+```rust
+// src/chunking/mod.rs
+pub mod strategies;
 
-                                         For the serialization module:                                         
+use crate::parser::nodes::Node;
 
-                                                                                                               
- // src/serialization/mod.rs
- pub mod ron;
+pub struct Chunk {
+    pub content: String,
+    pub start_line: usize,
+    pub end_line: usize,
+    pub node_id: Option<usize>,
+    pub file_path: String,
+}
 
- // src/serialization/ron.rs
- use ron::ser::{to_string_pretty, PrettyConfig};
- use std::fs::File;
- use std::io::Write;
- use std::path::Path;
- use crate::parser::CodeGraph;
+pub trait ChunkingStrategy {
+    fn chunk(&self, content: &str, node: Option<&Node>) -> Vec<Chunk>;
+      // todo
+}
+```
 
- ```rust
-   pub fn save_to_ron(code_graph: &CodeGraph, output_path: &Path) -> std::io::Result<()> {                       
-     let pretty_config = PrettyConfig::default();                                                              
-     let ron_string = to_string_pretty(code_graph, pretty_config).expect("Serialization failed");              
-                                                                                                               
-     let mut output_file = File::create(output_path)?;                                                         
-     output_file.write_all(ron_string.as_bytes())?;                                                            
-     Ok(())                                                                                                    
- }                                                                                                             
-  ```
+2. **Implement chunking strategies**:
 
-                                         4. Split the parser.rs file:                                          
+```rust
+// src/chunking/strategies.rs
+use super::{Chunk, ChunkingStrategy};
+use crate::parser::nodes::Node;
 
-Now we need to split the large parser.rs file into smaller modules. Here's how we'll divide it:
+// Function-based chunking
+pub struct FunctionChunker {
+    pub max_chunk_size: usize,
+    pub overlap: usize,
+}
 
-                                             src/parser/types.rs:                                              
+impl ChunkingStrategy for FunctionChunker {
+    fn chunk(&self, content: &str, node: Option<&Node>) -> Vec<Chunk> {
+        // Implementation...
+    }
+}
 
- • TypeId
- • TypeNode
- • TypeKind
- • GenericParamNode
- • GenericParamKind
- • VisibilityKind
+// Semantic window chunking
+pub struct SemanticWindowChunker {
+    pub window_size: usize,
+    pub step_size: usize,
+}
 
-                                             src/parser/nodes.rs:                                              
+impl ChunkingStrategy for SemanticWindowChunker {
+    fn chunk(&self, content: &str, node: Option<&Node>) -> Vec<Chunk> {
+        // Implementation...
+    }
+}
+```
 
- • NodeId
- • FunctionNode
- • ParameterNode
- • TypeDefNode
- • StructNode
- • EnumNode
- • FieldNode
- • VariantNode
- • TypeAliasNode
- • UnionNode
- • ImplNode
- • TraitNode
- • ModuleNode
- • ValueNode
- • MacroNode
- • MacroRuleNode
- • MacroKind
- • ProcMacroKind
- • ValueKind
- • ImportNode
- • ImportKind
- • Attribute
+## 3. Multi-file Analysis Support
 
-                                           src/parser/relations.rs:                                            
+### Implementation Steps
 
- • Relation
- • RelationKind
+1. **Enhance the analyzer**:
 
-                                             src/parser/graph.rs:                                              
+```rust
+// src/parser/mod.rs
+use std::path::{Path, PathBuf};
+use std::fs;
+use syn::File;
 
- • CodeGraph
+pub fn analyze_directory(dir_path: &str) -> Result<CodeGraph, Box<dyn std::error::Error>> {
+    let path = Path::new(dir_path);
+    let mut graph = CodeGraph::new();
+    
+    if path.is_dir() {
+        process_directory(path, &mut graph)?;
+    } else {
+        process_file(path, &mut graph)?;
+    }
+    
+    Ok(graph)
+}
 
-                                            src/parser/visitor.rs:                                             
+fn process_directory(dir: &Path, graph: &mut CodeGraph) -> Result<(), Box<dyn std::error::Error>> {
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        
+        if path.is_dir() {
+            process_directory(&path, graph)?;
+        } else if let Some(ext) = path.extension() {
+            if ext == "rs" {
+                process_file(&path, graph)?;
+            }
+        }
+    }
+    
+    Ok(())
+}
 
- • VisitorState
- • CodeVisitor
- • analyze_code function
+fn process_file(file_path: &Path, graph: &mut CodeGraph) -> Result<(), Box<dyn std::error::Error>> {
+    let content = fs::read_to_string(file_path)?;
+    let file: File = syn::parse_str(&content)?;
+    
+    let mut visitor = CodeVisitor::new(file_path.to_str().unwrap_or(""), &content);
+    visitor.visit_file(&file);
+    
+    graph.merge(visitor.into_graph());
+    
+    Ok(())
+}
+```
 
-                                              5. Update main.rs:                                               
+## 4. Relationship Modeling
 
-We don't need to change main.rs since we're maintaining the same public API.
+### Implementation Steps
 
-                                             Implementation Plan:                                              
+1. **Enhance relation types**:
+This example is not exact, and should be adapted for our use case:
 
- 1 Create the directory structure
- 2 Create the module files
- 3 Move the code from parser.rs to the appropriate files
- 4 Update imports and references
- 5 Test the refactored code
+```rust
+// src/parser/relations.rs
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RelationType {
+    // Existing types...
+    Calls,          // Function calls another function
+    DataFlow,       // Data flows between variables
+    ControlFlow,    // Control flow between blocks
+    Implements,     // Type implements trait
+    DependsOn,      // Module depends on another module
+}
+```
 
-Would you like me to start implementing this plan by providing the content for any specific file?
+2. **Enhance the visitor**:
+
+This example is not exact, and should be adapted for our use case:
+
+```rust
+// src/parser/visitor.rs
+impl<'ast> Visit<'ast> for CodeVisitor {
+    // Existing implementation...
+    
+    fn visit_expr_call(&mut self, call: &'ast syn::ExprCall) {
+        // Extract caller and callee
+        if let syn::Expr::Path(path) = &*call.func {
+            if let Some(func_id) = self.resolve_function_path(&path.path) {
+                // Add Calls relation
+                self.add_relation(Relation {
+                    id: self.next_relation_id(),
+                    source_id: self.current_function_id.unwrap_or(0),
+                    target_id: func_id,
+                    relation_type: RelationType::Calls,
+                    label: "calls".to_string(),
+                    metadata: HashMap::new(),
+                });
+            }
+        }
+        
+        // Visit arguments
+        for arg in &call.args {
+            self.visit_expr(arg);
+        }
+    }
+}
+```
+
+## 5. Vector Database Integration
+
+### Implementation Steps
+
+1. **Create embeddings module**:
+
+This example is not exact, and should be adapted for our use case:
+
+```rust
+// src/embeddings/mod.rs
+use crate::chunking::Chunk;
+
+pub trait EmbeddingModel {
+    fn embed(&self, text: &str) -> Result<Vec<f32>, Box<dyn std::error::Error>>;
+    fn embed_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>, Box<dyn std::error::Error>>;
+}
+
+pub struct OpenAIEmbedding {
+    api_key: String,
+    model: String,
+}
+
+impl EmbeddingModel for OpenAIEmbedding {
+    // Implementation...
+}
+```
+
+2. **Create vector database module**:
+
+This example is not exact, and should be adapted for our use case:
+
+```rust
+// src/vector_db/mod.rs
+use qdrant_client::prelude::*;
+use crate::chunking::Chunk;
+
+pub struct VectorDatabase {
+    client: QdrantClient,
+    collection_name: String,
+}
+
+impl VectorDatabase {
+    pub async fn new(url: &str, collection_name: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        // Initialize Qdrant client...
+    }
+    
+    pub async fn add_chunks(&self, chunks: &[Chunk], embeddings: &[Vec<f32>]) -> Result<(), Box<dyn std::error::Error>> {
+        // Store chunks with their embeddings...
+    }
+    
+    pub async fn search(&self, query_embedding: &[f32], limit: usize) -> Result<Vec<(Chunk, f32)>, Box<dyn std::error::Error>> {
+        // Search for similar chunks...
+    }
+}
+```
+
+3. **Check Added to Cargo.toml**:
+
+```toml
+[dependencies]
+qdrant-client = "1.3"
+tokio = { version = "1", features = ["full"] }
+```
+
+## 6. Query API
+
+### Implementation Steps
+
+1. **Create API module**:
+
+```rust
+// src/api/mod.rs
+use async_trait::async_trait;
+use crate::database::GraphDatabase;
+use crate::vector_db::VectorDatabase;
+use crate::embeddings::EmbeddingModel;
+
+pub struct CodeSearchResult {
+    pub content: String,
+    pub file_path: String,
+    pub start_line: usize,
+    pub end_line: usize,
+    pub score: f32,
+}
+
+#[async_trait]
+pub trait CodeQueryEngine {
+    async fn search(&self, query: &str, limit: usize) -> Result<Vec<CodeSearchResult>, Box<dyn std::error::Error>>;
+    
+    async fn find_function_calls(&self, function_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>>;
+    
+    async fn find_implementations(&self, trait_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>>;
+    
+    // Other query methods...
+}
+
+pub struct RagQueryEngine {
+    graph_db: GraphDatabase,
+    vector_db: VectorDatabase,
+    embedding_model: Box<dyn EmbeddingModel>,
+}
+
+#[async_trait]
+impl CodeQueryEngine for RagQueryEngine {
+    // Implementation of the query methods...
+}
+```
+
+# Deployment Options
+
+## Option 1: Shuttle
+
+Shuttle provides a full platform for Rust applications with built-in database support.
+
+```rust
+// src/main.rs
+use shuttle_runtime::{main, SecretStore};
+use shuttle_qdrant::QdrantClient;
+use your_crate_name::api::RagQueryEngine;
+
+#[shuttle_runtime::main]
+async fn shuttle(
+    #[shuttle_qdrant::Qdrant] qdrant: QdrantClient,
+    #[shuttle_runtime::Secrets] secrets: SecretStore,
+) -> shuttle_axum::ShuttleAxum {
+    // Initialize your RagQueryEngine with qdrant
+    // Set up API endpoints
+    // ...
+}
+```
+
+## Option 2: Rig.dev
+
+Rig provides cloud infrastructure for Rust applications with a focus on simplicity.
+
+```toml
+# rig.toml
+name = "code-rag-api"
+version = "0.1.0"
+
+[deployment]
+replicas = 1
+resources.memory = "512Mi"
+
+[env]
+QDRANT_URL = "https://your-qdrant-instance.cloud"
+```

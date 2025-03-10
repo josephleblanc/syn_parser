@@ -16,11 +16,11 @@ Your code already handles several important Rust items (functions, structs, enum
    - Established `UseRelation` edges between items and their imports
    - Now tracking which external dependencies are being used
 
-3. **Type Aliases, Unions, and Trait Aliases**:
+3. **Type Aliases, Unions, and Trait Aliases**: ✓
    - Extend `TypeDefNode` enum to include these additional type definitions
    - These provide important aliasing and type relationship information
 
-4. **Constants and Statics**:
+4. **Constants and Statics**: ✓
    - Add `ValueNode` to represent constants and static variables
    - Track type information and initialization expressions
    - Important for understanding program constants and global state
