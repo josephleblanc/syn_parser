@@ -185,13 +185,9 @@ Next steps:
     - [x] started?
     - [x] finished?
 
- 5. Implement Enum parsing tests
+ 4. Implement trait parsing tests
     - [x] started?
     - [x] finished?
-
- 1. Implement trait parsing tests
-    - [ ] started?
-    - [ ] finished?
 
  2. Implement impl block parsing tests
     - [ ] started?
@@ -206,16 +202,16 @@ Next steps:
     - [ ] finished?
 
  5. Implement visibility tests
-    - [ ] started?
-    - [ ] finished?
+    - [x] started?
+    - [x] finished?
 
  6. Implement serialization tests
     - [ ] started?
     - [ ] finished?
 
  7. Implement integration tests
-    - [ ] started?
-    - [ ] finished?
+    - [x] started?
+    - [x] finished?
 
 Each test module follows a similar pattern:
 
