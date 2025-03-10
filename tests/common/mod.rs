@@ -61,3 +61,12 @@ pub fn find_impl_for_type<'a>(graph: &'a CodeGraph, type_name: &str) -> Option<&
 pub fn find_module_by_name<'a>(graph: &'a CodeGraph, name: &str) -> Option<&'a ModuleNode> {
     graph.modules.iter().find(|m| m.name == name)
 }
+
+pub fn find_generic_param_by_name<'a>(params: &'a [GenericParamNode], name: &str) -> Option<&'a GenericParamNode> {
+    params.iter().find(|param| {
+        match &param.kind {
+            GenericParamKind::Lifetime { name: param_name, .. } => param_name == name,
+            _ => false,
+        }
+    })
+}

@@ -122,13 +122,10 @@ fn test_lifetime_function_parsing() {
     assert!(function.return_type.is_some());
 
     // Check for lifetime parameter
-    assert!(function.generic_params.iter().any(|param| {
-        if let GenericParamKind::Lifetime { name, .. } = &param.kind {
-            name == "'a"
-        } else {
-            false
-        }
-    }));
+    let lifetime_param = find_generic_param_by_name(&function.generic_params, "'a")
+        .expect("Lifetime parameter 'a' not found");
+
+    assert_eq!(lifetime_param.kind, GenericParamKind::Lifetime { name: "'a".to_string(), bounds: vec![] });
 }
 
 #[test]
