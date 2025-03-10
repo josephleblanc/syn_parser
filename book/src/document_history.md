@@ -7,7 +7,7 @@ for my work flow.
 
 I should put more before the next sections, but I am starting this document a little late.
 
-## Finishing up Item Coverage + Testing
+## Finishing up Item Coverage + first pass at Testing
 
 2025-03-09
 
@@ -42,5 +42,13 @@ Your code already handles several important Rust items (functions, structs, enum
 ```
 
 ## Make project more modular
+
+2025-03-10
+
+## Complete second pass at tests, now modular
+
+2025-03-10 - (unfinished)
+
+## Make visitor more modular
 
 2025-03-10
