@@ -401,9 +401,9 @@ impl VisitorState {
                     default,
                     ..
                 }) => {
-                    let bounds: Vec<String> = bounds
+                    let bounds: Vec<TypeId> = bounds
                         .iter()
-                        .map(|bound| self.process_type_bound(bound).to_string())
+                        .map(|bound| self.process_type_bound(bound))
                         .collect();
                     let default_type = default.as_ref().map(|expr| self.get_or_create_type(&*expr));
 
