@@ -1,6 +1,13 @@
+use crate::types::TypeKind;
 use std::path::PathBuf;
-use syn_parser::parser::TypeKind;
+use syn_parser::parser::nodes::MacroKind;
+use syn_parser::parser::nodes::TypeDefNode;
+use syn_parser::parser::nodes::ValueKind;
+use syn_parser::parser::relations::RelationKind;
+use syn_parser::parser::types::GenericParamKind;
+use syn_parser::parser::types::VisibilityKind;
 use syn_parser::parser::*;
+use syn_parser::save_to_ron;
 mod data;
 #[test]
 fn test_analyzer() {
@@ -11,7 +18,7 @@ fn test_analyzer() {
     assert!(code_graph_result.is_ok());
 
     let code_graph = code_graph_result.unwrap();
-    save_graph(&code_graph, &output_path).expect("Failed to save graph");
+    save_to_ron(&code_graph, &output_path).expect("Failed to save graph");
 
     // =========== Entity Counts ===========
     // Check functions

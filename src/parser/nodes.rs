@@ -2,21 +2,6 @@ use crate::parser::types::{GenericParamNode, TypeId, VisibilityKind};
 
 use serde::{Deserialize, Serialize};
 
-// use quote::ToTokens;
-// use ron::ser::{to_string_pretty, PrettyConfig};
-// use std::collections::HashMap;
-// use std::fs::File as FsFile;
-// use std::io::Write;
-// use std::path::Path;
-// use syn::parse::Parser;
-// use syn::ItemMod;
-// use syn::{
-//     visit::{self, Visit},
-//     AngleBracketedGenericArguments, FnArg, GenericArgument, Generics, ItemEnum, ItemFn, ItemImpl,
-//     ItemStruct, ItemTrait, Pat, PatIdent, PatType, PathArguments, ReturnType, Type, TypeParam,
-//     TypePath, TypeReference, Visibility,
-// };
-
 // Unique ID for a node in the graph
 pub type NodeId = usize;
 
