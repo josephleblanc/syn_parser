@@ -412,7 +412,7 @@ impl VisitorState {
                             id
                         } else {
                             let id = self.next_type_id();
-                            self.get_or_create_type(&expr.into());
+                            self.get_or_create_type(expr);
                             id
                         }
                     });
@@ -422,7 +422,6 @@ impl VisitorState {
                         kind: GenericParamKind::Type {
                             name: ident.to_string(),
                             bounds,
-                            default: default_type,
                         },
                     });
                 }
@@ -444,7 +443,7 @@ impl VisitorState {
                 syn::GenericParam::Const(const_param) => {
                     let type_id = self.get_or_create_type(&const_param.ty);
                     let default_type = const_param.default.as_ref()
-                        .map(|expr| self.get_or_create_type(&expr.into()));
+                        .map(|expr| self.get_or_create_type(expr));
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
