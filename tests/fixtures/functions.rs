@@ -1,4 +1,4 @@
-// Sample with various function types
+//! This file contains various function types for testing the parser
 
 // Regular function
 pub fn regular_function() {
@@ -35,4 +35,35 @@ pub unsafe fn unsafe_function() {
 // Function with lifetime annotations
 pub fn lifetime_function<'a>(arg: &'a str) -> &'a str {
     arg
+}
+
+// Private function
+fn private_function() {
+    println!("Private function");
+}
+
+// Function with multiple generic parameters
+pub fn multi_generic_function<T, U>(t: T, u: U) -> (T, U) {
+    (t, u)
+}
+
+// Function with where clause
+pub fn where_clause_function<T>(arg: T) -> T 
+where 
+    T: Clone,
+{
+    arg.clone()
+}
+
+// Async function
+pub async fn async_function() {
+    println!("Async function");
+}
+
+// Function with default parameters (via Option)
+pub fn default_params(required: i32, optional: Option<String>) -> String {
+    match optional {
+        Some(s) => format!("{}: {}", required, s),
+        None => format!("{}", required),
+    }
 }
