@@ -187,6 +187,7 @@ Each test module follows a similar pattern:
  2. Create test functions that verify each aspect of parsing
  3. Use helper functions to reduce code duplication
  4. Make assertions about the parsed code graph
+ 5. Run `cargo test` to check the validity of the implementation before moving on to the next implementation, debugging as necessary.
 
 This modular approach will make your tests more maintainable as your project
 grows and will help ensure that new features don't break existing
