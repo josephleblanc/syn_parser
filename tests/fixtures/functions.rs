@@ -33,8 +33,8 @@ pub unsafe fn unsafe_function() {
 }
 
 // Function with lifetime annotations
-pub fn lifetime_function<'a>(arg: &'a str) -> &'a str {
-    arg
+pub fn lifetime_function<'a>(param: &'a str) -> &'a str {
+    param
 }
 
 // Private function
