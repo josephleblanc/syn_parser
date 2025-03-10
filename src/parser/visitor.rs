@@ -426,7 +426,7 @@ impl VisitorState {
                     });
                 }
                 syn::GenericParam::Lifetime(lifetime_def) => {
-                    let bounds: Vec<TypeId> = lifetime_def
+                    let bounds: Vec<String> = lifetime_def
                         .bounds
                         .iter()
                         .map(|bound| self.process_lifetime_bound(bound))
@@ -442,15 +442,12 @@ impl VisitorState {
                 }
                 syn::GenericParam::Const(const_param) => {
                     let type_id = self.get_or_create_type(&const_param.ty);
-                    let default_type = const_param.default.as_ref()
-                        .map(|expr| self.get_or_create_type(expr));
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
                         kind: GenericParamKind::Const {
                             name: const_param.ident.to_string(),
                             type_id,
-                            default: default_type,
                         },
                     });
                 }
@@ -475,17 +472,8 @@ impl VisitorState {
         }
     }
 
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> TypeId {
-        self.get_or_create_type(&syn::Type::Path(syn::TypePath {
-            qself: None,
-            path: syn::Path {
-                leading_colon: None,
-                segments: vec![syn::PathSegment {
-                    ident: bound.ident.clone(),
-                    arguments: syn::PathArguments::None,
-                }].into_iter().collect(),
-            },
-        }))
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        bound.ident.to_string()
     }
 
     // Extract doc comments from attributes
