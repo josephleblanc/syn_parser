@@ -48,12 +48,14 @@ pub fn find_function_by_name<'a>(graph: &'a CodeGraph, name: &str) -> Option<&'a
 
 /// Find an impl block for a specific type
 pub fn find_impl_for_type<'a>(graph: &'a CodeGraph, type_name: &str) -> Option<&'a ImplNode> {
-    // This is a simplified implementation - in a real scenario, you'd need to match
-    // the type_id with the actual type name from the type graph
     graph.impls.iter().find(|impl_node| {
         if let Some(type_node) = graph.type_graph.iter().find(|t| t.id == impl_node.self_type) {
-            // This is a simplification - you'd need to extract the type name from the TypeKind
-            format!("{:?}", type_node.kind).contains(type_name)
+            match &type_node.kind {
+                TypeKind::Path(path) => {
+                    path.segments.iter().any(|segment| segment.ident.to_string() == type_name)
+                }
+                _ => false,
+            }
         } else {
             false
         }
