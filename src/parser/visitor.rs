@@ -401,11 +401,21 @@ impl VisitorState {
                     default,
                     ..
                 }) => {
-                    let bounds: Vec<String> = bounds
+                    let bounds: Vec<TypeId> = bounds
                         .iter()
-                        .map(|bound| bound.to_token_stream().to_string())
+                        .map(|bound| self.process_type_bound(bound))
                         .collect();
-                    let default_type = default.as_ref().map(|expr| self.get_or_create_type(&*expr));
+
+                    let default_type = default.as_ref().map(|expr| {
+                        let path = expr.to_token_stream().to_string();
+                        if let Some(&id) = self.type_map.get(&path) {
+                            id
+                        } else {
+                            let id = self.next_type_id();
+                            self.get_or_create_type(&expr.into())
+                            id
+                        }
+                    });
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
@@ -417,10 +427,10 @@ impl VisitorState {
                     });
                 }
                 syn::GenericParam::Lifetime(lifetime_def) => {
-                    let bounds: Vec<String> = lifetime_def
+                    let bounds: Vec<TypeId> = lifetime_def
                         .bounds
                         .iter()
-                        .map(|bound| bound.to_token_stream().to_string())
+                        .map(|bound| self.process_lifetime_bound(bound))
                         .collect();
 
                     params.push(GenericParamNode {
@@ -434,13 +444,14 @@ impl VisitorState {
                 syn::GenericParam::Const(const_param) => {
                     let type_id = self.get_or_create_type(&const_param.ty);
                     let default_type = const_param.default.as_ref()
-                        .map(|expr| self.get_or_create_type(&expr));
+                        .map(|expr| self.get_or_create_type(&expr.into()));
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
                         kind: GenericParamKind::Const {
                             name: const_param.ident.to_string(),
                             type_id,
+                            default: default_type,
                         },
                     });
                 }
@@ -459,18 +470,14 @@ impl VisitorState {
                 }))
             }
             syn::TypeParamBound::Lifetime(lifetime) => {
-                self.get_or_create_type(&syn::Type::Path(syn::TypePath {
-                    qself: None,
-                    path: syn::Path {
-                        leading_colon: None,
-                        segments: vec![syn::PathSegment {
-                            ident: lifetime.ident.clone(),
-                            arguments: syn::PathArguments::None,
-                        }].into_iter().collect(),
-                    },
-                }))
+                self.process_lifetime_bound(lifetime)
             }
+            _ => self.next_type_id(),
         }
+    }
+
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> TypeId {
+        self.next_type_id() // Simplified since lifetimes don't need full type tracking
     }
 
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> TypeId {
