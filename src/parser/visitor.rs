@@ -422,6 +422,7 @@ impl VisitorState {
                         kind: GenericParamKind::Type {
                             name: ident.to_string(),
                             bounds,
+                            default: default_type,
                         },
                     });
                 }
@@ -465,8 +466,18 @@ impl VisitorState {
                     path: trait_bound.path.clone(),
                 }))
             }
-            syn::TypeParamBound::Lifetime(lifetime) => {
-                self.process_lifetime_bound(lifetime)
+            syn::TypeParamBound::Lifetime(_) => {
+                // Create a synthetic type for the lifetime bound
+                let type_id = self.next_type_id();
+                self.code_graph.type_graph.push(TypeNode {
+                    id: type_id,
+                    kind: TypeKind::Named {
+                        path: vec!["lifetime".to_string()],
+                        is_fully_qualified: false,
+                    },
+                    related_types: Vec::new(),
+                });
+                type_id
             }
             _ => self.next_type_id(),
         }
