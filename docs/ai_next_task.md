@@ -187,7 +187,7 @@ Next steps:
 
  5. Implement Enum parsing tests
     - [x] started?
-    - [ ] finished?
+    - [x] finished?
 
  1. Implement trait parsing tests
     - [ ] started?
