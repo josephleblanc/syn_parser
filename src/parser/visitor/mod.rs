@@ -2,6 +2,7 @@ use crate::parser::graph::CodeGraph;
 use crate::parser::nodes::*;
 use crate::parser::relations::*;
 use crate::parser::types::*;
+use crate::parser::visitor::type_processing::TypeProcessor;
 
 use quote::ToTokens;
 use std::collections::HashMap;
