@@ -40,7 +40,7 @@ Create a clearer module hierarchy in lib.rs:
  pub mod serialization;
  pub mod analysis;  // For future code analysis features
 
-                               4. Separate Data Structures from Processing Logi           
+                               4. Separate Data Structures from Processing Logic           
 
 The current design mixes data structures with processing logic. Consider:
 

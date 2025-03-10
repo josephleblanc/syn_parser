@@ -1005,6 +1005,36 @@
             attributes: [],
             docstring: Some("Testing default trait with blanket implementation"),
         ),
+        (
+            id: 72,
+            name: "PrivateTrait",
+            visibility: Inherited,
+            methods: [
+                (
+                    id: 73,
+                    name: "private_method",
+                    visibility: Public,
+                    parameters: [
+                        (
+                            id: 74,
+                            name: Some("self"),
+                            type_id: 26,
+                            is_mutable: false,
+                            is_self: true,
+                        ),
+                    ],
+                    return_type: Some(16),
+                    generic_params: [],
+                    attributes: [],
+                    docstring: None,
+                    body: None,
+                ),
+            ],
+            generic_params: [],
+            super_traits: [],
+            attributes: [],
+            docstring: None,
+        ),
     ],
     private_traits: [],
     relations: [
@@ -1241,6 +1271,11 @@
         (
             source: 46,
             target: 57,
+            kind: Contains,
+        ),
+        (
+            source: 46,
+            target: 72,
             kind: Contains,
         ),
         (

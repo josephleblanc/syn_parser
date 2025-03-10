@@ -10,6 +10,7 @@ Remember to complete these tasks in small steps whenever possible!
 
 Create test helpers to reduce duplication:
 
+```rust
  // tests/common/mod.rs
  use std::path::Path;
  use syn_parser::parser::*;
@@ -29,6 +30,7 @@ Create test helpers to reduce duplication:
          None
      })
  }
+```
 
  // Similar helpers for other node types
 
@@ -36,105 +38,109 @@ Create test helpers to reduce duplication:
 
 Here's how a test module for structs might look:
 
- // tests/parser/structs_tests.rs
- use crate::common::*;
- use syn_parser::parser::nodes::*;
- use syn_parser::parser::types::*;
+ ```rust
+// tests/parser/structs_tests.rs
+use crate::common::*;
+use syn_parser::parser::nodes::*;
+use syn_parser::parser::types::*;
 
- #[test]
- fn test_regular_struct_parsing() {
-     let graph = parse_fixture("structs.rs");
+#[test]
+fn test_regular_struct_parsing() {
+    let graph = parse_fixture("structs.rs");
 
-     let sample_struct = find_struct_by_name(&graph, "SampleStruct")                               
-         .expect("SampleStruct not found");                                                        
-                                                                                                   
-     assert_eq!(sample_struct.name, "SampleStruct");                                               
-     assert_eq!(sample_struct.visibility, VisibilityKind::Public);                                 
-     assert_eq!(sample_struct.fields.len(), 1);                                                    
-     assert_eq!(sample_struct.fields[0].name, Some("field".to_string()));                          
- }
+    let sample_struct = find_struct_by_name(&graph, "SampleStruct")                               
+        .expect("SampleStruct not found");                                                        
+                                                                                                  
+    assert_eq!(sample_struct.name, "SampleStruct");                                               
+    assert_eq!(sample_struct.visibility, VisibilityKind::Public);                                 
+    assert_eq!(sample_struct.fields.len(), 1);                                                    
+    assert_eq!(sample_struct.fields[0].name, Some("field".to_string()));                          
+}
 
- #[test]
- fn test_tuple_struct_parsing() {
-     let graph = parse_fixture("structs.rs");
+#[test]
+fn test_tuple_struct_parsing() {
+    let graph = parse_fixture("structs.rs");
 
-     let tuple_struct = find_struct_by_name(&graph, "TupleStruct")                                 
-         .expect("TupleStruct not found");                                                         
-                                                                                                   
-     assert_eq!(tuple_struct.fields.len(), 2);                                                     
-     assert_eq!(tuple_struct.fields[0].visibility, VisibilityKind::Public);                        
- }
+    let tuple_struct = find_struct_by_name(&graph, "TupleStruct")                                 
+        .expect("TupleStruct not found");                                                         
+                                                                                                  
+    assert_eq!(tuple_struct.fields.len(), 2);                                                     
+    assert_eq!(tuple_struct.fields[0].visibility, VisibilityKind::Public);                        
+}
 
- #[test]
- fn test_unit_struct_parsing() {
-     let graph = parse_fixture("structs.rs");
+#[test]
+fn test_unit_struct_parsing() {
+    let graph = parse_fixture("structs.rs");
 
-     let unit_struct = find_struct_by_name(&graph, "UnitStruct")                                   
-         .expect("UnitStruct not found");                                                          
-                                                                                                   
-     assert_eq!(unit_struct.fields.len(), 0);                                                      
- }
+    let unit_struct = find_struct_by_name(&graph, "UnitStruct")                                   
+        .expect("UnitStruct not found");                                                          
+                                                                                                  
+    assert_eq!(unit_struct.fields.len(), 0);                                                      
+}
 
- #[test]
- fn test_struct_with_generics() {
-     let graph = parse_fixture("structs.rs");
+#[test]
+fn test_struct_with_generics() {
+    let graph = parse_fixture("structs.rs");
 
-     let generic_struct = find_struct_by_name(&graph, "GenericStruct")                             
-         .expect("GenericStruct not found");                                                       
-                                                                                                   
-     assert_eq!(generic_struct.generic_params.len(), 1);                                           
-     if let GenericParamKind::Type { name, .. } = &generic_struct.generic_params[0].kind {         
-         assert_eq!(name, "T");                                                                    
-     } else {                                                                                      
-         panic!("Expected Type generic parameter");                                                
-     }                                                                                             
- }
+    let generic_struct = find_struct_by_name(&graph, "GenericStruct")                             
+        .expect("GenericStruct not found");                                                       
+                                                                                                  
+    assert_eq!(generic_struct.generic_params.len(), 1);                                           
+    if let GenericParamKind::Type { name, .. } = &generic_struct.generic_params[0].kind {         
+        assert_eq!(name, "T");                                                                    
+    } else {                                                                                      
+        panic!("Expected Type generic parameter");                                                
+    }                                                                                             
+}
 
- #[test]
- fn test_struct_with_attributes() {
-     let graph = parse_fixture("structs.rs");
+#[test]
+fn test_struct_with_attributes() {
+    let graph = parse_fixture("structs.rs");
 
-     let attributed_struct = find_struct_by_name(&graph, "AttributedStruct")                       
-         .expect("AttributedStruct not found");                                                    
-                                                                                                   
-     assert!(attributed_struct.attributes.iter().any(|attr| attr.name == "derive"));               
- }
+    let attributed_struct = find_struct_by_name(&graph, "AttributedStruct")                       
+        .expect("AttributedStruct not found");                                                    
+                                                                                                  
+    assert!(attributed_struct.attributes.iter().any(|attr| attr.name == "derive"));               
+}
 
- #[test]
- fn test_struct_with_docstring() {
-     let graph = parse_fixture("structs.rs");
+#[test]
+fn test_struct_with_docstring() {
+    let graph = parse_fixture("structs.rs");
 
-     let documented_struct = find_struct_by_name(&graph, "DocumentedStruct")                       
-         .expect("DocumentedStruct not found");                                                    
-                                                                                                   
-     assert!(documented_struct.docstring.is_some());                                               
-     assert!(documented_struct.docstring.as_ref().unwrap().contains("documented struct"));         
- }
+    let documented_struct = find_struct_by_name(&graph, "DocumentedStruct")                       
+        .expect("DocumentedStruct not found");                                                    
+                                                                                                  
+    assert!(documented_struct.docstring.is_some());                                               
+    assert!(documented_struct.docstring.as_ref().unwrap().contains("documented struct"));         
+}
+```
 
                                        5. Integration Tests  ✅                                    
 
 Keep some integration tests that verify the entire system works together:
 
- // tests/integration/full_graph_tests.rs
- use std::path::Path;
- use syn_parser::parser::*;
- use syn_parser::serialization::ron::save_to_ron;
+```rust
+// tests/integration/full_graph_tests.rs
+use std::path::Path;
+use syn_parser::parser::*;
+use syn_parser::serialization::ron::save_to_ron;
 
- #[test]
- fn test_full_graph_generation_and_serialization() {
-     let input_path = Path::new("tests/data/sample.rs");
-     let output_path = Path::new("tests/data/code_graph.ron");
+#[test]
+fn test_full_graph_generation_and_serialization() {
+ let input_path = Path::new("tests/data/sample.rs");
+ let output_path = Path::new("tests/data/code_graph.ron");
 
-     let code_graph = analyze_code(&input_path).expect("Failed to analyze code");                  
-     save_to_ron(&code_graph, &output_path).expect("Failed to save graph");                        
-                                                                                                   
-     // Basic sanity checks                                                                        
-     assert!(!code_graph.functions.is_empty());                                                    
-     assert!(!code_graph.defined_types.is_empty());                                                
-     assert!(!code_graph.traits.is_empty());                                                       
-     assert!(!code_graph.impls.is_empty());                                                        
-     assert!(!code_graph.modules.is_empty());                                                      
- }
+ let code_graph = analyze_code(&input_path).expect("Failed to analyze code"); 
+ save_to_ron(&code_graph, &output_path).expect("Failed to save graph"); 
+ 
+ // Basic sanity checks 
+ assert!(!code_graph.functions.is_empty()); 
+ assert!(!code_graph.defined_types.is_empty()); 
+ assert!(!code_graph.traits.is_empty()); 
+ assert!(!code_graph.impls.is_empty()); 
+ assert!(!code_graph.modules.is_empty()); 
+}
+```
 
                                        Implementation Steps                                        
 
@@ -175,51 +181,46 @@ Keep some integration tests that verify the entire system works together:
 
 So far, we've implemented:
 
- 1. ✅ Directory structure for modular tests
- 2. ✅ Common helper functions in tests/common/mod.rs
- 3. ✅ Function parsing tests with fixtures
+1. ☑ Directory structure for modular tests
+2. ☑ Common helper functions in tests/common/mod.rs
+3. ☑ Function parsing tests with fixtures
+4. ☑   Implement Struct parsing tests
+5. ☑   Implement trait parsing tests
+6. ☑ Implement impl block parsing tests
+9. ☑  Implement visibility tests
 
 Next steps:
 
- 4. Implement Struct parsing tests ✅
-    - [x] started?
-    - [x] finished?
+7. ☐  Implement module parsing tests
 
- 4. Implement trait parsing tests
-    - [x] started?
-    - [x] finished?
+- [ ] started?
+- [ ] finished?
 
- 2. Implement impl block parsing tests
-    - [ ] started?
-    - [ ] finished?
+8. ☐  Implement macro parsing tests
 
- 3. Implement module parsing tests
-    - [ ] started?
-    - [ ] finished?
+- These tests should note exhaustively test macros.
+- The goal is to track when macros are used to include them in the graph as nodes.
+- [ ] started?
+- [ ] finished?
 
- 4. Implement macro parsing tests
-    - [ ] started?
-    - [ ] finished?
+10. ☐ Implement serialization tests
 
- 5. Implement visibility tests
-    - [x] started?
-    - [x] finished?
+- [ ] started?
+- [ ] finished?
 
- 6. Implement serialization tests
-    - [ ] started?
-    - [ ] finished?
+11. ☐ Implement integration tests
 
- 7. Implement integration tests
-    - [x] started?
-    - [x] finished?
+- (complete after other tests are finished)
+- [x] started?
+- [ ] finished?
 
 Each test module follows a similar pattern:
 
- 1. Create a fixture file with various examples of the Rust construct
- 2. Create test functions that verify each aspect of parsing
- 3. Use helper functions to reduce code duplication
- 4. Make assertions about the parsed code graph
- 5. Run `cargo test` to check the validity of the implementation before moving on to the next implementation, debugging as necessary.
+1. Create a fixture file with various examples of the Rust construct
+2. Create test functions that verify each aspect of parsing
+3. Use helper functions to reduce code duplication
+4. Make assertions about the parsed code graph
+5. Run `cargo test` to check the validity of the implementation before moving on to the next implementation, debugging as necessary.
 
 Note: The "finished?" box should not be checked until after confirming the output of `cargo test` indicates that the tests are working as intended.
 
