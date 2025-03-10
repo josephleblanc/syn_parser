@@ -51,8 +51,8 @@ pub fn find_impl_for_type<'a>(graph: &'a CodeGraph, type_name: &str) -> Option<&
     graph.impls.iter().find(|impl_node| {
         if let Some(type_node) = graph.type_graph.iter().find(|t| t.id == impl_node.self_type) {
             match &type_node.kind {
-                TypeKind::Path(path) => {
-                    path.segments.iter().any(|segment| segment.ident.to_string() == type_name)
+                TypeKind::Named { path, .. } => {
+                    path.iter().any(|segment| segment == type_name)
                 }
                 _ => false,
             }
