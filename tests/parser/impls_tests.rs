@@ -1,5 +1,4 @@
 use crate::common::*;
-use syn_parser::parser::nodes::*;
 use syn_parser::parser::types::*;
 
 #[test]

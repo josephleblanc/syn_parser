@@ -1,7 +1,7 @@
 use std::path::Path;
 use syn_parser::parser::graph::CodeGraph;
 use syn_parser::parser::nodes::*;
-use syn_parser::parser::types::{GenericParamNode, GenericParamKind};
+use syn_parser::parser::types::{GenericParamNode, GenericParamKind, TypeKind};
 use syn_parser::parser::visitor::analyze_code;
 
 /// Parse a fixture file and return the resulting CodeGraph
