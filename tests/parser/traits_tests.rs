@@ -74,9 +74,9 @@ fn test_private_trait_parsing() {
         );
         assert!(matches!(
             private_trait.visibility,
-            VisibilityKind::Restricted(_)
+            VisibilityKind::Inherited
         ));
     } else {
-        panic!("PrivateTrait not found in graph when using find_trait_by_name.")
+        panic!("PrivateTrait not found in graph when using find_trait_by_name.");
     }
 }
