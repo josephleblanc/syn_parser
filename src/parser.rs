@@ -862,15 +862,6 @@ impl VisitorState {
         }
     }
 
-    // Extract attribute strings
-    // fn extract_attributes(&self, attrs: &[syn::Attribute]) -> Vec<String> {
-    //     attrs
-    //         .iter()
-    //         .filter(|attr| !attr.path().is_ident("doc")) // Skip doc comments
-    //         .map(|attr| attr.to_token_stream().to_string())
-    //         .collect()
-    // }
-
     fn parse_attribute(attr: &syn::Attribute) -> Attribute {
         let name = attr.path().to_token_stream().to_string();
         let mut args = Vec::new();
@@ -1489,10 +1480,12 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                     println!("Self type: {:?}", path);
                 }
             }
-        
+
             // Debug: Print all methods in the impl
-            for method in &impl_node.methods {
-                println!("Found method {} in impl {}", method.name, impl_id);
+            if let Some(debug_impl) = &self.state.code_graph.impls.last() {
+                for method in &debug_impl.methods {
+                    println!("Found method {} in impl {}", method.name, impl_id);
+                }
             }
         }
 
@@ -1998,7 +1991,11 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     // Visit macro definitions (macro_rules!)
     fn visit_item_macro(&mut self, item_macro: &'ast syn::ItemMacro) {
         // Only process macros with #[macro_export]
-        if !item_macro.attrs.iter().any(|attr| attr.path().is_ident("macro_export")) {
+        if !item_macro
+            .attrs
+            .iter()
+            .any(|attr| attr.path().is_ident("macro_export"))
+        {
             return;
         }
 

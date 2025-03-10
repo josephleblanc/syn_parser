@@ -1,5 +1,41 @@
 # Plan
 
+## Consider integration with `sled` and `indradb`
+
+There is no reason for me to reinvent the wheel for this project. These existing projects seem to work well together (IndraDB now [supports sled])
+
+```rust
+use sled::{Db, open};
+use indradb::{Datastore, Edge, EdgeKey, Error, ModelType, Vertex, VertexKey, DataType};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let db: Db = open("your_db_path")?;
+    let datastore = Datastore::new_sled(db);
+
+    // Example: Inserting a node
+    let node_id = VertexKey::new("Node1");
+    let node = Vertex::new(node_id);
+    datastore.insert_vertex(&node)?;
+
+    // Example: Inserting an edge
+    let edge_key = EdgeKey::new("Node1", "EdgeType", "Node2");
+    let edge = Edge::new(edge_key);
+    datastore.insert_edge(&edge)?;
+
+    // Querying the graph
+    let nodes = datastore.get_vertices()?;
+    for node in nodes {
+        println!("{:?}", node);
+    }
+
+    Ok(())
+}
+```
+
+// Make these changes: AI!
+// Review the list of tasks below and update them given the current state of
+// the project. Move any completed tasks into `document_history.md`
+
 Here's a step-by-step approach that balances syntactic extraction with semantic relationships useful for an LLM-based code generation and refactoring system.
 
 ## Step 1: Expand Item Coverage ✓
@@ -236,3 +272,5 @@ fn process_call_expr(&mut self, expr_id: NodeId, expr: &ExprCall) {
    - Create a `BlockNode` to represent code blocks
 
 This plan provides a comprehensive approach to enhancing your Rust code parser for RAG purposes. You've already completed the first major milestone by implementing module structure and use declarations. The next steps will focus on completing the remaining item types and preparing the data structures needed for effective retrieval. The priority is on building a complete representation of the code that can be effectively chunked and indexed, rather than on detailed analysis of function bodies.
+
+[supports sled]:https://github.com/indradb/sled?tab=readme-ov-file

@@ -3,19 +3,6 @@
 //!
 //! This module contains various Rust constructs to test parsing.
 /// A sample struct with a generic parameter
-<>>>>>>> REPLACE
-```
-
-tests/data/sample.rs
-```rust
-<<<<<< SEARCH
-    // Private macro
-    macro_rules! private_macro {
-        () => {
-            println!("This is a private macro");
-        };
-    };
-///
 /// This docstring tests multi-line documentation
 #[derive(Debug)]
 pub struct SampleStruct<T> {
@@ -162,6 +149,7 @@ mod private_module {
     static PRIVATE_STATIC: i32 = 0;
 
     // Private macro
+    #[allow(unused_macros)]
     macro_rules! private_macro {
         () => {
             println!("This is a private macro");
