@@ -8,4 +8,3 @@ pub mod visitor;
 pub use self::visitor::analyze_code;
 pub use self::graph::CodeGraph;
 pub use self::types::TypeId;
-pub use self::visitor::analyze_code;

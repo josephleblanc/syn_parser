@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::path::Path;
-use crate::parser::nodes::{NodeId, TypeId};
+use crate::parser::nodes::{NodeId, TypeId, VisibilityKind};
 use crate::parser::types::{TypeKind, TypeNode};
 use crate::parser::graph::CodeGraph;
 use syn::Visibility;

@@ -1,17 +1,15 @@
 # Code Graph Parser Refactor Progress
 
-## Current Step: Visitor Module Initial Setup
+## Current Step: Extract Type Processing Logic
 
-### Changes Made:
-1. Created `src/parser/visitor/` directory structure
-2. Moved `visitor.rs` to `visitor/mod.rs`
-3. Prepared empty submodule files
-4. Maintained existing functionality in `mod.rs`
+### Changes Made Since Last Step:
+✔️ Created basic state.rs with VisitorState core
+⚠️ Partial type processing moved - needs completion
 
-### Next Steps:
-1. Extract VisitorState to `state.rs`
-2. Split out type processing to `type_processing.rs`
-3. Set up proper visibility and dependencies between submodules
+### Immediate Next Actions:
+1. Move type resolution from visitor/mod.rs to type_processing.rs
+2. Set up TypeProcessor trait boundary
+3. Update imports in visitor/mod.rs to use new type module
 
 ### Safety Checks:
 ✅ Ensure `analyze_code` remains publicly accessible  
