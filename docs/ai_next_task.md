@@ -139,15 +139,25 @@ Keep some integration tests that verify the entire system works together:
                                        Implementation Steps                                        
 
  1. Create the directory structure for the new test organization
+    - [x] started?
+    - [x] finished?
 
  2. Create test fixtures - smaller, focused Rust files for testing specific
     features
+    - [x] started?
+    - [x] finished?
 
  3. Create helper functions in a common module
+    - [x] started?
+    - [x] finished?
 
  4. Split the existing test into smaller, focused tests
+    - [x] started?
+    - [x] finished?
 
  5. Add new tests for edge cases and features not currently covered
+    - [x] started?
+    - [x] finished?
 
                                      Benefits of This Approach                                     
 
@@ -172,14 +182,40 @@ So far, we've implemented:
 Next steps:
 
  4. Implement Struct parsing tests ✅
+    - [x] started?
+    - [x] finished?
+
  5. Implement Enum parsing tests ✅
+    - [x] started?
+    - [x] finished?
+
  1. Implement trait parsing tests
+    - [ ] started?
+    - [ ] finished?
+
  2. Implement impl block parsing tests
+    - [ ] started?
+    - [ ] finished?
+
  3. Implement module parsing tests
+    - [ ] started?
+    - [ ] finished?
+
  4. Implement macro parsing tests
+    - [ ] started?
+    - [ ] finished?
+
  5. Implement visibility tests
+    - [ ] started?
+    - [ ] finished?
+
  6. Implement serialization tests
+    - [ ] started?
+    - [ ] finished?
+
  7. Implement integration tests
+    - [ ] started?
+    - [ ] finished?
 
 Each test module follows a similar pattern:
 
@@ -188,6 +224,8 @@ Each test module follows a similar pattern:
  3. Use helper functions to reduce code duplication
  4. Make assertions about the parsed code graph
  5. Run `cargo test` to check the validity of the implementation before moving on to the next implementation, debugging as necessary.
+
+Note: The "finished?" box should not be checked until after confirming the output of `cargo test` indicates that the tests are working as intended.
 
 This modular approach will make your tests more maintainable as your project
 grows and will help ensure that new features don't break existing
