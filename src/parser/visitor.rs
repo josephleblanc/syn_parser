@@ -1238,17 +1238,19 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let attributes = self.state.extract_attributes(&item_trait.attrs);
 
         // Store trait info
-        let trait_node = TraitNode {
-            id: trait_id,
-            name: trait_name.clone(),
-            visibility: self.state.convert_visibility(&item_trait.vis),
-            methods,
-            generic_params,
-            super_traits: super_traits.clone(),
-            attributes,
-            docstring,
-        };
-        self.state.code_graph.traits.push(trait_node);
+        if matches!(item_trait.vis, Visibility::Public(_)) {
+            let trait_node = TraitNode {
+                id: trait_id,
+                name: trait_name.clone(),
+                visibility: self.state.convert_visibility(&item_trait.vis),
+                methods,
+                generic_params,
+                super_traits: super_traits.clone(),
+                attributes,
+                docstring,
+            };
+            self.state.code_graph.traits.push(trait_node);
+        }
 
         // Add relation for super traits
         for super_trait_id in &super_traits {
