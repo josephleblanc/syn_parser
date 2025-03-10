@@ -1,33 +1,23 @@
-// Sample with trait definitions and implementations
 
-// Trait definition
 pub trait SampleTrait {
     fn sample_method(&self) -> String;
 }
 
-// Trait with default implementation
 pub trait DefaultTrait {
     fn default_method(&self) -> String {
         "Default implementation".to_string()
     }
 }
 
-// Trait implementation
-impl SampleTrait for i32 {
-    fn sample_method(&self) -> String {
-        format!("Integer: {}", self)
-    }
+pub trait GenericTrait<T> {
+    fn generic_method(&self, param: T) -> T;
 }
 
-// Trait implementation with generics
-impl<T> SampleTrait for Vec<T> {
-    fn sample_method(&self) -> String {
-        format!("Vector of size: {}", self.len())
-    }
+pub trait assoc_type_trait {
+    type AssocType;
+    fn method_with_assoc(&self) -> Self::AssocType;
 }
 
-// Trait definition with docstring
-/// This is a documented trait
-pub trait DocumentedTrait {
-    fn sample_method(&self) -> String;
+trait PrivateTrait {
+    fn private_method(&self) -> i32;
 }
