@@ -111,21 +111,23 @@ fn test_unsafe_function_parsing() {
 #[test]
 fn test_lifetime_function_parsing() {
     let graph = parse_fixture("functions.rs");
-
-    let function =
-        find_function_by_name(&graph, "lifetime_function").expect("lifetime_function not found");
+    let function = find_function_by_name(&graph, "lifetime_function").expect("lifetime_function not found");
 
     assert_eq!(function.name, "lifetime_function");
     assert_eq!(function.visibility, VisibilityKind::Public);
+    assert_eq!(function.generic_params.len(), 1);
+
+    if let GenericParamKind::Lifetime { ref name, ref bounds } = function.generic_params[0].kind {
+        assert_eq!(name, "'a");
+        assert!(bounds.is_empty());
+    } else {
+        panic!("Expected Lifetime generic parameter");
+    }
+
     assert_eq!(function.parameters.len(), 1);
-    assert_eq!(function.parameters[0].name, Some("arg".to_string()));
-    assert!(function.return_type.is_some());
-
-    // Check for lifetime parameter
-    let lifetime_param = find_generic_param_by_name(&function.generic_params, "'a")
-        .expect("Lifetime parameter 'a' not found");
-
-    assert_eq!(lifetime_param.kind, GenericParamKind::Lifetime { name: "'a".to_string(), bounds: vec![] });
+    assert_eq!(function.parameters[0].name, Some("param".to_string()));
+    assert_eq!(function.parameters[0].type_id, graph.type_graph.iter().find(|t| matches!(t.kind, TypeKind::Reference { lifetime: Some(ref lt), mutable: false } if lt == "'a")).map(|t| t.id).expect("Reference type with lifetime 'a' not found"));
+    assert_eq!(function.return_type, graph.type_graph.iter().find(|t| matches!(t.kind, TypeKind::Reference { lifetime: Some(ref lt), mutable: false } if lt == "'a")).map(|t| t.id).expect("Reference type with lifetime 'a' not found"));
 }
 
 #[test]

@@ -401,49 +401,26 @@ impl VisitorState {
                     default,
                     ..
                 }) => {
-                    let bound_ids: Vec<TypeId> = bounds
+                    let bounds: Vec<TypeId> = bounds
                         .iter()
-                        .filter_map(|bound| {
-                            match bound {
-                                syn::TypeParamBound::Trait(trait_bound) => {
-                                    // Create a synthetic type for the trait bound
-                                    let bound_id = self.next_type_id();
-                                    self.code_graph.type_graph.push(TypeNode {
-                                        id: bound_id,
-                                        kind: TypeKind::Named {
-                                            path: trait_bound
-                                                .path
-                                                .segments
-                                                .iter()
-                                                .map(|seg| seg.ident.to_string())
-                                                .collect(),
-                                            is_fully_qualified: false,
-                                        },
-                                        related_types: Vec::new(),
-                                    });
-                                    Some(bound_id)
-                                }
-                                _ => None, // Ignore lifetime bounds for now
-                            }
-                        })
+                        .map(|bound| self.process_type_bound(bound))
                         .collect();
-
-                    let default_type = default.as_ref().map(|ty| self.get_or_create_type(ty));
+                    let default_type = default.as_ref().map(|ty| self.get_or_create_type(&ty));
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
                         kind: GenericParamKind::Type {
                             name: ident.to_string(),
-                            bounds: bound_ids,
+                            bounds,
                             default: default_type,
                         },
                     });
                 }
                 syn::GenericParam::Lifetime(lifetime_def) => {
-                    let bounds: Vec<String> = lifetime_def
+                    let bounds: Vec<TypeId> = lifetime_def
                         .bounds
                         .iter()
-                        .map(|bound| bound.ident.to_string())
+                        .map(|bound| self.process_lifetime_bound(bound))
                         .collect();
 
                     params.push(GenericParamNode {
@@ -456,12 +433,15 @@ impl VisitorState {
                 }
                 syn::GenericParam::Const(const_param) => {
                     let type_id = self.get_or_create_type(&const_param.ty);
+                    let default_type = const_param.default.as_ref()
+                        .map(|expr| self.get_or_create_type(&expr));
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
                         kind: GenericParamKind::Const {
                             name: const_param.ident.to_string(),
                             type_id,
+                            default: default_type,
                         },
                     });
                 }
@@ -469,6 +449,42 @@ impl VisitorState {
         }
 
         params
+    }
+
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
+        match bound {
+            syn::TypeParamBound::Trait(trait_bound) => {
+                self.get_or_create_type(&syn::Type::Path(syn::TypePath {
+                    qself: None,
+                    path: trait_bound.path.clone(),
+                }))
+            }
+            syn::TypeParamBound::Lifetime(lifetime) => {
+                self.get_or_create_type(&syn::Type::Path(syn::TypePath {
+                    qself: None,
+                    path: syn::Path {
+                        leading_colon: None,
+                        segments: vec![syn::PathSegment {
+                            ident: lifetime.ident.clone(),
+                            arguments: syn::PathArguments::None,
+                        }],
+                    },
+                }))
+            }
+        }
+    }
+
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> TypeId {
+        self.get_or_create_type(&syn::Type::Path(syn::TypePath {
+            qself: None,
+            path: syn::Path {
+                leading_colon: None,
+                segments: vec![syn::PathSegment {
+                    ident: bound.ident.clone(),
+                    arguments: syn::PathArguments::None,
+                }],
+            },
+        }))
     }
 
     // Extract doc comments from attributes
