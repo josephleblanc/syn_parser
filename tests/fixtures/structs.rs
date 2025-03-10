@@ -6,7 +6,7 @@ pub struct SampleStruct {
 }
 
 // Tuple struct
-pub struct TupleStruct(i32, i32);
+pub struct TupleStruct(pub i32, pub i32);
 
 // Unit struct
 pub struct UnitStruct;
