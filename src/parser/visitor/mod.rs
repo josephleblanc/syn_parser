@@ -293,7 +293,6 @@ impl VisitorState {
                 )
             }
         }
-    }
 
     // Convert syn::Visibility to our VisibilityKind
     fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
