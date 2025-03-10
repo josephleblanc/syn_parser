@@ -26,17 +26,17 @@ There should be a node for each kind of rust "Item" (see [rust reference](https:
 | [Module] | [ModuleNode] | [ItemMod] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
 | [ExternCrate] | [ImportNode::ExternCrate] | [ItemExternCrate] | ☑ Start <br> ☑ Finish | [Edges Todo] |
 | [UseDeclaration] | [ImportNode::UseStatement] | [ItemUse] | ☑ Start <br> ☑ Finish | [Edges Todo] |
-| [Function] | todo | [ItemFn] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [TypeAlias] | todo | [ItemType] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [Struct] | todo | [ItemStruct] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [Enumeration] | todo | [ItemEnum] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [Union] | todo | [ItemUnion] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [ConstantItem] | todo | [ItemConst] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [StaticItem] | todo | [ItemStatic] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [Trait] | todo | [ItemTrait] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [Implementation] | todo | [ItemImpl] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
+| [Function] | [FunctionNode] | [ItemFn] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
+| [TypeAlias] | [TypeAliasNode] | [ItemType] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
+| [Struct] | [StructNode] | [ItemStruct] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
+| [Enumeration] | [EnumNode] | [ItemEnum] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
+| [Union] | [UnionNode] | [ItemUnion] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
+| [ConstantItem] | [ValueNode] (kind: Constant) | [ItemConst] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
+| [StaticItem] | [ValueNode] (kind: Static) | [ItemStatic] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
+| [Trait] | [TraitNode] | [ItemTrait] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
+| [Implementation] | [ImplNode] | [ItemImpl] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
 | [ExternBlock] | todo | [ItemForeignMod] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
-| [Macro] | todo | [ItemMacro] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
+| [Macro] | [MacroNode] | [ItemMacro] | ☑ Start <br> ☑ Finish | [Nodes Todo] |
 | [TraitAlias] | todo | [ItemTraitAlias] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
 | [Linking modifiers: verbatim] | todo | [Verbatim] | ☐ Start <br> ☐ Finish | [Nodes Todo] |
 
