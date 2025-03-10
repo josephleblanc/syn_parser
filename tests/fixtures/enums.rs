@@ -18,3 +18,11 @@ pub enum DocumentedEnum {
     Variant1,
     Variant2,
 }
+// Sample with various enum types
+
+// Regular enum
+pub enum SampleEnum {
+    Variant1,
+    Variant2 { value: i32 },
+    Variant3,
+}

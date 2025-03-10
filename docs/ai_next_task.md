@@ -172,7 +172,7 @@ So far, we've implemented:
 Next steps:
 
  4. Implement Struct parsing tests ✅
- 5. Implement Enum parsing tests
+ 5. Implement Enum parsing tests ✅
  1. Implement trait parsing tests
  2. Implement impl block parsing tests
  3. Implement module parsing tests
