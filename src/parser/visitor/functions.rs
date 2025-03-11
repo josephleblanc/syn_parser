@@ -1,10 +1,12 @@
 // functions.rs
+use crate::parser::visitor::GenericParamKind;
 use crate::parser::{
     nodes::{FunctionNode, MacroKind, MacroNode, ParameterNode, ProcMacroKind},
     relations::{Relation, RelationKind},
     types::{TypeId, VisibilityKind},
     visitor::{state::VisitorState, utils::generics::process_generics},
 };
+use quote::ToTokens;
 use syn::{visit, FnArg, ItemFn, ReturnType};
 
 pub trait FunctionVisitor<'ast> {
