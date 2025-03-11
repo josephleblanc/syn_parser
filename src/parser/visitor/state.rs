@@ -1,7 +1,7 @@
 use crate::parser::graph::CodeGraph;
 use crate::parser::nodes::{NodeId, ParameterNode};
-use crate::parser::types::TypeId;
 use crate::parser::types::VisibilityKind;
+use crate::parser::types::{GenericParamNode, TypeId};
 use crate::parser::types::{TypeKind, TypeNode};
 use quote::ToTokens;
 use std::collections::HashMap;
@@ -10,6 +10,7 @@ use syn::Type;
 use syn::{FnArg, Visibility};
 
 use super::processor::{StateManagement, TypeOperations};
+use super::utils::{attributes, docs, generics};
 use super::TypeProcessor;
 
 pub struct VisitorState {
@@ -22,13 +23,13 @@ pub struct VisitorState {
 // In src/parser/visitor/state.rs
 impl StateManagement for VisitorState {
     // visibility qualifiers not permitted here AI!
-    pub fn next_node_id(&mut self) -> NodeId {
+    fn next_node_id(&mut self) -> NodeId {
         let id = self.next_node_id;
         self.next_node_id += 1;
         id
     }
     // visibility qualifiers not permitted here AI!
-    pub fn next_type_id(&mut self) -> TypeId {
+    fn next_type_id(&mut self) -> TypeId {
         let id = self.next_type_id;
         self.next_type_id += 1;
         id
@@ -56,18 +57,21 @@ impl TypeOperations for VisitorState {
     }
 }
 
+// Conflicting implementation 2 AI!
 impl generics::GenericsProcessor for VisitorState {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         generics::process_generics(self, generics)
     }
 }
 
+// No implementation found, implement in the visitor/utils/docs.rs folder AI!
 impl docs::DocProcessor for VisitorState {
     fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
         docs::extract_docstring(attrs)
     }
 }
 
+// No implementation found, implement in the visitor/utils/attributes.rs folder AI!
 impl attributes::AttributeProcessor for VisitorState {
     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<Attribute> {
         attributes::extract_attributes(attrs)

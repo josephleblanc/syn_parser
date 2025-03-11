@@ -1,7 +1,10 @@
-use syn::{Generics, GenericParam, TypeParam, Lifetime};
-use crate::parser::nodes::{GenericParamNode, GenericParamKind};
-use crate::parser::visitor::state::VisitorState;
+use crate::parser::types::GenericParamNode;
 use crate::parser::types::TypeId;
+use crate::parser::visitor::state::VisitorState;
+use crate::parser::visitor::GenericParamKind;
+use syn::Type;
+use syn::TypePath;
+use syn::{GenericParam, Generics, Lifetime, TypeParam};
 
 pub trait GenericsProcessor {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
@@ -9,6 +12,7 @@ pub trait GenericsProcessor {
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
 }
 
+// Conflicting implementation 1 AI!
 impl GenericsProcessor for VisitorState {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         process_generics(self, generics)
@@ -37,8 +41,14 @@ pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<Ge
 
     for param in &generics.params {
         match param {
-            syn::GenericParam::Type(TypeParam { ident, bounds, default, .. }) => {
-                let bounds: Vec<_> = bounds.iter()
+            syn::GenericParam::Type(TypeParam {
+                ident,
+                bounds,
+                default,
+                ..
+            }) => {
+                let bounds: Vec<_> = bounds
+                    .iter()
                     .map(|bound| state.process_type_bound(bound))
                     .collect();
 
@@ -61,7 +71,9 @@ pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<Ge
                 });
             }
             syn::GenericParam::Lifetime(lifetime_def) => {
-                let bounds: Vec<String> = lifetime_def.bounds.iter()
+                let bounds: Vec<String> = lifetime_def
+                    .bounds
+                    .iter()
                     .map(|bound| state.process_lifetime_bound(bound))
                     .collect();
 
