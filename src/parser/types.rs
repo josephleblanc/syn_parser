@@ -2,6 +2,7 @@ use crate::parser::nodes::NodeId;
 
 use serde::{Deserialize, Serialize};
 
+/// Unique identifier for type references
 pub type TypeId = usize;
 
 // ANCHOR: TypeNode
@@ -89,7 +90,6 @@ pub struct GenericParamNode {
 // ANCHOR: generic_param_kind
 // Different kinds of generic parameters
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum GenericParamKind {
     Type {
         name: String,
@@ -108,7 +108,8 @@ pub enum GenericParamKind {
 //ANCHOR_END: generic_param_kind
 
 // Different kinds of visibility
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+/// Visibility modifier for code items
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub enum VisibilityKind {
     Public,
     Crate,
