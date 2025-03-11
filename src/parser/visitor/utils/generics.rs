@@ -1,6 +1,7 @@
 use syn::{Generics, GenericParam, TypeParam, Lifetime};
 use crate::parser::nodes::{GenericParamNode, GenericParamKind};
 use crate::parser::visitor::state::VisitorState;
+use crate::parser::types::TypeId;
 
 impl VisitorState {
     pub fn process_generics(&mut self, generics: &Generics) -> Vec<GenericParamNode> {

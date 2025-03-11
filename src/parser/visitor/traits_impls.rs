@@ -1,6 +1,6 @@
-use crate::parser::nodes::{FunctionNode, ImplNode, VisibilityKind, TraitNode};
+use crate::parser::nodes::{FunctionNode, ImplNode, TraitNode};
 use crate::parser::relations::{Relation, RelationKind};
-use crate::parser::types::{TypeId, TypeKind};
+use crate::parser::types::{TypeId, TypeKind, VisibilityKind};
 use syn::{ItemImpl, ItemTrait, ReturnType, visit};
 
 use super::CodeVisitor;

@@ -1,11 +1,9 @@
 // functions.rs
 use syn::{visit, ItemFn, FnArg, ReturnType};
 use crate::parser::{
-    nodes::{FunctionNode, ParameterNode, MacroNode, MacroKind, ProcMacroKind},
+    nodes::{FunctionNode, MacroNode, MacroKind, ProcMacroKind, ParameterNode},
     relations::{Relation, RelationKind},
     types::{TypeId, VisibilityKind},
-    relations::{Relation, RelationKind},
-    types::TypeId,
     visitor::{state::VisitorState, utils::generics::process_generics}
 };
 
