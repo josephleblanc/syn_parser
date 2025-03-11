@@ -44,51 +44,6 @@ impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
                 }
             }
         }
-        let impl_id = self.state.next_node_id();
-
-        // Process self type
-        let self_type_id = self.state.get_or_create_type(&item_impl.self_ty);
-
-        // Process trait type if it's a trait impl
-        let trait_type_id = item_impl.trait_.as_ref().map(|(_, path, _)| {
-            let ty = Type::Path(TypePath {
-                qself: None,
-                path: path.clone(),
-            });
-            let trait_id = self.state.get_or_create_type(&ty);
-            trait_id
-        });
-
-        // Skip impl blocks for non-public traits
-        if let Some(trait_type_id) = trait_type_id {
-            if let Some(trait_type) = self
-                .state
-                .code_graph
-                .type_graph
-                .iter()
-                .find(|t| t.id == trait_type_id)
-            {
-                if let TypeKind::Named { path, .. } = &trait_type.kind {
-                    let trait_name = path.last().unwrap_or(&String::new()).to_string();
-                    let trait_def = self
-                        .state
-                        .code_graph
-                        .traits
-                        .iter()
-                        .find(|t| t.name == trait_name);
-
-                    if let Some(trait_def) = trait_def {
-                        if !matches!(trait_def.visibility, VisibilityKind::Public) {
-                            // Skip this impl as the trait is not public
-                            return;
-                        }
-                    } else {
-                        // Trait definition not found, skip this impl
-                        return;
-                    }
-                }
-            }
-        }
 
         // Process methods
         let mut methods = Vec::new();
