@@ -125,4 +125,3 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
         visit::visit_item_fn(self, func);
     }
 }
-}
