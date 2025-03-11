@@ -14,6 +14,9 @@ pub mod utils;
 use syn::visit;
 pub use type_processing::TypeProcessor;
 
+// Blanket implementation for all CodeProcessors
+impl<T: CodeProcessor> TypeProcessor for T {}
+
 use self::utils::{attributes, docs, generics};
 pub use self::{
     functions::FunctionVisitor,

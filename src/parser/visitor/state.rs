@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use syn::{FnArg, Visibility};
 
-use super::processor::StateManagement;
+use super::processor::{StateManagement, TypeOperations};
 use super::TypeProcessor;
 
 pub struct VisitorState {
@@ -28,6 +28,27 @@ impl StateManagement for VisitorState {
     pub fn next_type_id(&mut self) -> TypeId {
         let id = self.next_type_id;
         self.next_type_id += 1;
+        id
+    }
+}
+
+impl TypeOperations for VisitorState {
+    fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
+        let type_str = ty.to_token_stream().to_string();
+        if let Some(&id) = self.type_map.get(&type_str) {
+            return id;
+        }
+
+        let (type_kind, related_types) = self.process_type(ty);
+        let id = self.next_type_id();
+        self.type_map.insert(type_str, id);
+
+        self.code_graph.type_graph.push(TypeNode {
+            id,
+            kind: type_kind,
+            related_types,
+        });
+
         id
     }
 }

@@ -245,11 +245,3 @@ pub trait TypeProcessor: CodeProcessor {
     }
 }
 
-pub trait TypeProcessor {
-    fn get_or_create_type(&mut self, ty: &Type) -> TypeId;
-    fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>);
-    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
-}
-
-impl TypeProcessor for VisitorState {}
