@@ -1,6 +1,9 @@
 use crate::common::*;
-use syn_parser::parser::nodes::FunctionNode;
-use syn_parser::parser::types::*;
+use syn_parser::parser::{
+    nodes::{FunctionNode, GenericParamKind},
+    types::*,
+    visitor::utils::generics::process_generics,
+};
 
 #[test]
 fn test_impl_for_struct() {
@@ -126,6 +129,12 @@ fn test_generic_impl_for_struct() {
     } else {
         panic!("Expected Type generic parameter");
     }
+    
+    assert!(impl_node.generic_params.iter().any(|param| {
+        matches!(&param.kind, 
+            GenericParamKind::Const { name, .. } if name == "SIZE"
+        )
+    }));
 }
 
 #[test]

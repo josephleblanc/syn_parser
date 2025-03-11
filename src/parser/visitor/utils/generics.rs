@@ -2,6 +2,12 @@ use syn::{Generics, GenericParam, TypeParam, LifetimeDef, parse_quote};
 use crate::parser::nodes::{GenericParamNode, GenericParamKind};
 use crate::parser::visitor::state::VisitorState;
 
+impl VisitorState {
+    pub fn process_generics(&mut self, generics: &Generics) -> Vec<GenericParamNode> {
+        process_generics(self, generics)
+    }
+}
+
 pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<GenericParamNode> {
     let mut params = Vec::new();
 
