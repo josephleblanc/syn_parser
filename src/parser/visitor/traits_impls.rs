@@ -1,5 +1,5 @@
 impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
-
+    fn process_impl(&mut self, item_impl: &'ast ItemImpl) {
         // Process methods
         let mut methods = Vec::new();
         for item in &item_impl.items {
