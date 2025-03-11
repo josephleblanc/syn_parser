@@ -1,11 +1,10 @@
 use crate::parser::graph::CodeGraph;
 use crate::parser::nodes::*;
+use crate::parser::nodes::{Attribute, NodeId};
 use crate::parser::relations::*;
+use crate::parser::types::GenericParamNode;
+use crate::parser::types::TypeId;
 use crate::parser::types::*;
-use crate::parser::{
-    nodes::{NodeId, TypeId, Attribute, GenericParamNode},
-    types::Type
-};
 
 pub mod functions;
 pub mod modules;
@@ -43,7 +42,7 @@ pub trait CodeProcessor {
     fn state_mut(&mut self) -> &mut Self::State;
 
     // Shared utility methods
-    pub fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
         match vis {
             Visibility::Public(_) => VisibilityKind::Public,
             Visibility::Restricted(restricted) => {
@@ -59,7 +58,7 @@ pub trait CodeProcessor {
         }
     }
 
-    pub fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
+    fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
         match arg {
             FnArg::Typed(pat_type) => {
                 let param_id = self.next_node_id();
@@ -94,6 +93,12 @@ impl<'a> CodeProcessor for CodeVisitor<'a> {
 }
 
 pub mod processor {
+    use syn::Type;
+
+    use crate::parser::{nodes::NodeId, TypeId};
+
+    use super::utils::attributes::ParsedAttribute;
+
     pub trait StateManagement {
         fn next_node_id(&mut self) -> NodeId;
         fn next_type_id(&mut self) -> TypeId;
@@ -104,7 +109,7 @@ pub mod processor {
     }
 
     pub trait AttributeOperations {
-        fn extract_attributes(&mut self, attrs: &[Attribute]) -> Vec<Attribute>;
+        fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute>;
     }
 }
 
@@ -281,6 +286,7 @@ impl<'a> CodeVisitor<'a> {
 
 impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     fn visit_item_fn(&mut self, func: &'ast ItemFn) {
+        // Fix lifetime issues AI!
         <Self as FunctionVisitor>::process_function(self, func);
         visit::visit_item_fn(self, func);
     }
@@ -552,6 +558,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             attributes,
             docstring,
             body,
+            // Missing struct fields AI!
         };
 
         // Add the macro to the code graph

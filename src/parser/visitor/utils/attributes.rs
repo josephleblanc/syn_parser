@@ -1,11 +1,12 @@
 use quote::ToTokens;
+use serde::{Deserialize, Serialize};
 use syn::parse::Parser;
 
 pub trait AttributeProcessor {
-    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<crate::parser::nodes::Attribute>;
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ParsedAttribute {
     pub name: String,
     pub args: Vec<String>,

@@ -1,7 +1,10 @@
 use crate::parser::types::GenericParamNode;
 use crate::parser::types::TypeId;
+use crate::parser::visitor::processor::StateManagement;
+use crate::parser::visitor::processor::TypeOperations;
 use crate::parser::visitor::state::VisitorState;
 use crate::parser::visitor::GenericParamKind;
+use quote::ToTokens;
 use syn::Type;
 use syn::TypePath;
 use syn::{GenericParam, Generics, Lifetime, TypeParam};
@@ -11,7 +14,6 @@ pub trait GenericsProcessor {
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
 }
-
 
 pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<GenericParamNode> {
     let mut params = Vec::new();
