@@ -1,13 +1,12 @@
 // structures.rs
-impl StructVisitor for CodeVisitor<'_> {
-    fn process_struct(&mut self, item: &ItemStruct) {
-        // Move visit_item_struct logic here
-    }
+pub trait StructVisitor {
+    fn process_struct(&mut self, item: &ItemStruct);
+    fn process_enum(&mut self, item: &ItemEnum);
+    fn process_union(&mut self, item: &syn::ItemUnion);
+}
 
-    // The below if placeholder, just copied and pasted from old
-    // implementation, which started with:
-    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn visit_item_struct(&mut self, item_struct: &'ast ItemStruct) {
+impl StructVisitor for CodeVisitor<'_> {
+    fn process_struct(&mut self, item_struct: &ItemStruct) {
         let struct_id = self.state.next_node_id();
         let struct_name = item_struct.ident.to_string();
 

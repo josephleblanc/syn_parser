@@ -1,12 +1,10 @@
 // functions.rs
+pub trait FunctionVisitor {
+    fn process_function(&mut self, func: &ItemFn);
+}
+
 impl FunctionVisitor for CodeVisitor<'_> {
     fn process_function(&mut self, func: &ItemFn) {
-        // Move visit_item_fn logic here
-    }
-    // The below if placeholder, just copied and pasted from old
-    // implementation, which started with:
-    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn visit_item_fn(&mut self, func: &'ast ItemFn) {
         // Check if this function is a procedural macro
         let is_proc_macro = func.attrs.iter().any(|attr| {
             attr.path().is_ident("proc_macro")
