@@ -204,6 +204,7 @@ impl<'a> CodeVisitor<'a> {
 
 impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     fn visit_item_fn(&mut self, func: &'ast ItemFn) {
+        <Self as FunctionVisitor>::process_function(self, func);
         visit::visit_item_fn(self, func);
     }
 
