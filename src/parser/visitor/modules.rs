@@ -1,10 +1,22 @@
-use crate::parser::nodes::{ModuleNode, VisibilityKind, TypeDefNode, ValueKind, ValueNode, MacroNode, MacroKind};
-use crate::parser::relations::{Relation, RelationKind};
-use crate::parser::types::TypeId;
-use syn::{ItemMod, Visibility};
+use syn::{ItemMod, Visibility, ItemUse, ItemExternCrate, visit};
+use crate::parser::{
+    nodes::{ModuleNode, VisibilityKind, ImportNode, MacroNode, MacroKind, ValueNode, ValueKind},
+    relations::{Relation, RelationKind},
+    types::{TypeId, TypeNode, TypeKind},
+    visitor::{state::VisitorState, CodeVisitor}
+};
+
+pub trait ModuleVisitor<'ast> {
+    fn process_module(&mut self, module: &'ast ItemMod);
+    fn process_use_stmt(&mut self, use_item: &'ast ItemUse);
+    fn process_extern_crate(&mut self, extern_crate: &'ast ItemExternCrate);
+}
 
 impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
     fn process_module(&mut self, module: &'ast ItemMod) {
+        let module_id = self.state.next_node_id();
+        let self_type_id = self.state.next_type_id();
+        let trait_type_id = self.state.next_type_id();
         // Move visit_item_mod logic here
     }
     // The below if placeholder, just copied and pasted from old
