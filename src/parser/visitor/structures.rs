@@ -1,8 +1,11 @@
 // structures.rs
+use crate::parser::visitor::state::VisitorState;
 use crate::parser::visitor::CodeVisitor;
+use crate::parser::visitor::TypeProcessor;
 use crate::parser::visitor::{
     EnumNode, FieldNode, Relation, RelationKind, StructNode, TypeDefNode, UnionNode, VariantNode,
 };
+use quote::ToTokens;
 use syn::{visit, ItemEnum, ItemStruct, Visibility};
 
 pub trait StructVisitor<'ast> {

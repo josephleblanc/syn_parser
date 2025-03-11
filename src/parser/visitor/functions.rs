@@ -1,18 +1,18 @@
 // functions.rs
-use syn::{visit, ItemFn, FnArg, ReturnType};
 use crate::parser::{
-    nodes::{FunctionNode, MacroNode, MacroKind, ProcMacroKind, ParameterNode},
+    nodes::{FunctionNode, MacroKind, MacroNode, ParameterNode, ProcMacroKind},
     relations::{Relation, RelationKind},
     types::{TypeId, VisibilityKind},
-    visitor::{state::VisitorState, utils::generics::process_generics}
+    visitor::{state::VisitorState, utils::generics::process_generics},
 };
+use syn::{visit, FnArg, ItemFn, ReturnType};
 
 pub trait FunctionVisitor<'ast> {
-    fn process_function(&mut self, func: &'ast ItemFn, state: &mut VisitorState);
+    fn process_function(&mut self, func: &'ast ItemFn);
 }
 
 impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
-    fn process_function(&mut self, func: &'ast ItemFn, state: &mut VisitorState) {
+    fn process_function(&mut self, func: &'ast ItemFn) {
         // Check if this function is a procedural macro
         let is_proc_macro = func.attrs.iter().any(|attr| {
             attr.path().is_ident("proc_macro")
@@ -72,7 +72,7 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
         // Process function parameters and track type relations
         let mut parameters = Vec::new();
         let mut param_type_ids = Vec::new();
-        
+
         for arg in &func.sig.inputs {
             if let Some(param) = self.state.process_fn_arg(arg) {
                 // Track parameter type relationship
@@ -102,14 +102,16 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
                 Some(type_id)
             }
         };
-        
+
         // Process generic parameters first
         let generic_params = self.state.process_generics(&func.sig.generics);
 
         // Track generic parameter relationships after processing
         for generic_param in &generic_params {
             if let GenericParamKind::Type { name, .. } = &generic_param.kind {
-                let type_id = self.state.get_or_create_type(&syn::parse_str::<syn::Type>(name).unwrap());
+                let type_id = self
+                    .state
+                    .get_or_create_type(&syn::parse_str::<syn::Type>(name).unwrap());
                 self.state.code_graph.relations.push(Relation {
                     source: fn_id,
                     target: type_id,

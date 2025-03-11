@@ -5,6 +5,8 @@ use quote::ToTokens;
 use syn::visit;
 
 use super::CodeVisitor;
+
+use super::type_processing::TypeProcessor;
 use syn::{ItemImpl, ItemTrait, ReturnType, Type};
 
 pub trait ImplVisitor<'ast> {
