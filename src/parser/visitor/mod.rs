@@ -4,10 +4,20 @@ use crate::parser::relations::*;
 use crate::parser::types::*;
 use crate::parser::visitor::type_processing::TypeProcessor;
 
+pub mod functions;
+pub mod structures;
+pub mod traits_impls;
 pub mod type_processing;
 pub mod modules;
-pub mod traits_impls;
 pub mod utils;
+
+pub use self::{
+    functions::FunctionVisitor,
+    structures::StructVisitor,
+    traits_impls::{ImplVisitor, TraitVisitor},
+    modules::ModuleVisitor,
+    type_processing::TypeProcessor
+};
 
 use quote::ToTokens;
 use std::collections::HashMap;
@@ -194,13 +204,23 @@ impl<'a> CodeVisitor<'a> {
 
 impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     fn visit_item_fn(&mut self, func: &'ast ItemFn) {
-        self.process_function(func);
+        <Self as FunctionVisitor>::process_function(self, func);
         visit::visit_item_fn(self, func);
     }
 
     fn visit_item_struct(&mut self, s: &'ast ItemStruct) {
-        self.process_struct(s);
+        <Self as StructVisitor>::process_struct(self, s);
         visit::visit_item_struct(self, s);
+    }
+
+    fn visit_item_impl(&mut self, i: &'ast ItemImpl) {
+        <Self as ImplVisitor>::process_impl(self, i);
+        visit::visit_item_impl(self, i);
+    }
+
+    fn visit_item_trait(&mut self, t: &'ast ItemTrait) {
+        <Self as TraitVisitor>::process_trait(self, t);
+        visit::visit_item_trait(self, t);
     }
 
     fn visit_item_enum(&mut self, e: &'ast ItemEnum) {
