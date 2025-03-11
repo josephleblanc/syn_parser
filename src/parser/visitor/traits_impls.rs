@@ -1,18 +1,17 @@
 impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
-    fn process_impl(&mut self, item: &'ast ItemImpl) {
+    fn process_impl(&mut self, item_impl: &'ast ItemImpl) {
         let impl_id = self.state.next_node_id();
 
         // Process self type
-        let self_type_id = self.state.get_or_create_type(&item.self_ty);
+        let self_type_id = self.state.get_or_create_type(&item_impl.self_ty);
 
         // Process trait type if it's a trait impl
-        let trait_type_id = item.trait_.as_ref().map(|(_, path, _)| {
+        let trait_type_id = item_impl.trait_.as_ref().map(|(_, path, _)| {
             let ty = Type::Path(TypePath {
                 qself: None,
                 path: path.clone(),
             });
-            let trait_id = self.state.get_or_create_type(&ty);
-            trait_id
+            self.state.get_or_create_type(&ty)
         });
 
         // Skip impl blocks for non-public traits
@@ -240,13 +239,13 @@ impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
 }
 
 impl<'a, 'ast> TraitVisitor<'ast> for CodeVisitor<'a> {
-    fn process_trait(&mut self, item: &'ast ItemTrait) {
+    fn process_trait(&mut self, item_trait: &'ast ItemTrait) {
         let trait_id = self.state.next_node_id();
-        let trait_name = item.ident.to_string();
+        let trait_name = item_trait.ident.to_string();
 
         // Process methods
         let mut methods = Vec::new();
-        for item in &item.items {
+        for item in &item_trait.items {
             if let syn::TraitItem::Fn(method) = item {
                 let method_node_id = self.state.next_node_id();
                 let method_name = method.sig.ident.to_string();
