@@ -10,26 +10,7 @@ use syn::{
 use super::CodeProcessor;
 
 // In src/parser/visitor/type_processing.rs
-pub trait TypeProcessor: CodeProcessor {
-    fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
-        let state = self.state_mut();
-        let type_str = ty.to_token_stream().to_string();
-        if let Some(&id) = self.type_map.get(&type_str) {
-            return id;
-        }
-
-        let (type_kind, related_types) = self.process_type(ty);
-        let id = self.next_type_id();
-        self.type_map.insert(type_str, id);
-
-        self.code_graph.type_graph.push(TypeNode {
-            id,
-            kind: type_kind,
-            related_types,
-        });
-
-        id
-    }
+pub trait TypeProcessor: TypeOperations {
 
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
         let mut related_types = Vec::new();
