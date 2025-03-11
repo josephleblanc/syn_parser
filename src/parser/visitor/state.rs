@@ -56,6 +56,24 @@ impl TypeOperations for VisitorState {
     }
 }
 
+impl generics::GenericsProcessor for VisitorState {
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        generics::process_generics(self, generics)
+    }
+}
+
+impl docs::DocProcessor for VisitorState {
+    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
+        docs::extract_docstring(attrs)
+    }
+}
+
+impl attributes::AttributeProcessor for VisitorState {
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<Attribute> {
+        attributes::extract_attributes(attrs)
+    }
+}
+
 impl VisitorState {
     pub fn new() -> Self {
         Self {
@@ -74,6 +92,22 @@ impl VisitorState {
             next_node_id: 0,
             next_type_id: 0,
             type_map: HashMap::new(),
+        }
+    }
+
+    pub fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+        match vis {
+            Visibility::Public(_) => VisibilityKind::Public,
+            Visibility::Restricted(restricted) => {
+                let path = restricted
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect();
+                VisibilityKind::Restricted(path)
+            }
+            _ => VisibilityKind::Inherited,
         }
     }
 }

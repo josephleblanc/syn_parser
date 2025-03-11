@@ -29,6 +29,7 @@ pub enum RelationKind {
     MacroExpansion,
     MacroDefinition,
     MacroInvocation,
+    GenericParameter,
 }
 //ANCHOR_END: Uses
 //ANCHOR_END: Relation
