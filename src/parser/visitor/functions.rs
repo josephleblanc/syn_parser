@@ -103,7 +103,10 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
             }
         };
         
-        // Track generic parameter relationships
+        // Process generic parameters first
+        let generic_params = self.state.process_generics(&func.sig.generics);
+
+        // Track generic parameter relationships after processing
         for generic_param in &generic_params {
             if let GenericParamKind::Type { name, .. } = &generic_param.kind {
                 let type_id = self.state.get_or_create_type(&syn::parse_str::<syn::Type>(name).unwrap());
@@ -114,9 +117,6 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
                 });
             }
         }
-
-        // Process generic parameters
-        let generic_params = self.state.process_generics(&func.sig.generics);
 
         // Extract doc comments and other attributes
         let docstring = self.state.extract_docstring(&func.attrs);
