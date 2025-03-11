@@ -9,7 +9,7 @@ pub fn extract_docstring(attrs: &[Attribute]) -> Option<String> {
         .iter()
         .filter(|attr| attr.path().is_ident("doc"))
         .filter_map(|attr| {
-            if let Ok(Meta::NameValue(MetaNameValue { lit: Lit::Str(lit_str), .. })) = 
+            if let Ok(Meta::NameValue(MetaNameValue { value: Lit::Str(lit_str), .. })) = 
                 attr.parse_args::<Meta>()
             {
                 Some(lit_str.value().trim().to_string())

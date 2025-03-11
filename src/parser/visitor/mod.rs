@@ -25,6 +25,20 @@ use utils::generics::GenericsProcessor;
 // Blanket implementation for all CodeProcessors
 impl<T: CodeProcessor> TypeProcessor for T {}
 
+impl<T: CodeProcessor> GenericsProcessor for T {
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        generics::process_generics(self.state_mut(), generics)
+    }
+    
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
+        self.state_mut().process_type_bound(bound)
+    }
+    
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        self.state_mut().process_lifetime_bound(bound)
+    }
+}
+
 use self::utils::{attributes, docs, generics};
 pub use self::{
     functions::FunctionVisitor,
@@ -289,7 +303,10 @@ impl<'a> CodeVisitor<'a> {
     }
 }
 
-impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
+impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> 
+where
+    Self: TypeOperations + DocProcessor + AttributeProcessor + GenericsProcessor
+{
     fn visit_item_fn(&mut self, func: &'ast ItemFn)
     where
         Self: TypeOperations + DocProcessor + AttributeProcessor + GenericsProcessor,
@@ -566,7 +583,8 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             attributes,
             docstring,
             body,
-            // Missing struct fields AI!
+            expansion: None,
+            parent_function: None,
         };
 
         // Add the macro to the code graph
