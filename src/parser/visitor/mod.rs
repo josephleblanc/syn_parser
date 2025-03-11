@@ -224,12 +224,12 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     fn visit_item_enum(&mut self, e: &'ast ItemEnum) {
-        self.process_enum(e);
+        <Self as StructVisitor>::process_enum(self, e);
         visit::visit_item_enum(self, e);
     }
 
     fn visit_item_union(&mut self, u: &'ast syn::ItemUnion) {
-        self.process_union(u);
+        <Self as StructVisitor>::process_union(self, u);
         visit::visit_item_union(self, u);
     }
 
