@@ -1,10 +1,18 @@
 // functions.rs
-pub trait FunctionVisitor {
-    fn process_function(&mut self, func: &ItemFn);
+use syn::{visit, ItemFn, FnArg, ReturnType};
+use crate::parser::{
+    nodes::{FunctionNode, ParameterNode, VisibilityKind, MacroNode, MacroKind, ProcMacroKind},
+    relations::{Relation, RelationKind},
+    types::TypeId,
+    visitor::{state::VisitorState, utils::generics::process_generics}
+};
+
+pub trait FunctionVisitor<'ast> {
+    fn process_function(&mut self, func: &'ast ItemFn, state: &mut VisitorState);
 }
 
-impl FunctionVisitor for CodeVisitor<'_> {
-    fn process_function(&mut self, func: &ItemFn) {
+impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
+    fn process_function(&mut self, func: &'ast ItemFn, state: &mut VisitorState) {
         // Check if this function is a procedural macro
         let is_proc_macro = func.attrs.iter().any(|attr| {
             attr.path().is_ident("proc_macro")
@@ -117,28 +125,17 @@ impl FunctionVisitor for CodeVisitor<'_> {
         visit::visit_item_fn(self, func);
     }
 }
-use syn::{visit, ItemFn, FnArg};
-use crate::parser::{
-    nodes::{FunctionNode, ParameterNode, VisibilityKind},
-    relations::{Relation, RelationKind},
-    types::TypeId,
-    visitor::{state::VisitorState, utils::generics::process_generics}
-};
-
-pub trait FunctionVisitor<'ast> {
-    fn process_function(&mut self, func: &'ast ItemFn, state: &mut VisitorState);
-}
-
-impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
-    fn process_function(&mut self, func: &'ast ItemFn, state: &mut VisitorState) {
         let func_id = state.next_node_id();
         
         // Process parameters with proper lifetimes
         let parameters = func.sig.inputs.iter().filter_map(|arg| {
             if let FnArg::Typed(pat_type) = arg {
                 Some(ParameterNode {
+                    id: state.next_node_id(),
                     name: pat_type.pat.to_token_stream().to_string(),
                     type_id: state.get_or_create_type(&pat_type.ty),
+                    is_mutable: matches!(pat_type.pat.as_ref(), Pat::Ident(pi) if pi.mutability.is_some()),
+                    is_self: false,
                 })
             } else {
                 None
