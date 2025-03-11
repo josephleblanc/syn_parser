@@ -1,10 +1,13 @@
-use syn::{ItemMod, Visibility, ItemUse, ItemExternCrate, visit};
+use crate::parser::visitor::TypeDefNode;
+use crate::parser::visitor::VisibilityKind;
 use crate::parser::{
-    nodes::{ModuleNode, VisibilityKind, ImportNode, MacroNode, MacroKind, ValueNode, ValueKind},
+    nodes::{ImportNode, MacroKind, MacroNode, ModuleNode, ValueKind, ValueNode},
     relations::{Relation, RelationKind},
-    types::{TypeId, TypeNode, TypeKind},
-    visitor::{state::VisitorState, CodeVisitor}
+    types::{TypeId, TypeKind, TypeNode},
+    visitor::{state::VisitorState, CodeVisitor},
 };
+use syn::visit::Visit;
+use syn::{visit, ItemExternCrate, ItemMod, ItemUse, Visibility};
 
 pub trait ModuleVisitor<'ast> {
     fn process_module(&mut self, module: &'ast ItemMod);
@@ -18,11 +21,9 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
         let self_type_id = self.state.next_type_id();
         let trait_type_id = self.state.next_type_id();
         // Move visit_item_mod logic here
-    }
-    // The below if placeholder, just copied and pasted from old
-    // implementation, which started with:
-    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn process_module(&mut self, module: &'ast ItemMod) {
+        // The below if placeholder, just copied and pasted from old
+        // implementation, which started with:
+        // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         // Extract module information
         let module_id = self.state.next_node_id();
         let module_name = module.ident.to_string();

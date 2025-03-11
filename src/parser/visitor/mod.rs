@@ -14,6 +14,7 @@ pub mod utils;
 use syn::visit;
 pub use type_processing::TypeProcessor;
 
+use self::utils::{attributes, docs, generics};
 pub use self::{
     functions::FunctionVisitor,
     modules::ModuleVisitor,
@@ -28,6 +29,77 @@ use syn::{
     visit::Visit, FnArg, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType,
     Visibility,
 };
+
+pub trait CodeProcessor {
+    type State;
+
+    fn state_mut(&mut self) -> &mut Self::State;
+
+    // Shared utility methods
+    pub fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+        match vis {
+            Visibility::Public(_) => VisibilityKind::Public,
+            Visibility::Restricted(restricted) => {
+                let path = restricted
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect();
+                VisibilityKind::Restricted(path)
+            }
+            _ => VisibilityKind::Inherited,
+        }
+    }
+
+    pub fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
+        match arg {
+            FnArg::Typed(pat_type) => {
+                let param_id = self.next_node_id();
+                let param_name = pat_type.pat.to_token_stream().to_string();
+                let type_id = self.get_or_create_type(&pat_type.ty);
+
+                Some(ParameterNode {
+                    id: param_id,
+                    name: Some(param_name),
+                    type_id,
+                    // placeholder
+                    // TODO: handle cases for mutable/immutable parameters and is_self AI!
+                    is_mutable: todo!(),
+                    is_self: todo!(),
+                    // How should we handle this?
+                    // is_mutable:,
+                    // How should we handle this?
+                    // is_self: todo!(),
+                })
+            }
+            _ => None,
+        }
+    }
+}
+
+impl<'a> CodeProcessor for CodeVisitor<'a> {
+    type State = VisitorState;
+
+    fn state_mut(&mut self) -> &mut Self::State {
+        self.state
+    }
+}
+
+pub mod processor {
+    pub trait StateManagement {
+        fn next_node_id(&mut self) -> NodeId;
+        fn next_type_id(&mut self) -> TypeId;
+    }
+
+    pub trait TypeOperations {
+        fn get_or_create_type(&mut self, ty: &Type) -> TypeId;
+    }
+
+    pub trait AttributeOperations {
+        fn extract_attributes(&mut self, attrs: &[Attribute]) -> Vec<Attribute>;
+    }
+}
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;

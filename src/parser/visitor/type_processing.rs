@@ -7,15 +7,12 @@ use syn::{
     TypeParamBound, TypePath, TypeReference,
 };
 
-pub trait TypeProcessor {
-    fn get_or_create_type(&mut self, ty: &Type) -> TypeId;
-    fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>);
-    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
-}
+use super::CodeProcessor;
 
-impl TypeProcessor for VisitorState {
+// In src/parser/visitor/type_processing.rs
+pub trait TypeProcessor: CodeProcessor {
     fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
+        let state = self.state_mut();
         let type_str = ty.to_token_stream().to_string();
         if let Some(&id) = self.type_map.get(&type_str) {
             return id;
@@ -247,3 +244,12 @@ impl TypeProcessor for VisitorState {
         bound.ident.to_string()
     }
 }
+
+pub trait TypeProcessor {
+    fn get_or_create_type(&mut self, ty: &Type) -> TypeId;
+    fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>);
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
+}
+
+impl TypeProcessor for VisitorState {}
