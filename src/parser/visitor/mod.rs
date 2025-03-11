@@ -2,34 +2,29 @@ use crate::parser::graph::CodeGraph;
 use crate::parser::nodes::*;
 use crate::parser::relations::*;
 use crate::parser::types::*;
-use crate::parser::visitor::type_processing::TypeProcessor;
 
 pub mod functions;
+pub mod modules;
+pub mod state;
 pub mod structures;
 pub mod traits_impls;
 pub mod type_processing;
-pub mod modules;
 pub mod utils;
 
 pub use self::{
     functions::FunctionVisitor,
+    modules::ModuleVisitor,
     structures::StructVisitor,
     traits_impls::{ImplVisitor, TraitVisitor},
-    modules::ModuleVisitor,
     type_processing::TypeProcessor,
-    macros::MacroVisitor
 };
 
 use quote::ToTokens;
 use std::collections::HashMap;
 use std::path::Path;
-use syn::parse::Parser;
-use syn::ItemMod;
 use syn::{
     visit::{self, Visit},
-    AngleBracketedGenericArguments, FnArg, GenericArgument, Generics, ItemEnum, ItemFn, ItemImpl,
-    ItemStruct, ItemTrait, Pat, PatIdent, PatType, PathArguments, ReturnType, Type, TypeParam,
-    TypePath, TypeReference, Visibility,
+    FnArg, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType, Visibility,
 };
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {

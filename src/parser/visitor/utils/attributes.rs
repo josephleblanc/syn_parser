@@ -1,4 +1,5 @@
-use syn::{Attribute, Meta, ExprLit, Lit};
+use quote::ToTokens;
+use syn::parse::Parser;
 
 #[derive(Debug)]
 pub(crate) struct ParsedAttribute {
@@ -15,7 +16,7 @@ pub(crate) fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<ParsedAttribut
         .collect()
 }
 
-pub(crate) fn parse_attribute(attr: &syn::Attribute) -> Attribute {
+pub(crate) fn parse_attribute(attr: &syn::Attribute) -> ParsedAttribute {
     let name = attr.path().to_token_stream().to_string();
     let mut args = Vec::new();
 
@@ -36,7 +37,7 @@ pub(crate) fn parse_attribute(attr: &syn::Attribute) -> Attribute {
         }
     }
 
-    Attribute {
+    ParsedAttribute {
         name,
         args,
         value: Some(attr.to_token_stream().to_string()),

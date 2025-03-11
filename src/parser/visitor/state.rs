@@ -1,9 +1,14 @@
+use crate::parser::graph::CodeGraph;
+use crate::parser::nodes::{NodeId, ParameterNode};
+use crate::parser::types::TypeId;
+use crate::parser::types::VisibilityKind;
+use crate::parser::types::{TypeKind, TypeNode};
+use quote::ToTokens;
 use std::collections::HashMap;
 use std::path::Path;
-use crate::parser::nodes::{NodeId, TypeId, VisibilityKind};
-use crate::parser::types::{TypeKind, TypeNode};
-use crate::parser::graph::CodeGraph;
-use syn::Visibility;
+use syn::{FnArg, Visibility};
+
+use super::TypeProcessor;
 
 pub struct VisitorState {
     pub code_graph: CodeGraph,
@@ -61,17 +66,26 @@ impl VisitorState {
         }
     }
 
+    // Finish this function below AI!
     pub fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
         match arg {
             FnArg::Typed(pat_type) => {
                 let param_id = self.next_node_id();
                 let param_name = pat_type.pat.to_token_stream().to_string();
                 let type_id = self.get_or_create_type(&pat_type.ty);
-                
+
                 Some(ParameterNode {
                     id: param_id,
                     name: Some(param_name),
-                    type_id: Some(type_id),
+                    type_id,
+                    // placeholder
+                    // TODO: handle cases for mutable/immutable parameters and is_self AI!
+                    is_mutable: todo!(),
+                    is_self: todo!(),
+                    // How should we handle this?
+                    // is_mutable:,
+                    // How should we handle this?
+                    // is_self: todo!(),
                 })
             }
             _ => None,
