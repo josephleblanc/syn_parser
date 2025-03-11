@@ -117,3 +117,63 @@ impl FunctionVisitor for CodeVisitor<'_> {
         visit::visit_item_fn(self, func);
     }
 }
+use syn::{visit, ItemFn, FnArg};
+use crate::parser::{
+    nodes::{FunctionNode, ParameterNode, VisibilityKind},
+    relations::{Relation, RelationKind},
+    types::TypeId,
+    visitor::{state::VisitorState, utils::generics::process_generics}
+};
+
+pub trait FunctionVisitor<'ast> {
+    fn process_function(&mut self, func: &'ast ItemFn, state: &mut VisitorState);
+}
+
+impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
+    fn process_function(&mut self, func: &'ast ItemFn, state: &mut VisitorState) {
+        let func_id = state.next_node_id();
+        
+        // Process parameters with proper lifetimes
+        let parameters = func.sig.inputs.iter().filter_map(|arg| {
+            if let FnArg::Typed(pat_type) = arg {
+                Some(ParameterNode {
+                    name: pat_type.pat.to_token_stream().to_string(),
+                    type_id: state.get_or_create_type(&pat_type.ty),
+                })
+            } else {
+                None
+            }
+        }).collect();
+
+        // Process return type with proper lifetime
+        let return_type = func.sig.output.to_token_stream().to_string();
+        let return_type_id = if !return_type.is_empty() {
+            Some(state.get_or_create_type(&func.sig.output))
+        } else {
+            None
+        };
+
+        let function_node = FunctionNode {
+            id: func_id,
+            name: func.sig.ident.to_string(),
+            visibility: state.convert_visibility(&func.vis),
+            parameters,
+            return_type: return_type_id,
+            generic_params: process_generics(state, &func.sig.generics),
+            attributes: state.extract_attributes(&func.attrs),
+            docstring: state.extract_docstring(&func.attrs),
+            body: None, // Temporary until body analysis phase
+        };
+
+        state.code_graph.functions.push(function_node);
+        
+        // Add relationship to containing module
+        if let Some(current_module) = state.current_module() {
+            state.code_graph.relations.push(Relation {
+                source: current_module,
+                target: func_id,
+                kind: RelationKind::Contains,
+            });
+        }
+    }
+}
