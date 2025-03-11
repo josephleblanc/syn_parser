@@ -1,7 +1,7 @@
 use crate::parser::nodes::{FunctionNode, ImplNode, TraitNode};
 use crate::parser::relations::{Relation, RelationKind};
 use crate::parser::types::{TypeId, TypeKind, VisibilityKind};
-use syn::{ItemImpl, ItemTrait, ReturnType, visit};
+use syn::{visit, ItemImpl as SynItemImpl, ItemTrait as SynItemTrait, ReturnType as SynReturnType};
 
 use super::CodeVisitor;
 use crate::parser::nodes::{FunctionNode, ImplNode, TraitNode};
@@ -10,11 +10,11 @@ use crate::parser::types::{TypeId, TypeKind};
 use syn::{ItemImpl, ItemTrait, ReturnType, Type};
 
 pub trait ImplVisitor<'ast> {
-    fn process_impl(&mut self, item_impl: &'ast ItemImpl);
+    fn process_impl(&mut self, item_impl: &'ast SynItemImpl);
 }
 
 pub trait TraitVisitor<'ast> {
-    fn process_trait(&mut self, item_trait: &'ast ItemTrait);
+    fn process_trait(&mut self, item_trait: &'ast SynItemTrait);
 }
 
 impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
@@ -43,7 +43,7 @@ impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
                 // Extract return type if it exists
                 let return_type = match &method.sig.output {
                     ReturnType::Default => None,
-                    ReturnType::Type(_, ty) => {
+                    SynReturnType::Type(_, ty) => {
                         let type_id = self.state.get_or_create_type(ty);
                         // Add relation between method and return type
                         self.state.code_graph.relations.push(Relation {

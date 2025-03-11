@@ -15,7 +15,7 @@ pub(crate) fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<ParsedAttribut
         .collect()
 }
 
-fn parse_attribute(attr: &syn::Attribute) -> Attribute {
+pub(crate) fn parse_attribute(attr: &syn::Attribute) -> Attribute {
     let name = attr.path().to_token_stream().to_string();
     let mut args = Vec::new();
 

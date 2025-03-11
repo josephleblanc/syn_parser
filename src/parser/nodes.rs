@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 // Unique ID for a node in the graph
 pub type NodeId = usize;
-pub type TypeId = crate::parser::types::TypeId; // Re-export from types
 
 // ANCHOR: ItemFn
 // Represents a function definition
