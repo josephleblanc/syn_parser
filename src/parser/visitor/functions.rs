@@ -142,17 +142,6 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
         visit::visit_item_fn(self, func);
     }
 }
-use super::state::VisitorState;
-use super::utils::attributes::extract_attributes;
-use super::utils::docs::extract_docstring;
-use syn::{ItemFn, Signature, Pat, Type, FnArg, ReturnType};
-
-pub trait FunctionVisitor {
-    fn process_function(&mut self, func: &ItemFn);
-}
-
-impl<'ast> FunctionVisitor for VisitorState<'ast> {
-    fn process_function(&mut self, func: &ItemFn) {
         let func_id = self.next_node_id();
         let func_name = func.sig.ident.to_string();
         let visibility = self.convert_visibility(&func.vis);

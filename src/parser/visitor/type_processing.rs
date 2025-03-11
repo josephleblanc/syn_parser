@@ -1,6 +1,6 @@
-use super::state::VisitorState;
 use crate::parser::nodes::TypeId;
 use crate::parser::types::{TypeKind, TypeNode};
+use crate::parser::visitor::state::VisitorState;
 use syn::{Type, TypePath, TypeReference, TypeParamBound, PathArguments, ReturnType, GenericArgument, AngleBracketedGenericArguments};
 use syn::spanned::Spanned;
 

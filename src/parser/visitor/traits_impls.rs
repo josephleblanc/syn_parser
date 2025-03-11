@@ -1,3 +1,8 @@
+use crate::parser::nodes::{FunctionNode, ImplNode, VisibilityKind, TraitNode};
+use crate::parser::relations::{Relation, RelationKind};
+use crate::parser::types::{TypeId, TypeKind};
+use syn::{ItemImpl, ItemTrait, ReturnType, visit};
+
 impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
     fn process_impl(&mut self, item_impl: &'ast ItemImpl) {
         // Process methods

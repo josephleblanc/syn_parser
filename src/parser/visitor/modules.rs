@@ -1,4 +1,9 @@
-impl ModuleVisitor for CodeVisitor<'_> {
+use crate::parser::nodes::{ModuleNode, VisibilityKind, TypeDefNode, ValueKind, ValueNode, MacroNode, MacroKind};
+use crate::parser::relations::{Relation, RelationKind};
+use crate::parser::types::TypeId;
+use syn::{ItemMod, Visibility};
+
+impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
     fn process_module(&mut self, module: &'ast ItemMod) {
         // Move visit_item_mod logic here
     }
