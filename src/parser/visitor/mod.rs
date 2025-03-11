@@ -93,8 +93,8 @@ impl VisitorState {
         id
     }
 
-
     // Process a function parameter
+    // Decide if this needs to be moved for our refactoring of the visitor module AI
     fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
         match arg {
             FnArg::Typed(PatType { pat, ty, .. }) => {
@@ -303,60 +303,10 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit struct definitions
-    fn visit_item_struct(&mut self, item_struct: &'ast ItemStruct) {
-        let struct_id = self.state.next_node_id();
-        let struct_name = item_struct.ident.to_string();
-
-        // Process fields
-        let mut fields = Vec::new();
-        for field in &item_struct.fields {
-            let field_id = self.state.next_node_id();
-            let field_name = field.ident.as_ref().map(|ident| ident.to_string());
-            let type_id = self.state.get_or_create_type(&field.ty);
-
-            let field_node = FieldNode {
-                id: field_id,
-                name: field_name,
-                type_id,
-                visibility: self.state.convert_visibility(&field.vis),
-                attributes: self.state.extract_attributes(&field.attrs),
-            };
-
-            // Add relation between struct and field
-            self.state.code_graph.relations.push(Relation {
-                source: struct_id,
-                target: field_id,
-                kind: RelationKind::StructField,
-            });
-
-            fields.push(field_node);
-        }
-
-        // Process generic parameters
-        let generic_params = self.state.process_generics(&item_struct.generics);
-
-        // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_struct.attrs);
-        let attributes = self.state.extract_attributes(&item_struct.attrs);
-
-        // Store struct info only if public
-        if matches!(item_struct.vis, Visibility::Public(_)) {
-            self.state
-                .code_graph
-                .defined_types
-                .push(TypeDefNode::Struct(StructNode {
-                    id: struct_id,
-                    name: struct_name,
-                    visibility: self.state.convert_visibility(&item_struct.vis),
-                    fields,
-                    generic_params,
-                    attributes,
-                    docstring,
-                }));
-
-            visit::visit_item_struct(self, item_struct);
-        }
-    }
+    // fn visit_item_struct(&mut self, item_struct: &'ast ItemStruct) {
+    // ...
+    // }
+    // moved to src/parser/visitor/structures.rs
 
     // Visit type alias definitions
     fn visit_item_type(&mut self, item_type: &'ast syn::ItemType) {
@@ -393,769 +343,51 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit union definitions
-    fn visit_item_union(&mut self, item_union: &'ast syn::ItemUnion) {
-        let union_id = self.state.next_node_id();
-        let union_name = item_union.ident.to_string();
-
-        // Process fields
-        let mut fields = Vec::new();
-        for field in &item_union.fields.named {
-            let field_id = self.state.next_node_id();
-            let field_name = field.ident.as_ref().map(|ident| ident.to_string());
-            let type_id = self.state.get_or_create_type(&field.ty);
-
-            let field_node = FieldNode {
-                id: field_id,
-                name: field_name,
-                type_id,
-                visibility: self.state.convert_visibility(&field.vis),
-                attributes: self.state.extract_attributes(&field.attrs),
-            };
-
-            // Add relation between union and field
-            self.state.code_graph.relations.push(Relation {
-                source: union_id,
-                target: field_id,
-                kind: RelationKind::StructField, // Reuse StructField relation for union fields
-            });
-
-            fields.push(field_node);
-        }
-
-        // Process generic parameters
-        let generic_params = self.state.process_generics(&item_union.generics);
-
-        // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_union.attrs);
-        let attributes = self.state.extract_attributes(&item_union.attrs);
-
-        // Store union info only if public
-        if matches!(item_union.vis, Visibility::Public(_)) {
-            self.state
-                .code_graph
-                .defined_types
-                .push(TypeDefNode::Union(UnionNode {
-                    id: union_id,
-                    name: union_name,
-                    visibility: self.state.convert_visibility(&item_union.vis),
-                    fields,
-                    generic_params,
-                    attributes,
-                    docstring,
-                }));
-
-            visit::visit_item_union(self, item_union);
-        }
-    }
+    // fn visit_item_union(&mut self, item_union: &'ast syn::ItemUnion) {
+    // ...
+    // }
+    // moved to src/parser/visitor/structures.rs
 
     // Visit enum definitions
-    fn visit_item_enum(&mut self, item_enum: &'ast ItemEnum) {
-        let enum_id = self.state.next_node_id();
-        let enum_name = item_enum.ident.to_string();
-
-        // Process variants
-        let mut variants = Vec::new();
-        for variant in &item_enum.variants {
-            let variant_id = self.state.next_node_id();
-            let variant_name = variant.ident.to_string();
-
-            // Process fields of the variant
-            let mut fields = Vec::new();
-            match &variant.fields {
-                syn::Fields::Named(fields_named) => {
-                    for field in &fields_named.named {
-                        let field_id = self.state.next_node_id();
-                        let field_name = field.ident.as_ref().map(|ident| ident.to_string());
-                        let type_id = self.state.get_or_create_type(&field.ty);
-
-                        let field_node = FieldNode {
-                            id: field_id,
-                            name: field_name,
-                            type_id,
-                            visibility: self.state.convert_visibility(&field.vis),
-                            attributes: self.state.extract_attributes(&field.attrs),
-                        };
-
-                        fields.push(field_node);
-                    }
-                }
-                syn::Fields::Unnamed(fields_unnamed) => {
-                    for (_, field) in fields_unnamed.unnamed.iter().enumerate() {
-                        let field_id = self.state.next_node_id();
-                        let type_id = self.state.get_or_create_type(&field.ty);
-
-                        let field_node = FieldNode {
-                            id: field_id,
-                            name: None, // Tuple fields don't have names
-                            type_id,
-                            visibility: self.state.convert_visibility(&field.vis),
-                            attributes: self.state.extract_attributes(&field.attrs),
-                        };
-
-                        fields.push(field_node);
-                    }
-                }
-                syn::Fields::Unit => {
-                    // Unit variants don't have fields
-                }
-            }
-
-            // Extract discriminant if any
-            let discriminant = variant
-                .discriminant
-                .as_ref()
-                .map(|(_, expr)| expr.to_token_stream().to_string());
-
-            let variant_node = VariantNode {
-                id: variant_id,
-                name: variant_name,
-                fields,
-                discriminant,
-                attributes: self.state.extract_attributes(&variant.attrs),
-            };
-
-            // Add relation between enum and variant
-            self.state.code_graph.relations.push(Relation {
-                source: enum_id,
-                target: variant_id,
-                kind: RelationKind::EnumVariant,
-            });
-
-            variants.push(variant_node);
-        }
-
-        // Process generic parameters
-        let generic_params = self.state.process_generics(&item_enum.generics);
-
-        // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_enum.attrs);
-        let attributes = self.state.extract_attributes(&item_enum.attrs);
-
-        // Store enum info only if public
-        if matches!(item_enum.vis, Visibility::Public(_)) {
-            self.state
-                .code_graph
-                .defined_types
-                .push(TypeDefNode::Enum(EnumNode {
-                    id: enum_id,
-                    name: enum_name,
-                    visibility: self.state.convert_visibility(&item_enum.vis),
-                    variants,
-                    generic_params,
-                    attributes,
-                    docstring,
-                }));
-
-            visit::visit_item_enum(self, item_enum);
-        }
-    }
+    // fn visit_item_enum(&mut self, item_enum: &'ast ItemEnum) {
+    // ...
+    // }
+    // moved to src/parser/visitor/structures.rs
 
     // Visit impl blocks
-    fn visit_item_impl(&mut self, item_impl: &'ast ItemImpl) {
-        let impl_id = self.state.next_node_id();
-
-        // Process self type
-        let self_type_id = self.state.get_or_create_type(&item_impl.self_ty);
-
-        // Process trait type if it's a trait impl
-        let trait_type_id = item_impl.trait_.as_ref().map(|(_, path, _)| {
-            let ty = Type::Path(TypePath {
-                qself: None,
-                path: path.clone(),
-            });
-            let trait_id = self.state.get_or_create_type(&ty);
-            trait_id
-        });
-
-        // Skip impl blocks for non-public traits
-        if let Some(trait_type_id) = trait_type_id {
-            if let Some(trait_type) = self
-                .state
-                .code_graph
-                .type_graph
-                .iter()
-                .find(|t| t.id == trait_type_id)
-            {
-                if let TypeKind::Named { path, .. } = &trait_type.kind {
-                    let trait_name = path.last().unwrap_or(&String::new()).to_string();
-                    let trait_def = self
-                        .state
-                        .code_graph
-                        .traits
-                        .iter()
-                        .find(|t| t.name == trait_name);
-
-                    if let Some(trait_def) = trait_def {
-                        if !matches!(trait_def.visibility, VisibilityKind::Public) {
-                            // Skip this impl as the trait is not public
-                            return;
-                        }
-                    } else {
-                        // Trait definition not found, skip this impl
-                        return;
-                    }
-                }
-            }
-        }
-
-        // Process methods
-        let mut methods = Vec::new();
-        for item in &item_impl.items {
-            if let syn::ImplItem::Fn(method) = item {
-                let method_node_id = self.state.next_node_id();
-                let method_name = method.sig.ident.to_string();
-
-                // Process method parameters
-                let mut parameters = Vec::new();
-                for arg in &method.sig.inputs {
-                    if let Some(param) = self.state.process_fn_arg(arg) {
-                        // Add relation between method and parameter
-                        self.state.code_graph.relations.push(Relation {
-                            source: method_node_id,
-                            target: param.id,
-                            kind: RelationKind::FunctionParameter,
-                        });
-                        parameters.push(param);
-                    }
-                }
-
-                // Extract return type if it exists
-                let return_type = match &method.sig.output {
-                    ReturnType::Default => None,
-                    ReturnType::Type(_, ty) => {
-                        let type_id = self.state.get_or_create_type(ty);
-                        // Add relation between method and return type
-                        self.state.code_graph.relations.push(Relation {
-                            source: method_node_id,
-                            target: type_id,
-                            kind: RelationKind::FunctionReturn,
-                        });
-                        Some(type_id)
-                    }
-                };
-
-                // Process generic parameters for methods
-                let generic_params = self.state.process_generics(&method.sig.generics);
-
-                // Extract doc comments and other attributes for methods
-                let docstring = self.state.extract_docstring(&method.attrs);
-                let attributes = self.state.extract_attributes(&method.attrs);
-
-                // Extract method body as a string
-                let body = Some(method.block.to_token_stream().to_string());
-
-                // Store method info
-                let method_node = FunctionNode {
-                    id: method_node_id,
-                    name: method_name,
-                    visibility: self.state.convert_visibility(&method.vis),
-                    parameters,
-                    return_type,
-                    generic_params,
-                    attributes,
-                    docstring,
-                    body,
-                };
-                methods.push(method_node);
-            }
-        }
-
-        // Process generic parameters for impl block
-        let generic_params = self.state.process_generics(&item_impl.generics);
-
-        // Store impl info
-        let impl_node = ImplNode {
-            id: impl_id,
-            self_type: self_type_id,
-            trait_type: trait_type_id,
-            methods,
-            generic_params,
-        };
-        self.state.code_graph.impls.push(impl_node);
-
-        // Add relation: ImplementsFor or ImplementsTrait
-        let relation_kind = if trait_type_id.is_some() {
-            RelationKind::ImplementsTrait
-        } else {
-            RelationKind::ImplementsFor
-        };
-        self.state.code_graph.relations.push(Relation {
-            source: impl_id,
-            target: self_type_id,
-            kind: relation_kind,
-        });
-        if let Some(trait_type_id) = trait_type_id {
-            self.state.code_graph.relations.push(Relation {
-                source: impl_id,
-                target: trait_type_id,
-                kind: RelationKind::ImplementsTrait,
-            });
-
-            // Debug: Print trait type information
-            if let Some(trait_type) = self
-                .state
-                .code_graph
-                .type_graph
-                .iter()
-                .find(|t| t.id == trait_type_id)
-            {
-                if let TypeKind::Named { path, .. } = &trait_type.kind {
-                    println!("Found trait implementation: {:?}", path);
-                    // Specific check for DefaultTrait implementation
-                    if path.last().unwrap_or(&String::new()) == "DefaultTrait" {
-                        if let Some(self_type) = self
-                            .state
-                            .code_graph
-                            .type_graph
-                            .iter()
-                            .find(|t| t.id == self_type_id)
-                        {
-                            if let TypeKind::Named { path, .. } = &self_type.kind {
-                                println!("Self type for DefaultTrait: {:?}", path);
-                                if path.last().unwrap_or(&String::new()) == "ModuleStruct" {
-                                    println!("Found DefaultTrait implementation for ModuleStruct");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Debug: Print self type information
-            if let Some(self_type) = self
-                .state
-                .code_graph
-                .type_graph
-                .iter()
-                .find(|t| t.id == self_type_id)
-            {
-                if let TypeKind::Named { path, .. } = &self_type.kind {
-                    println!("Self type: {:?}", path);
-                }
-            }
-
-            // Debug: Print all methods in the impl
-            if let Some(debug_impl) = &self.state.code_graph.impls.last() {
-                for method in &debug_impl.methods {
-                    println!("Found method {} in impl {}", method.name, impl_id);
-                }
-            }
-        }
-
-        visit::visit_item_impl(self, item_impl);
-    }
+    // fn visit_item_impl(&mut self, item_impl: &'ast ItemImpl) {
+    // ...
+    // }
+    // moved to src/parser/visitor/traits_impls.rs
 
     // Visit trait definitions
-    fn visit_item_trait(&mut self, item_trait: &'ast ItemTrait) {
-        let trait_id = self.state.next_node_id();
-        let trait_name = item_trait.ident.to_string();
+    // fn visit_item_trait(&mut self, item_trait: &'ast ItemTrait) {
+    // ...
+    // }
+    // moved to src/parser/visitor/traits_impls.rs
 
-        // Process methods
-        let mut methods = Vec::new();
-        for item in &item_trait.items {
-            if let syn::TraitItem::Fn(method) = item {
-                let method_node_id = self.state.next_node_id();
-                let method_name = method.sig.ident.to_string();
-
-                // Process method parameters
-                let mut parameters = Vec::new();
-                for arg in &method.sig.inputs {
-                    if let Some(param) = self.state.process_fn_arg(arg) {
-                        // Add relation between method and parameter
-                        self.state.code_graph.relations.push(Relation {
-                            source: method_node_id,
-                            target: param.id,
-                            kind: RelationKind::FunctionParameter,
-                        });
-                        parameters.push(param);
-                    }
-                }
-
-                // Extract return type if it exists
-                let return_type = match &method.sig.output {
-                    ReturnType::Default => None,
-                    ReturnType::Type(_, ty) => {
-                        let type_id = self.state.get_or_create_type(ty);
-                        // Add relation between method and return type
-                        self.state.code_graph.relations.push(Relation {
-                            source: method_node_id,
-                            target: type_id,
-                            kind: RelationKind::FunctionReturn,
-                        });
-                        Some(type_id)
-                    }
-                };
-
-                // Process generic parameters for methods
-                let generic_params = self.state.process_generics(&method.sig.generics);
-
-                // Extract doc comments and other attributes for methods
-                let docstring = self.state.extract_docstring(&method.attrs);
-                let attributes = self.state.extract_attributes(&method.attrs);
-
-                // Extract method body if available (trait methods may have default implementations)
-                let body = method
-                    .default
-                    .as_ref()
-                    .map(|block| block.to_token_stream().to_string());
-
-                // Store method info
-                let method_node = FunctionNode {
-                    id: method_node_id,
-                    name: method_name,
-                    visibility: VisibilityKind::Public, // Trait methods are always public
-                    parameters,
-                    return_type,
-                    generic_params,
-                    attributes,
-                    docstring,
-                    body,
-                };
-                methods.push(method_node);
-            }
-        }
-
-        // Process generic parameters
-        let generic_params = self.state.process_generics(&item_trait.generics);
-
-        // Process super traits
-        let super_traits: Vec<TypeId> = item_trait
-            .supertraits
-            .iter()
-            .map(|bound| {
-                let ty = Type::TraitObject(syn::TypeTraitObject {
-                    dyn_token: None,
-                    bounds: syn::punctuated::Punctuated::from_iter(vec![bound.clone()]),
-                });
-                self.state.get_or_create_type(&ty)
-            })
-            .collect();
-
-        // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_trait.attrs);
-        let attributes = self.state.extract_attributes(&item_trait.attrs);
-
-        // Store trait info
-        //  Commenting out below because we should be able to see all traits regardless of
-        //  visibility
-        // if matches!(item_trait.vis, Visibility::Public(_)) {
-        let trait_node = TraitNode {
-            id: trait_id,
-            name: trait_name.clone(),
-            visibility: self.state.convert_visibility(&item_trait.vis),
-            methods,
-            generic_params,
-            super_traits: super_traits.clone(),
-            attributes,
-            docstring,
-        };
-        self.state.code_graph.traits.push(trait_node);
-        // }
-
-        // Add relation for super traits
-        for super_trait_id in &super_traits {
-            self.state.code_graph.relations.push(Relation {
-                source: trait_id,
-                target: *super_trait_id,
-                kind: RelationKind::Inherits,
-            });
-        }
-
-        visit::visit_item_trait(self, item_trait);
-    }
-
-    fn visit_item_mod(&mut self, module: &'ast ItemMod) {
-        // Extract module information
-        let module_id = self.state.next_node_id();
-        let module_name = module.ident.to_string();
-
-        // Process inner items if available
-        let mut submodules = Vec::new();
-        let mut items = Vec::new();
-
-        // Determine module visibility
-        // For private modules like 'mod private_module', we need to set Restricted visibility
-        let visibility =
-            if module_name == "private_module" && matches!(module.vis, Visibility::Inherited) {
-                // Private modules should have Restricted visibility
-                VisibilityKind::Restricted(vec!["super".to_string()])
-            } else {
-                self.state.convert_visibility(&module.vis)
-            };
-
-        if let Some((_, mod_items)) = &module.content {
-            for item in mod_items {
-                let item_id = self.state.next_node_id();
-                items.push(item_id);
-
-                match item {
-                    syn::Item::Fn(func) => {
-                        self.visit_item_fn(func);
-                    }
-                    syn::Item::Struct(strct) => {
-                        self.visit_item_struct(strct);
-                    }
-                    syn::Item::Enum(enm) => {
-                        self.visit_item_enum(enm);
-                    }
-                    syn::Item::Impl(impl_block) => {
-                        self.visit_item_impl(impl_block);
-                    }
-                    syn::Item::Trait(trt) => {
-                        self.visit_item_trait(trt);
-                    }
-                    syn::Item::Type(type_alias) => {
-                        self.visit_item_type(type_alias);
-                    }
-                    syn::Item::Union(union_def) => {
-                        self.visit_item_union(union_def);
-                    }
-                    syn::Item::Mod(md) => {
-                        submodules.push(item_id); // Add to submodules
-                        self.visit_item_mod(md); // Recursive call
-                    }
-                    syn::Item::Use(use_item) => {
-                        self.visit_item_use(use_item);
-                    }
-                    syn::Item::ExternCrate(extern_crate) => {
-                        self.visit_item_extern_crate(extern_crate);
-                    }
-                    syn::Item::Const(item_const) => {
-                        self.visit_item_const(item_const);
-                    }
-                    syn::Item::Static(item_static) => {
-                        self.visit_item_static(item_static);
-                    }
-                    syn::Item::Macro(item_macro) => {
-                        self.visit_item_macro(item_macro);
-                    }
-                    // Add other item types as needed
-                    _ => {}
-                }
-            }
-        }
-
-        // Add module to graph
-        self.state.code_graph.modules.push(ModuleNode {
-            id: module_id,
-            name: module_name,
-            visibility,
-            attributes: self.state.extract_attributes(&module.attrs),
-            docstring: self.state.extract_docstring(&module.attrs),
-            submodules,
-            items,
-            imports: Vec::new(),
-            exports: Vec::new(),
-        });
-
-        // Add "Contains" relations between the module and its items
-        if let Some((_, mod_items)) = &module.content {
-            for item in mod_items {
-                let item_id = match item {
-                    syn::Item::Fn(func) => {
-                        // Find the function node ID
-                        self.state
-                            .code_graph
-                            .functions
-                            .iter()
-                            .find(|f| f.name == func.sig.ident.to_string())
-                            .map(|f| f.id)
-                    }
-                    syn::Item::Struct(strct) => {
-                        // Find the struct node ID
-                        self.state
-                            .code_graph
-                            .defined_types
-                            .iter()
-                            .find(|def| match def {
-                                TypeDefNode::Struct(s) => s.name == strct.ident.to_string(),
-                                _ => false,
-                            })
-                            .map(|def| match def {
-                                TypeDefNode::Struct(s) => s.id,
-                                _ => 0, // Should never happen
-                            })
-                    }
-                    syn::Item::Enum(enm) => {
-                        // Find the enum node ID
-                        self.state
-                            .code_graph
-                            .defined_types
-                            .iter()
-                            .find(|def| match def {
-                                TypeDefNode::Enum(e) => e.name == enm.ident.to_string(),
-                                _ => false,
-                            })
-                            .map(|def| match def {
-                                TypeDefNode::Enum(e) => e.id,
-                                _ => 0, // Should never happen
-                            })
-                    }
-                    syn::Item::Type(type_alias) => {
-                        // Find the type alias node ID
-                        self.state
-                            .code_graph
-                            .defined_types
-                            .iter()
-                            .find(|def| match def {
-                                TypeDefNode::TypeAlias(ta) => {
-                                    ta.name == type_alias.ident.to_string()
-                                }
-                                _ => false,
-                            })
-                            .map(|def| match def {
-                                TypeDefNode::TypeAlias(ta) => ta.id,
-                                _ => 0, // Should never happen
-                            })
-                    }
-                    syn::Item::Union(union_def) => {
-                        // Find the union node ID
-                        self.state
-                            .code_graph
-                            .defined_types
-                            .iter()
-                            .find(|def| match def {
-                                TypeDefNode::Union(u) => u.name == union_def.ident.to_string(),
-                                _ => false,
-                            })
-                            .map(|def| match def {
-                                TypeDefNode::Union(u) => u.id,
-                                _ => 0, // Should never happen
-                            })
-                    }
-                    syn::Item::Trait(trt) => {
-                        // Find the trait node ID
-                        self.state
-                            .code_graph
-                            .traits
-                            .iter()
-                            .find(|t| t.name == trt.ident.to_string())
-                            .map(|t| t.id)
-                    }
-                    syn::Item::Const(item_const) => {
-                        // Find the constant node ID
-                        self.state
-                            .code_graph
-                            .values
-                            .iter()
-                            .find(|v| {
-                                v.name == item_const.ident.to_string()
-                                    && v.kind == ValueKind::Constant
-                            })
-                            .map(|v| v.id)
-                    }
-                    syn::Item::Static(item_static) => {
-                        // Find the static node ID
-                        self.state
-                            .code_graph
-                            .values
-                            .iter()
-                            .find(|v| {
-                                v.name == item_static.ident.to_string()
-                                    && matches!(v.kind, ValueKind::Static { .. })
-                            })
-                            .map(|v| v.id)
-                    }
-                    syn::Item::Macro(item_macro) => {
-                        // Find the macro node ID
-                        let macro_name = item_macro
-                            .ident
-                            .as_ref()
-                            .map(|ident| ident.to_string())
-                            .unwrap_or_else(|| "unnamed_macro".to_string());
-
-                        self.state
-                            .code_graph
-                            .macros
-                            .iter()
-                            .find(|m| m.name == macro_name)
-                            .map(|m| m.id)
-                    }
-                    _ => None,
-                };
-
-                if let Some(id) = item_id {
-                    self.state.code_graph.relations.push(Relation {
-                        source: module_id,
-                        target: id,
-                        kind: RelationKind::Contains,
-                    });
-                }
-            }
-        }
-
-        // Continue visiting inner items (this is redundant now, remove it)
-        // visit::visit_item_mod(self, module);
-    }
+    // Visit modules
+    // fn visit_item_mod(&mut self, module: &'ast ItemMod) {
+    // ...
+    // }
+    // moved to src/parser/visitor/modules.rs
 
     // Visit use statements
-    fn visit_item_use(&mut self, use_item: &'ast syn::ItemUse) {
-        // Create an import node
-        let import_id = self.state.next_node_id();
-
-        // Process the use path
-        let mut path_segments = Vec::new();
-        let current_path = &use_item.tree;
-
-        // Extract path segments from the use tree
-        CodeVisitor::extract_use_path(current_path, &mut path_segments);
-
-        // Create relations for the used types
-        if !path_segments.is_empty() {
-            // Create a synthetic type for the imported item
-            let type_id = self.state.next_type_id();
-            self.state.code_graph.type_graph.push(TypeNode {
-                id: type_id,
-                kind: TypeKind::Named {
-                    path: path_segments.clone(),
-                    is_fully_qualified: false,
-                },
-                related_types: Vec::new(),
-            });
-
-            // Add a Uses relation
-            self.state.code_graph.relations.push(Relation {
-                source: import_id,
-                target: type_id,
-                kind: RelationKind::Uses,
-            });
-        }
-
-        // Continue visiting
-        visit::visit_item_use(self, use_item);
-    }
+    // fn visit_item_use(&mut self, use_item: &'ast syn::ItemUse) {
+    // ...
+    // }
+    // moved to src/parser/visitor/modules.rs
 
     // Visit extern crate statements
-    fn visit_item_extern_crate(&mut self, extern_crate: &'ast syn::ItemExternCrate) {
-        // Create an import node for extern crate
-        let import_id = self.state.next_node_id();
-
-        // Get the crate name
-        let crate_name = extern_crate.ident.to_string();
-
-        // Create a synthetic type for the extern crate
-        let type_id = self.state.next_type_id();
-        self.state.code_graph.type_graph.push(TypeNode {
-            id: type_id,
-            kind: TypeKind::Named {
-                path: vec![crate_name.clone()],
-                is_fully_qualified: false,
-            },
-            related_types: Vec::new(),
-        });
-
-        // Add a Uses relation
-        self.state.code_graph.relations.push(Relation {
-            source: import_id,
-            target: type_id,
-            kind: RelationKind::Uses,
-        });
-
-        // Continue visiting
-        visit::visit_item_extern_crate(self, extern_crate);
-    }
+    // fn visit_item_extern_crate(&mut self, extern_crate: &'ast syn::ItemExternCrate) {
+    // ...
+    // }
+    // moved to src/parser/visitor/modules.rs
 
     // Visit constant items
+    // This needs to be moved to another module most likely.
+    // Decide where this should go (if it fits into our current files)
+    // or create a new file and trait for it. AI
     fn visit_item_const(&mut self, item_const: &'ast syn::ItemConst) {
         // Check if the constant is public
         if matches!(item_const.vis, Visibility::Public(_)) {
@@ -1200,6 +432,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit static items
+    // This needs to be moved to another module most likely.
+    // Decide where this should go (if it fits into our current files)
+    // or create a new file and trait for it. AI
     fn visit_item_static(&mut self, item_static: &'ast syn::ItemStatic) {
         // Check if the static variable is public
         if matches!(item_static.vis, Visibility::Public(_)) {
@@ -1246,6 +481,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit macro definitions (macro_rules!)
+    // This needs to be moved to another module most likely.
+    // Decide where this should go (if it fits into our current files)
+    // or create a new file and trait for it. AI
     fn visit_item_macro(&mut self, item_macro: &'ast syn::ItemMacro) {
         // Only process macros with #[macro_export]
         if !item_macro
@@ -1313,6 +551,9 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit macro invocations
+    // This needs to be moved to another module most likely.
+    // Decide where this should go (if it fits into our current files)
+    // or create a new file and trait for it. AI
     fn visit_macro(&mut self, mac: &'ast syn::Macro) {
         // Create a node ID for this macro invocation
         let invocation_id = self.state.next_node_id();
