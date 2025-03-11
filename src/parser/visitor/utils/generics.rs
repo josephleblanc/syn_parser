@@ -5,7 +5,7 @@ use crate::parser::visitor::processor::TypeOperations;
 use crate::parser::visitor::state::VisitorState;
 use crate::parser::visitor::GenericParamKind;
 use quote::ToTokens;
-use syn::Type;
+use syn::{Type, TypeParamBound};
 use syn::TypePath;
 use syn::{GenericParam, Generics, Lifetime, TypeParam};
 
@@ -13,29 +13,6 @@ pub trait GenericsProcessor: TypeOperations {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
-}
-
-impl GenericsProcessor for VisitorState {
-    fn process_generics(&mut self, generics: &Generics) -> Vec<GenericParamNode> {
-        process_generics(self, generics)
-    }
-    
-    fn process_type_bound(&mut self, bound: &TypeParamBound) -> TypeId {
-        match bound {
-            TypeParamBound::Trait(trait_bound) => {
-                let ty = Type::Path(TypePath {
-                    qself: None,
-                    path: trait_bound.path.clone(),
-                });
-                self.get_or_create_type(&ty)
-            }
-            _ => self.next_type_id(),
-        }
-    }
-
-    fn process_lifetime_bound(&mut self, bound: &Lifetime) -> String {
-        bound.ident.to_string()
-    }
 }
 
 pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<GenericParamNode> {
