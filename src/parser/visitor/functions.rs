@@ -69,26 +69,31 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
         let fn_id = self.state.next_node_id();
         let fn_name = func.sig.ident.to_string();
 
-        // Process function parameters
+        // Process function parameters and track type relations
         let mut parameters = Vec::new();
+        let mut param_type_ids = Vec::new();
+        
         for arg in &func.sig.inputs {
             if let Some(param) = self.state.process_fn_arg(arg) {
-                // Add relation between function and parameter
-                self.state.code_graph.relations.push(Relation {
-                    source: fn_id,
-                    target: param.id,
-                    kind: RelationKind::FunctionParameter,
-                });
+                // Track parameter type relationship
+                if let Some(type_id) = param.type_id {
+                    self.state.code_graph.relations.push(Relation {
+                        source: fn_id,
+                        target: type_id,
+                        kind: RelationKind::FunctionParameter,
+                    });
+                    param_type_ids.push(type_id);
+                }
                 parameters.push(param);
             }
         }
 
-        // Extract return type if it exists
+        // Extract return type if it exists and track relation
         let return_type = match &func.sig.output {
             ReturnType::Default => None,
             ReturnType::Type(_, ty) => {
                 let type_id = self.state.get_or_create_type(ty);
-                // Add relation between function and return type
+                // Add return type relationship
                 self.state.code_graph.relations.push(Relation {
                     source: fn_id,
                     target: type_id,
@@ -97,6 +102,18 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
                 Some(type_id)
             }
         };
+        
+        // Track generic parameter relationships
+        for generic_param in &generic_params {
+            if let GenericParamKind::Type { name, .. } = &generic_param.kind {
+                let type_id = self.state.get_or_create_type(&syn::parse_str::<syn::Type>(name).unwrap());
+                self.state.code_graph.relations.push(Relation {
+                    source: fn_id,
+                    target: type_id,
+                    kind: RelationKind::GenericParameter,
+                });
+            }
+        }
 
         // Process generic parameters
         let generic_params = self.state.process_generics(&func.sig.generics);

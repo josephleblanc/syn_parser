@@ -60,4 +60,21 @@ impl VisitorState {
             _ => VisibilityKind::Inherited,
         }
     }
+
+    pub fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
+        match arg {
+            FnArg::Typed(pat_type) => {
+                let param_id = self.next_node_id();
+                let param_name = pat_type.pat.to_token_stream().to_string();
+                let type_id = self.get_or_create_type(&pat_type.ty);
+                
+                Some(ParameterNode {
+                    id: param_id,
+                    name: Some(param_name),
+                    type_id: Some(type_id),
+                })
+            }
+            _ => None,
+        }
+    }
 }
