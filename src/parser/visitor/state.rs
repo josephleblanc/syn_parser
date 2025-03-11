@@ -6,6 +6,7 @@ use crate::parser::types::{TypeKind, TypeNode};
 use quote::ToTokens;
 use std::collections::HashMap;
 use std::path::Path;
+use syn::Type;
 use syn::{FnArg, Visibility};
 
 use super::processor::{StateManagement, TypeOperations};
@@ -20,11 +21,13 @@ pub struct VisitorState {
 
 // In src/parser/visitor/state.rs
 impl StateManagement for VisitorState {
+    // visibility qualifiers not permitted here AI!
     pub fn next_node_id(&mut self) -> NodeId {
         let id = self.next_node_id;
         self.next_node_id += 1;
         id
     }
+    // visibility qualifiers not permitted here AI!
     pub fn next_type_id(&mut self) -> TypeId {
         let id = self.next_type_id;
         self.next_type_id += 1;
