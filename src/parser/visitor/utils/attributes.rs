@@ -1,7 +1,13 @@
 use syn::{Attribute, Meta, ExprLit, Lit};
-use crate::parser::nodes::Attribute;
 
-pub fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<Attribute> {
+#[derive(Debug)]
+pub(crate) struct ParsedAttribute {
+    pub name: String,
+    pub args: Vec<String>,
+    pub value: Option<String>,
+}
+
+pub(crate) fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
     attrs
         .iter()
         .filter(|attr| !attr.path().is_ident("doc"))

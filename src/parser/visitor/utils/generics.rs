@@ -1,4 +1,4 @@
-use syn::{Generics, GenericParam, TypeParam, LifetimeDef, parse_quote};
+use syn::{Generics, GenericParam, TypeParam, Lifetime};
 use crate::parser::nodes::{GenericParamNode, GenericParamKind};
 use crate::parser::visitor::state::VisitorState;
 

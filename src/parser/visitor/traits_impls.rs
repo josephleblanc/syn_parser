@@ -3,6 +3,20 @@ use crate::parser::relations::{Relation, RelationKind};
 use crate::parser::types::{TypeId, TypeKind};
 use syn::{ItemImpl, ItemTrait, ReturnType, visit};
 
+use super::CodeVisitor;
+use crate::parser::nodes::{FunctionNode, ImplNode, TraitNode};
+use crate::parser::relations::{Relation, RelationKind};
+use crate::parser::types::{TypeId, TypeKind};
+use syn::{ItemImpl, ItemTrait, ReturnType, Type};
+
+pub trait ImplVisitor<'ast> {
+    fn process_impl(&mut self, item_impl: &'ast ItemImpl);
+}
+
+pub trait TraitVisitor<'ast> {
+    fn process_trait(&mut self, item_trait: &'ast ItemTrait);
+}
+
 impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
     fn process_impl(&mut self, item_impl: &'ast ItemImpl) {
         // Process methods

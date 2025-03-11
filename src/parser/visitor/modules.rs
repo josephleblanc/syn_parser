@@ -22,7 +22,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
     // The below if placeholder, just copied and pasted from old
     // implementation, which started with:
     // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn visit_item_mod(&mut self, module: &'ast ItemMod) {
+    fn process_module(&mut self, module: &'ast ItemMod) {
         // Extract module information
         let module_id = self.state.next_node_id();
         let module_name = module.ident.to_string();
