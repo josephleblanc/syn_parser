@@ -173,29 +173,6 @@ impl<'a, 'ast> TraitVisitor<'ast> for CodeVisitor<'a> {
                         parameters.push(param);
                     }
                 }
-        let trait_id = self.state.next_node_id();
-        let trait_name = item_trait.ident.to_string();
-
-        // Process methods
-        let mut methods = Vec::new();
-        for item in &item_trait.items {
-            if let syn::TraitItem::Fn(method) = item {
-                let method_node_id = self.state.next_node_id();
-                let method_name = method.sig.ident.to_string();
-
-                // Process method parameters
-                let mut parameters = Vec::new();
-                for arg in &method.sig.inputs {
-                    if let Some(param) = self.state.process_fn_arg(arg) {
-                        // Add relation between method and parameter
-                        self.state.code_graph.relations.push(Relation {
-                            source: method_node_id,
-                            target: param.id,
-                            kind: RelationKind::FunctionParameter,
-                        });
-                        parameters.push(param);
-                    }
-                }
 
                 // Extract return type if it exists
                 let return_type = match &method.sig.output {
