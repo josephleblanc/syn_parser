@@ -11,20 +11,22 @@ pub mod traits_impls;
 pub mod type_processing;
 pub mod utils;
 
+use syn::visit;
+pub use type_processing::TypeProcessor;
+
 pub use self::{
     functions::FunctionVisitor,
     modules::ModuleVisitor,
     structures::StructVisitor,
     traits_impls::{ImplVisitor, TraitVisitor},
-    type_processing::TypeProcessor,
 };
 
 use quote::ToTokens;
 use std::collections::HashMap;
 use std::path::Path;
 use syn::{
-    visit::{self, Visit},
-    FnArg, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType, Visibility,
+    visit::Visit, FnArg, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType,
+    Visibility,
 };
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
