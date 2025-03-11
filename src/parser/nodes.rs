@@ -1,4 +1,5 @@
 use crate::parser::types::{GenericParamNode, TypeId, VisibilityKind};
+use crate::parser::visitor::utils::attributes::ParsedAttribute;
 
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +16,7 @@ pub struct FunctionNode {
     pub parameters: Vec<ParameterNode>,
     pub return_type: Option<TypeId>,
     pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
     pub body: Option<String>,
 }
@@ -49,7 +50,7 @@ pub struct StructNode {
     pub visibility: VisibilityKind,
     pub fields: Vec<FieldNode>,
     pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>, // Replace Vec<String>
+    pub attributes: Vec<ParsedAttribute>, // Replace Vec<String>
     pub docstring: Option<String>,
 }
 //ANCHOR_END: StructNode
@@ -62,7 +63,7 @@ pub struct EnumNode {
     pub visibility: VisibilityKind,
     pub variants: Vec<VariantNode>,
     pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
 }
 
@@ -74,7 +75,7 @@ pub struct FieldNode {
     pub name: Option<String>,
     pub type_id: TypeId,
     pub visibility: VisibilityKind,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
 }
 //ANCHOR_END: field_node
 
@@ -85,7 +86,7 @@ pub struct VariantNode {
     pub name: String,
     pub fields: Vec<FieldNode>,
     pub discriminant: Option<String>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
 }
 
 // Represents a type alias (type NewType = OldType)
@@ -96,7 +97,7 @@ pub struct TypeAliasNode {
     pub visibility: VisibilityKind,
     pub type_id: TypeId,
     pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
 }
 
@@ -108,7 +109,7 @@ pub struct UnionNode {
     pub visibility: VisibilityKind,
     pub fields: Vec<FieldNode>,
     pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
 }
 
@@ -134,7 +135,7 @@ pub struct TraitNode {
     pub methods: Vec<FunctionNode>,
     pub generic_params: Vec<GenericParamNode>,
     pub super_traits: Vec<TypeId>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
 }
 //ANCHOR_END: TraitNode
@@ -144,7 +145,7 @@ pub struct ModuleNode {
     pub id: NodeId,
     pub name: String,
     pub visibility: VisibilityKind,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
     pub submodules: Vec<NodeId>,
     pub items: Vec<NodeId>,
@@ -161,7 +162,7 @@ pub struct ValueNode {
     pub type_id: TypeId,
     pub kind: ValueKind,
     pub value: Option<String>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
 }
 
@@ -173,10 +174,10 @@ pub struct MacroNode {
     pub visibility: VisibilityKind,
     pub kind: MacroKind,
     pub rules: Vec<MacroRuleNode>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
     pub body: Option<String>,
-    pub expansion: Option<String>, // Track macro expansion
+    pub expansion: Option<String>,       // Track macro expansion
     pub parent_function: Option<NodeId>, // Track containing function
 }
 
@@ -199,7 +200,7 @@ pub enum MacroKind {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ProcMacroKind {
     Derive,
-    Attribute,
+    ParsedAttribute,
     Function,
 }
 
@@ -221,12 +222,4 @@ pub struct ImportNode {
 pub enum ImportKind {
     UseStatement,
     ExternCrate,
-}
-
-// Represent an attribute
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Attribute {
-    pub name: String,          // e.g., "derive", "cfg", "serde"
-    pub args: Vec<String>,     // Arguments or parameters of the attribute
-    pub value: Option<String>, // Optional value (e.g., for `#[attr = "value"]`)
 }

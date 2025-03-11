@@ -1,9 +1,9 @@
 use crate::parser::graph::CodeGraph;
-use crate::parser::nodes::{Attribute, NodeId, ParameterNode};
-use crate::parser::types::{TypeId, NodeId};
+use crate::parser::nodes::{NodeId, ParameterNode};
 use crate::parser::types::VisibilityKind;
 use crate::parser::types::{GenericParamNode, TypeId};
 use crate::parser::types::{TypeKind, TypeNode};
+use crate::parser::visitor::utils::attributes::ParsedAttribute;
 use quote::ToTokens;
 use std::collections::HashMap;
 use std::path::Path;
@@ -72,7 +72,7 @@ impl docs::DocProcessor for VisitorState {
 }
 
 impl attributes::AttributeProcessor for VisitorState {
-    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<Attribute> {
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
         attributes::extract_attributes(attrs)
     }
 }

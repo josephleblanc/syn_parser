@@ -7,11 +7,11 @@ use syn::{
     TypeParamBound, TypePath, TypeReference,
 };
 
+use super::processor::TypeOperations;
 use super::CodeProcessor;
 
 // In src/parser/visitor/type_processing.rs
 pub trait TypeProcessor: TypeOperations {
-
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
         let mut related_types = Vec::new();
 
@@ -225,4 +225,3 @@ pub trait TypeProcessor: TypeOperations {
         bound.ident.to_string()
     }
 }
-

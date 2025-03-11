@@ -249,10 +249,6 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
 
     fn process_use_stmt(&mut self, use_item: &'ast syn::ItemUse) {
         // Move visit_item_use logic here
-        self.visit_item_use(use_item);
-    }
-
-    fn visit_item_use(&mut self, use_item: &'ast syn::ItemUse) {
         // Create an import node
         let import_id = self.state.next_node_id();
 
@@ -286,16 +282,14 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
 
         // Continue visiting
         visit::visit_item_use(self, use_item);
+        self.visit_item_use(use_item);
     }
 
+    // moved into visit_item_use above
+    // fn visit_item_use(&mut self, use_item: &'ast syn::ItemUse) {}
+
     fn process_extern_crate(&mut self, extern_crate: &'ast syn::ItemExternCrate) {
-        // Move visit_item_extern_crate logic here
-    }
-    // The below if placeholder, just copied and pasted from old
-    // implementation, which started with:
-    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    // Visit extern crate statements
-    fn visit_item_extern_crate(&mut self, extern_crate: &'ast syn::ItemExternCrate) {
+        // Moves visit_item_extern_crate logic here
         // Create an import node for extern crate
         let import_id = self.state.next_node_id();
 
@@ -325,4 +319,11 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
     }
 
     // Add move other containment logic here as needed.
+    // The below if placeholder, just copied and pasted from old
+    // implementation, which started with:
+    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
+    // Visit extern crate statements
+
+    // Moved logic for this function into process_extern_crate above
+    // fn visit_item_extern_crate(&mut self, extern_crate: &'ast syn::ItemExternCrate) {
 }

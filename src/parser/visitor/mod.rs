@@ -1,10 +1,12 @@
 use crate::parser::graph::CodeGraph;
+use crate::parser::nodes::NodeId;
 use crate::parser::nodes::*;
-use crate::parser::nodes::{Attribute, NodeId};
 use crate::parser::relations::*;
 use crate::parser::types::GenericParamNode;
 use crate::parser::types::TypeId;
 use crate::parser::types::*;
+use processor::TypeOperations;
+use syn::Attribute;
 
 pub mod functions;
 pub mod modules;
@@ -16,6 +18,9 @@ pub mod utils;
 
 use syn::visit;
 pub use type_processing::TypeProcessor;
+use utils::attributes::AttributeProcessor;
+use utils::docs::DocProcessor;
+use utils::generics::GenericsProcessor;
 
 // Blanket implementation for all CodeProcessors
 impl<T: CodeProcessor> TypeProcessor for T {}
@@ -285,9 +290,9 @@ impl<'a> CodeVisitor<'a> {
 }
 
 impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn visit_item_fn(&mut self, func: &'ast ItemFn) 
+    fn visit_item_fn(&mut self, func: &'ast ItemFn)
     where
-        Self: TypeOperations + DocProcessor + AttributeProcessor + GenericsProcessor
+        Self: TypeOperations + DocProcessor + AttributeProcessor + GenericsProcessor,
     {
         // Fix lifetime issues AI!
         <Self as FunctionVisitor>::process_function(self, func);

@@ -1,4 +1,3 @@
-// functions.rs
 use crate::parser::visitor::GenericParamKind;
 use crate::parser::{
     nodes::{FunctionNode, MacroKind, MacroNode, ParameterNode, ProcMacroKind},
@@ -38,7 +37,7 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
                 .iter()
                 .any(|attr| attr.path().is_ident("proc_macro_attribute"))
             {
-                ProcMacroKind::Attribute
+                ProcMacroKind::ParsedAttribute
             } else {
                 ProcMacroKind::Function
             };
@@ -52,6 +51,7 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
 
             // Create the macro node
             let macro_node = MacroNode {
+                //Missing fields AI!
                 id: macro_id,
                 name: macro_name,
                 visibility: self.state.convert_visibility(&func.vis),
@@ -78,7 +78,10 @@ impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
         for arg in &func.sig.inputs {
             if let Some(param) = self.state.process_fn_arg(arg) {
                 // Track parameter type relationship
-                if let Some(type_id) = param.type_id {
+                // Need to decide if param.type_id should be an Option as it originally was or if
+                // no option makes sense for the data structure
+                // if let Some(type_id) = param.type_id {
+                if let type_id = param.type_id {
                     self.state.code_graph.relations.push(Relation {
                         source: fn_id,
                         target: type_id,
