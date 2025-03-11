@@ -176,6 +176,8 @@ pub struct MacroNode {
     pub attributes: Vec<Attribute>,
     pub docstring: Option<String>,
     pub body: Option<String>,
+    pub expansion: Option<String>, // Track macro expansion
+    pub parent_function: Option<NodeId>, // Track containing function
 }
 
 // Represents a macro rule

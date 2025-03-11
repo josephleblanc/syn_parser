@@ -26,9 +26,9 @@ pub enum RelationKind {
     Uses,
     ValueType,
     MacroUse,
-    // MacroExpansion,
-    // This is outside the scope of this project right now, but if it were to be implemented, it
-    // would probably go here.
+    MacroExpansion,
+    MacroDefinition,
+    MacroInvocation,
 }
 //ANCHOR_END: Uses
 //ANCHOR_END: Relation

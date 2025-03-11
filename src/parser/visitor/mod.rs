@@ -16,7 +16,8 @@ pub use self::{
     structures::StructVisitor,
     traits_impls::{ImplVisitor, TraitVisitor},
     modules::ModuleVisitor,
-    type_processing::TypeProcessor
+    type_processing::TypeProcessor,
+    macros::MacroVisitor
 };
 
 use quote::ToTokens;
