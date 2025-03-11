@@ -1,6 +1,15 @@
-# Goals
+# Project Goals and Roadmap
 
-A step-by-step approach that balances syntactic extraction with semantic relationships useful for an LLM-based code generation and refactoring system.
+## Overview
+This document outlines the step-by-step approach for building a Rust code analysis system that balances syntactic extraction with semantic relationships, specifically designed for LLM-based code generation and refactoring.
+
+### Key Objectives:
+1. **Comprehensive Code Analysis**: Extract both syntactic and semantic information
+2. **Efficient Data Storage**: Optimize for fast querying and traversal
+3. **LLM Integration**: Structure data for effective use with language models
+4. **Extensibility**: Design for future analysis capabilities
+
+## Roadmap
 
 ## Step 1: Expand Item Coverage
 

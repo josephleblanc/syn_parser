@@ -1,8 +1,16 @@
-Based on the goal statement and the current structure, here's a recommended refactoring strategy:
+# Modular Visitor Refactoring Strategy
+
+## Overview
+This document outlines a domain-driven approach to modularizing the visitor implementation while maintaining performance and clarity.
+
+### Key Principles:
+1. **Single Responsibility**: Each module handles one specific domain
+2. **Clear Interfaces**: Well-defined traits for module interactions
+3. **Performance Focus**: Minimize cross-module calls in hot paths
+4. **Testability**: Independent testing of each module
 
 ### Recommended Approach: Domain-Driven Modularization
-
-Split the file into focused modules that align with key parsing domains while maintaining the visitor pattern efficiency.
+Split the implementation into focused modules that align with key parsing domains while maintaining the visitor pattern efficiency.
 
 1. **Create Submodules Structure:**
 
