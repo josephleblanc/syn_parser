@@ -247,12 +247,11 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
         // visit::visit_item_mod(self, module);
     }
 
-    fn process_use_stmt(&mut self, module: &'ast syn::ItemUse) {
+    fn process_use_stmt(&mut self, use_item: &'ast syn::ItemUse) {
         // Move visit_item_use logic here
+        self.visit_item_use(use_item);
     }
-    // The below if placeholder, just copied and pasted from old
-    // implementation, which started with:
-    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
+
     fn visit_item_use(&mut self, use_item: &'ast syn::ItemUse) {
         // Create an import node
         let import_id = self.state.next_node_id();

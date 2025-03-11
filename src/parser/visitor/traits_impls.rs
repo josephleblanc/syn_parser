@@ -19,6 +19,15 @@ pub trait TraitVisitor<'ast> {
 
 impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
     fn process_impl(&mut self, item_impl: &'ast ItemImpl) {
+        let impl_id = self.state.next_node_id();
+        let self_type_id = self.state.get_or_create_type(&item_impl.self_ty);
+        let trait_type_id = item_impl.trait_.as_ref().map(|(_, path, _)| {
+            self.state.get_or_create_type(&syn::Type::Path(syn::TypePath {
+                path: path.clone(),
+                qself: None,
+            }))
+        });
+
         // Process methods
         let mut methods = Vec::new();
         for item in &item_impl.items {

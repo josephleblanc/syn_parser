@@ -3,9 +3,32 @@ use crate::parser::nodes::{GenericParamNode, GenericParamKind};
 use crate::parser::visitor::state::VisitorState;
 use crate::parser::types::TypeId;
 
-impl VisitorState {
-    pub fn process_generics(&mut self, generics: &Generics) -> Vec<GenericParamNode> {
+pub trait GenericsProcessor {
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
+}
+
+impl GenericsProcessor for VisitorState {
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         process_generics(self, generics)
+    }
+
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
+        match bound {
+            syn::TypeParamBound::Trait(trait_bound) => {
+                let ty = Type::Path(TypePath {
+                    qself: None,
+                    path: trait_bound.path.clone(),
+                });
+                self.get_or_create_type(&ty)
+            }
+            _ => self.next_type_id(),
+        }
+    }
+
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        bound.ident.to_string()
     }
 }
 
