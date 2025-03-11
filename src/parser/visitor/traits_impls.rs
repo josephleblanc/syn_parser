@@ -1,11 +1,50 @@
-impl ImplVisitor for CodeVisitor<'_> {
-    fn process_impl(&mut self, item: &ItemImpl) {
-        // Move visit_item_impl logic here
-    }
-    // The below if placeholder, just copied and pasted from old
-    // implementation, which started with:
-    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn visit_item_impl(&mut self, item_impl: &'ast ItemImpl) {
+impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
+    fn process_impl(&mut self, item: &'ast ItemImpl) {
+        let impl_id = self.state.next_node_id();
+
+        // Process self type
+        let self_type_id = self.state.get_or_create_type(&item.self_ty);
+
+        // Process trait type if it's a trait impl
+        let trait_type_id = item.trait_.as_ref().map(|(_, path, _)| {
+            let ty = Type::Path(TypePath {
+                qself: None,
+                path: path.clone(),
+            });
+            let trait_id = self.state.get_or_create_type(&ty);
+            trait_id
+        });
+
+        // Skip impl blocks for non-public traits
+        if let Some(trait_type_id) = trait_type_id {
+            if let Some(trait_type) = self
+                .state
+                .code_graph
+                .type_graph
+                .iter()
+                .find(|t| t.id == trait_type_id)
+            {
+                if let TypeKind::Named { path, .. } = &trait_type.kind {
+                    let trait_name = path.last().unwrap_or(&String::new()).to_string();
+                    let trait_def = self
+                        .state
+                        .code_graph
+                        .traits
+                        .iter()
+                        .find(|t| t.name == trait_name);
+
+                    if let Some(trait_def) = trait_def {
+                        if !matches!(trait_def.visibility, VisibilityKind::Public) {
+                            // Skip this impl as the trait is not public
+                            return;
+                        }
+                    } else {
+                        // Trait definition not found, skip this impl
+                        return;
+                    }
+                }
+            }
+        }
         let impl_id = self.state.next_node_id();
 
         // Process self type
@@ -200,14 +239,31 @@ impl ImplVisitor for CodeVisitor<'_> {
     }
 }
 
-impl ImplVisitor for CodeVisitor<'_> {
-    fn process_trait(&mut self, item: &ItemImpl) {
-        // Move visit_item_trait logic here
-    }
-    // The below if placeholder, just copied and pasted from old
-    // implementation, which started with:
-    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn visit_item_trait(&mut self, item_trait: &'ast ItemTrait) {
+impl<'a, 'ast> TraitVisitor<'ast> for CodeVisitor<'a> {
+    fn process_trait(&mut self, item: &'ast ItemTrait) {
+        let trait_id = self.state.next_node_id();
+        let trait_name = item.ident.to_string();
+
+        // Process methods
+        let mut methods = Vec::new();
+        for item in &item.items {
+            if let syn::TraitItem::Fn(method) = item {
+                let method_node_id = self.state.next_node_id();
+                let method_name = method.sig.ident.to_string();
+
+                // Process method parameters
+                let mut parameters = Vec::new();
+                for arg in &method.sig.inputs {
+                    if let Some(param) = self.state.process_fn_arg(arg) {
+                        // Add relation between method and parameter
+                        self.state.code_graph.relations.push(Relation {
+                            source: method_node_id,
+                            target: param.id,
+                            kind: RelationKind::FunctionParameter,
+                        });
+                        parameters.push(param);
+                    }
+                }
         let trait_id = self.state.next_node_id();
         let trait_name = item_trait.ident.to_string();
 
