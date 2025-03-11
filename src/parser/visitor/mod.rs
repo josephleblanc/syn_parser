@@ -5,6 +5,9 @@ use crate::parser::types::*;
 use crate::parser::visitor::type_processing::TypeProcessor;
 
 pub mod type_processing;
+pub mod modules;
+pub mod traits_impls;
+pub mod utils;
 
 use quote::ToTokens;
 use std::collections::HashMap;
