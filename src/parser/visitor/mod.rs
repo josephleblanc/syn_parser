@@ -4,6 +4,8 @@ use crate::parser::relations::*;
 use crate::parser::types::*;
 use crate::parser::visitor::type_processing::TypeProcessor;
 
+pub mod type_processing;
+
 use quote::ToTokens;
 use std::collections::HashMap;
 use std::path::Path;
