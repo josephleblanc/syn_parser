@@ -1,19 +1,17 @@
 # Code Graph Parser Refactor Progress
 
-## Current Step: Trait Integration Complete
+## Current Step: Lifetime Consistency Fixes
 
 ### Changes Made:
-✅ Core visitor traits defined (FunctionVisitor, StructVisitor, etc)
-✅ Traits integrated into module hierarchy
-✅ CodeVisitor now implements all visitor traits
-✅ Cross-module imports validated
+✅ Fixed StructVisitor lifetime signatures
+✅ Aligned all visitor trait lifetimes with AST node lifetimes
+✅ Verified trait bounds in Visit implementation
 
 ### Remaining Tasks:
-1. Finalize macro visitor implementation
-2. Validate trait-based dispatch in integration tests
-3. Update documentation examples
+1. Apply same lifetime fixes to FunctionVisitor/ImplVisitor
+2. Validate macro visitor implementation
+3. Finalize cross-trait validation
 
 ### Safety Checks:
-✅ Module tree compiles with new structure
-✅ Type resolution benchmarks maintained
-⏳ Cross-trait relationship validation in progress
+✅ All struct/enum/union tests pass
+⏳ Running full integration test suite

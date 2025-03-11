@@ -5,13 +5,13 @@ use crate::parser::visitor::{
 };
 use syn::{visit, ItemEnum, ItemStruct, Visibility};
 
-pub trait StructVisitor {
-    fn process_struct(&mut self, item: &ItemStruct);
-    fn process_enum(&mut self, item: &ItemEnum);
-    fn process_union(&mut self, item: &syn::ItemUnion);
+pub trait StructVisitor<'ast> {
+    fn process_struct(&mut self, item: &'ast ItemStruct);
+    fn process_enum(&mut self, item: &'ast ItemEnum);
+    fn process_union(&mut self, item: &'ast syn::ItemUnion);
 }
 
-impl StructVisitor for CodeVisitor<'_> {
+impl<'ast> StructVisitor<'ast> for CodeVisitor<'_> {
     fn process_struct(&mut self, item_struct: &ItemStruct) {
         let struct_id = self.state.next_node_id();
         let struct_name = item_struct.ident.to_string();
