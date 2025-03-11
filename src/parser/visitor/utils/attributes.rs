@@ -1,6 +1,10 @@
 use quote::ToTokens;
 use syn::parse::Parser;
 
+pub trait AttributeProcessor {
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<crate::parser::nodes::Attribute>;
+}
+
 #[derive(Debug)]
 pub struct ParsedAttribute {
     pub name: String,

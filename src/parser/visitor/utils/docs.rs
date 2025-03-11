@@ -1,5 +1,9 @@
 use syn::{Attribute, Expr, Lit, Meta, MetaNameValue};
 
+pub trait DocProcessor {
+    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String>;
+}
+
 pub fn extract_docstring(attrs: &[Attribute]) -> Option<String> {
     let doc_lines: Vec<String> = attrs
         .iter()

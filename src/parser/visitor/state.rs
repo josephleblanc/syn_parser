@@ -1,5 +1,6 @@
 use crate::parser::graph::CodeGraph;
-use crate::parser::nodes::{NodeId, ParameterNode};
+use crate::parser::nodes::{Attribute, NodeId, ParameterNode};
+use crate::parser::types::{TypeId, NodeId};
 use crate::parser::types::VisibilityKind;
 use crate::parser::types::{GenericParamNode, TypeId};
 use crate::parser::types::{TypeKind, TypeNode};
@@ -64,14 +65,12 @@ impl generics::GenericsProcessor for VisitorState {
     }
 }
 
-// No implementation found, implement in the visitor/utils/docs.rs folder AI!
 impl docs::DocProcessor for VisitorState {
     fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
         docs::extract_docstring(attrs)
     }
 }
 
-// No implementation found, implement in the visitor/utils/attributes.rs folder AI!
 impl attributes::AttributeProcessor for VisitorState {
     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<Attribute> {
         attributes::extract_attributes(attrs)
