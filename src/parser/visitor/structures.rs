@@ -1,4 +1,10 @@
 // structures.rs
+use crate::parser::visitor::CodeVisitor;
+use crate::parser::visitor::{
+    EnumNode, FieldNode, Relation, RelationKind, StructNode, TypeDefNode, UnionNode, VariantNode,
+};
+use syn::{visit, ItemEnum, ItemStruct, Visibility};
+
 pub trait StructVisitor {
     fn process_struct(&mut self, item: &ItemStruct);
     fn process_enum(&mut self, item: &ItemEnum);
@@ -61,13 +67,8 @@ impl StructVisitor for CodeVisitor<'_> {
         }
     }
 
-    fn process_enum(&mut self, item: &ItemStruct) {
+    fn process_enum(&mut self, item_enum: &ItemEnum) {
         // Move visit_item_enum logic here
-    }
-    // The below if placeholder, just copied and pasted from old
-    // implementation, which started with:
-    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn visit_item_enum(&mut self, item_enum: &'ast ItemEnum) {
         let enum_id = self.state.next_node_id();
         let enum_name = item_enum.ident.to_string();
 
@@ -167,14 +168,18 @@ impl StructVisitor for CodeVisitor<'_> {
             visit::visit_item_enum(self, item_enum);
         }
     }
-    fn visit_item_union(&mut self, item_union: &'ast syn::ItemUnion) {
-        // Move visit_item_union logic here
-    }
+    // The below if placeholder, just copied and pasted from old
+    // implementation, which started with:
+    // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
+    // fn visit_item_enum(&mut self, item_enum: &'ast ItemEnum) {}
+    // fn visit_item_union(&mut self, item_union: &'ast syn::ItemUnion) {
+    // Move visit_item_union logic here
+    // }
 
     // The below if placeholder, just copied and pasted from old
     // implementation, which started with:
     // impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
-    fn visit_item_union(&mut self, item_union: &'ast syn::ItemUnion) {
+    fn process_union(&mut self, item_union: &'ast syn::ItemUnion) {
         let union_id = self.state.next_node_id();
         let union_name = item_union.ident.to_string();
 
