@@ -22,6 +22,7 @@ pub trait FunctionVisitor: TypeProcessor {
         let visibility = self.convert_visibility(&func.vis);
 
         // Process function parameters
+        // This method is giving an error. AI!
         let parameters = self.process_parameters(&func.sig.inputs);
 
         // Process return type
@@ -61,6 +62,8 @@ pub trait FunctionVisitor: TypeProcessor {
     }
 
     /// Process function parameters
+    // This function is not being called correctly elsewhere, lets decide how to handle the
+    // `params` parameter.
     fn process_parameters(&mut self, params: &[FnArg]) -> Vec<ParameterNode> {
         params
             .iter()
