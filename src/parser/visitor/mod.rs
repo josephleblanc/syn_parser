@@ -130,7 +130,7 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
 
     // Create the root module first
     let root_module_id = visitor_state.next_node_id();
-    visitor_state.code_graph.modules.push(ModuleNode {
+    let root_module = ModuleNode {
         id: root_module_id,
         name: "root".to_string(),
         visibility: VisibilityKind::Inherited,
@@ -140,19 +140,24 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
         items: Vec::new(),
         imports: Vec::new(),
         exports: Vec::new(),
-    });
+    };
+    visitor_state.code_graph.modules.push(root_module);
 
     let mut visitor = CodeVisitor::new(&mut visitor_state);
     visitor.visit_file(&file);
 
-    // Add relations between root module and top-level items
-    for module in &visitor_state.code_graph.modules {
-        if module.id != root_module_id {
-            visitor_state.code_graph.relations.push(Relation {
-                source: root_module_id,
-                target: module.id,
-                kind: RelationKind::Contains,
-            });
+    // Process top-level modules after visiting
+    let root_module = visitor_state.code_graph.modules.first_mut().unwrap();
+    for item in &file.items {
+        if let syn::Item::Mod(item_mod) = item {
+            if let Some(module) = visitor_state.code_graph.modules.iter().find(|m| m.name == item_mod.ident.to_string()) {
+                root_module.submodules.push(module.id);
+                visitor_state.code_graph.relations.push(Relation {
+                    source: root_module_id,
+                    target: module.id,
+                    kind: RelationKind::Contains,
+                });
+            }
         }
     }
 
