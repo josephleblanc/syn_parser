@@ -135,8 +135,7 @@ pub mod processor {
     use syn::Type;
 
     use crate::parser::{nodes::NodeId, TypeId};
-
-    use super::utils::attributes::ParsedAttribute;
+    use super::utils::{attributes::ParsedAttribute, docs::DocProcessor};
 
     pub trait StateManagement {
         fn next_node_id(&mut self) -> NodeId;
@@ -149,6 +148,15 @@ pub mod processor {
 
     pub trait AttributeOperations {
         fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute>;
+    }
+
+    pub trait DocOperations {
+        fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String>;
+    }
+
+    pub trait GenericsOperations {
+        fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
+        fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
     }
 }
 
