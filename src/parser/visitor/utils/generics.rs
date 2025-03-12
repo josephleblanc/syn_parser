@@ -10,11 +10,28 @@ use syn::{Type, TypeParamBound};
 
 use super::CodeProcessor;
 
-pub trait GenericsProcessor: super::CodeProcessor {
+pub trait GenericsProcessor {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
     fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode;
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
+}
+
+impl<T> GenericsProcessor for T
+where
+    T: CodeProcessor + processor::TypeOperations,
+{
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        // Implementation using self.state_mut()
+    }
+    
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
+        self.state_mut().process_type_bound(bound)
+    }
+
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        self.state_mut().process_lifetime_bound(bound)
+    }
 }
 
 impl GenericsProcessor for VisitorState {
