@@ -9,6 +9,7 @@ use crate::parser::{
 use syn::visit::Visit;
 use syn::{visit, ItemExternCrate, ItemMod, ItemUse, Visibility};
 
+use super::{state::VisitorState, processor::CodeProcessor};
 use super::AttributeOperations;
 use super::DocOperations;
 use super::FunctionVisitor;
