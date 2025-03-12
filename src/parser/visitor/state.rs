@@ -37,6 +37,28 @@ impl StateManagement for VisitorState {
     }
 }
 
+impl processor::DocOperations for VisitorState {
+    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
+        docs::extract_docstring(attrs)
+    }
+}
+
+impl processor::AttributeOperations for VisitorState {
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
+        attributes::extract_attributes(attrs)
+    }
+}
+
+impl processor::GenericsOperations for VisitorState {
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        generics::process_generics(self, generics)
+    }
+
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        generics::process_lifetime_bound(bound)
+    }
+}
+
 impl TypeOperations for VisitorState {
     fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
         let type_str = ty.to_token_stream().to_string();
