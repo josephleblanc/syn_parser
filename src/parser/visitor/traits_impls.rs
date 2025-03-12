@@ -89,7 +89,7 @@ pub trait TraitVisitor: FunctionVisitor {
         let method_name = method.sig.ident.to_string();
 
         // Process method parameters
-        let parameters = self.process_parameters(method.sig.inputs.as_ref());
+        let parameters = self.process_parameters(method.sig.inputs.iter());
 
         // Process return type
         let return_type = match &method.sig.output {

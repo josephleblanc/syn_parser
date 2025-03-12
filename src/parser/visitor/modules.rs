@@ -47,6 +47,12 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                 self.state.convert_visibility(&module.vis)
             };
 
+        let mod_id = self.state.next_node_id();
+        let current_scope = {
+            let state = self.state_mut();
+            state.current_scope()
+        };
+
         if let Some((_, mod_items)) = &module.content {
             for item in mod_items {
                 let item_id = self.state.next_node_id();
