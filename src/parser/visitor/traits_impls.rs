@@ -54,7 +54,7 @@ pub trait TraitVisitor: FunctionVisitor {
 
         // Add to code graph - public or private collection based on visibility
         if matches!(visibility, VisibilityKind::Public) {
-            self.state_mut().code_graph.traits.push(trait_node);
+            self.state_mut().code_graph().traits.push(trait_node);
         } else {
             self.state_mut().code_graph.private_traits.push(trait_node);
         }

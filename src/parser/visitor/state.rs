@@ -1,4 +1,6 @@
 use crate::parser::graph::CodeGraph;
+use crate::parser::nodes::FunctionNode;
+use crate::parser::relations::Relation;
 use crate::parser::nodes::{NodeId, ParameterNode};
 use crate::parser::types::VisibilityKind;
 use crate::parser::types::{GenericParamNode, TypeId};
@@ -93,6 +95,10 @@ impl CodeProcessor for VisitorState {
 
 // StateManagement implementation
 impl StateManagement for VisitorState {
+    fn code_graph(&mut self) -> &mut CodeGraph {
+        &mut self.code_graph
+    }
+
     fn add_function(&mut self, function: FunctionNode) {
         self.code_graph.functions.push(function);
     }

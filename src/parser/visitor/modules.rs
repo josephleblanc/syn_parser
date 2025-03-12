@@ -106,7 +106,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
         }
 
         // Add module to graph
-        self.state.code_graph.modules.push(ModuleNode {
+        self.state.code_graph().modules.push(ModuleNode {
             id: module_id,
             name: module_name,
             visibility,

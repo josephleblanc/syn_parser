@@ -124,7 +124,7 @@ pub trait FunctionVisitor: TypeProcessor {
     ) {
         // Add relations for parameter types
         for param in parameters {
-            self.state_mut().code_graph.relations.push(Relation {
+            self.state_mut().add_relation(Relation {
                 source: fn_id,
                 target: param.type_id,
                 kind: RelationKind::Uses,

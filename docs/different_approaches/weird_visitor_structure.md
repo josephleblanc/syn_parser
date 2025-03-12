@@ -103,6 +103,12 @@ Implementation Steps:
      pub trait StateManagement {
          fn next_node_id(&mut self) -> NodeId;
          fn next_type_id(&mut self) -> TypeId;
+    
+         // Graph access methods
+         fn add_function(&mut self, function: FunctionNode);
+         fn add_relation(&mut self, relation: Relation);
+         fn get_or_create_type(&mut self, ty: &Type) -> TypeId;
+         fn code_graph(&mut self) -> &mut CodeGraph;
      }
 
      pub trait TypeOperations {                                                                                           
