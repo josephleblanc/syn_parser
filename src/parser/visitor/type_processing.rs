@@ -12,16 +12,34 @@ use super::processor::TypeOperations;
 use super::CodeProcessor;
 
 // In src/parser/visitor/type_processing.rs
-pub trait TypeProcessor: CodeProcessor + processor::TypeOperations {
-    // Inherit default implementations
+use super::processor::{CodeProcessor, StateManagement, TypeOperations};
+use crate::parser::types::{TypeId, TypeKind, TypeNode};
+use syn::Type;
+
+pub trait TypeProcessor: CodeProcessor {
+    fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
+        let state = self.state_mut();
+        let type_str = ty.to_token_stream().to_string();
+        
+        if let Some(&id) = state.type_map.get(&type_str) {
+            return id;
+        }
+
+        let (type_kind, related_types) = state.process_type(ty);
+        let id = state.next_type_id();
+        state.type_map.insert(type_str, id);
+        state.code_graph.type_graph.push(TypeNode {
+            id,
+            kind: type_kind,
+            related_types,
+        });
+        id
+    }
+
+    fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>);
 }
 
-impl<T> TypeProcessor for T
-where
-    T: CodeProcessor + processor::TypeOperations,
-{
-    // Inherit default implementations
-}
+impl<T: CodeProcessor> TypeProcessor for T where T::State: StateManagement {}
 fn process_type(ty: &Type) -> (TypeKind, Vec<TypeId>) {
     let mut related_types = Vec::new();
 

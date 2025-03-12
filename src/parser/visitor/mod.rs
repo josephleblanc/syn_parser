@@ -19,27 +19,29 @@ pub mod traits_impls;
 pub mod type_processing;
 
 /// Core processor trait with state management
-pub trait CodeProcessor {
-    type State;
+/// Core processor trait with state management
+pub mod processor {
+    use super::*;
+    
+    pub trait CodeProcessor {
+        type State;
 
-    fn state_mut(&mut self) -> &mut Self::State;
+        fn state_mut(&mut self) -> &mut Self::State;
 
-    fn convert_visibility(
-        &mut self,
-        vis: &syn::Visibility,
-    ) -> crate::parser::types::VisibilityKind {
-        match vis {
-            syn::Visibility::Public(_) => crate::parser::types::VisibilityKind::Public,
-            syn::Visibility::Restricted(restricted) => {
-                let path = restricted
-                    .path
-                    .segments
-                    .iter()
-                    .map(|seg| seg.ident.to_string())
-                    .collect();
-                crate::parser::types::VisibilityKind::Restricted(path)
+        fn convert_visibility(&mut self, vis: &syn::Visibility) -> VisibilityKind {
+            match vis {
+                syn::Visibility::Public(_) => VisibilityKind::Public,
+                syn::Visibility::Restricted(restricted) => {
+                    let path = restricted
+                        .path
+                        .segments
+                        .iter()
+                        .map(|seg| seg.ident.to_string())
+                        .collect();
+                    VisibilityKind::Restricted(path)
+                }
+                _ => VisibilityKind::Inherited,
             }
-            _ => crate::parser::types::VisibilityKind::Inherited,
         }
     }
 }
