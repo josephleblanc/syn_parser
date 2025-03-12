@@ -86,25 +86,36 @@ use syn::{
     fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
         match arg {
             FnArg::Typed(pat_type) => {
-                let param_id = self.next_node_id();
-                let param_name = pat_type.pat.to_token_stream().to_string();
-                let type_id = self.get_or_create_type(&pat_type.ty);
+                let param_id = self.state.next_node_id();
+                let (name, is_mutable) = match &*pat_type.pat {
+                    Pat::Ident(ident) => (
+                        Some(ident.ident.to_string()),
+                        ident.mutability.is_some()
+                    ),
+                    _ => (None, false),
+                };
+                
+                let type_id = self.state.get_or_create_type(&pat_type.ty);
 
                 Some(ParameterNode {
                     id: param_id,
-                    name: Some(param_name),
+                    name,
                     type_id,
-                    // placeholder
-                    // TODO: handle cases for mutable/immutable parameters and is_self AI!
-                    is_mutable: todo!(),
-                    is_self: todo!(),
-                    // How should we handle this?
-                    // is_mutable:,
-                    // How should we handle this?
-                    // is_self: todo!(),
+                    is_mutable,
+                    is_self: false,
                 })
             }
-            _ => None,
+            FnArg::Receiver(receiver) => {
+                let type_id = self.state.get_or_create_type(&receiver.ty);
+                
+                Some(ParameterNode {
+                    id: self.state.next_node_id(),
+                    name: Some("self".to_string()),
+                    type_id,
+                    is_mutable: receiver.mutability.is_some(),
+                    is_self: true,
+                })
+            }
         }
     }
 
@@ -112,31 +123,7 @@ impl<'a> CodeProcessor for CodeVisitor<'a> {
     type State = VisitorState;
 
     fn state_mut(&mut self) -> &mut Self::State {
-        self.state
-    }
-
-    fn next_node_id(&mut self) -> NodeId {
-        self.state.next_node_id()
-    }
-
-    fn next_type_id(&mut self) -> TypeId {
-        self.state.next_type_id()
-    }
-
-    fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
-        self.state.get_or_create_type(ty)
-    }
-
-    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
-        self.state.extract_attributes(attrs)
-    }
-
-    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
-        self.state.extract_docstring(attrs)
-    }
-
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        self.state.process_generics(generics)
+        &mut self.state
     }
 }
 
@@ -191,6 +178,13 @@ pub trait CodeProcessor:
         }
     }
 }
+
+// Blanket implementation for processors with TypeOperations state
+impl<T> TypeProcessor for T 
+where
+    T: CodeProcessor + processor::TypeOperations,
+    T::State: processor::TypeOperations,
+{}
 
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {

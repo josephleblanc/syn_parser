@@ -19,10 +19,11 @@ pub trait GenericsProcessor {
 
 impl<T> GenericsProcessor for T
 where
-    T: CodeProcessor + processor::TypeOperations,
+    T: CodeProcessor + processor::TypeOperations + processor::StateManagement
 {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        // Implementation using self.state_mut()
+        let state = self.state_mut();
+        generics::process_generics(state, generics)
     }
     
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {

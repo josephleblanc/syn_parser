@@ -62,26 +62,6 @@ impl processor::TypeOperations for VisitorState {
     }
 }
 
-impl processor::TypeOperations for VisitorState {
-    fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
-        let type_str = ty.to_token_stream().to_string();
-        if let Some(&id) = self.type_map.get(&type_str) {
-            return id;
-        }
-
-        let (type_kind, related_types) = self.process_type(ty);
-        let id = self.next_type_id();
-        self.type_map.insert(type_str, id);
-
-        self.code_graph.type_graph.push(TypeNode {
-            id,
-            kind: type_kind,
-            related_types,
-        });
-
-        id
-    }
-}
 
 
 impl docs::DocProcessor for VisitorState {
