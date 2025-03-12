@@ -32,6 +32,14 @@ graph TD
     VisitorState --> |implements| AttributeOperations
     VisitorState --> |implements| DocOperations
     VisitorState --> |implements| GenericsOperations
+    
+    TypeProcessor --> |extends| CodeProcessor
+    GenericsProcessor --> |extends| CodeProcessor
+    
+    FunctionVisitor --> |domain trait| TypeProcessor
+    StructVisitor --> |domain trait| TypeProcessor
+    ImplVisitor --> |domain trait| GenericsProcessor
+    TraitVisitor --> |domain trait| TypeProcessor
 ```
 
 ### Core Traits
@@ -39,11 +47,13 @@ graph TD
 1. **CodeProcessor**
    ```rust
    pub trait CodeProcessor {
-       type State;
+       type State: StateManagement + TypeOperations + AttributeOperations 
+                  + DocOperations + GenericsOperations;
+       
        fn state_mut(&mut self) -> &mut Self::State;
    }
    ```
-   The base trait that provides access to a mutable state object.
+   The base trait that provides access to a mutable state object with specific capabilities.
 
 2. **Operation Traits**
    ```rust
@@ -60,6 +70,28 @@ graph TD
    // Additional domain-specific operation traits...
    ```
    These traits define specific operations needed during AST processing.
+
+3. **Domain-Specific Extension Traits**
+   ```rust
+   pub trait TypeProcessor: CodeProcessor 
+   where
+       Self::State: StateManagement + TypeOperations
+   {
+       // Extended type processing functionality
+       fn process_type_bound(&mut self, bound: &TypeParamBound) -> TypeId;
+       fn process_complex_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>);
+   }
+   
+   pub trait GenericsProcessor: CodeProcessor
+   where
+       Self::State: StateManagement + TypeOperations + GenericsOperations
+   {
+       // Extended generics processing functionality
+       fn process_generic_param(&mut self, param: &GenericParam) -> GenericParamNode;
+       fn process_type_bound(&mut self, bound: &TypeParamBound) -> TypeId;
+   }
+   ```
+   These traits extend the base functionality with domain-specific operations.
 
 ## Implementation Pattern
 
@@ -106,6 +138,28 @@ where
 }
 
 // Similar implementations for other operation traits
+```
+
+### Domain-Specific Traits
+
+Extension traits add specialized functionality:
+
+```rust
+impl<T> TypeProcessor for T 
+where 
+    T: CodeProcessor,
+    T::State: StateManagement + TypeOperations
+{
+    // Implementations for extended methods...
+}
+
+impl<T> GenericsProcessor for T
+where
+    T: CodeProcessor,
+    T::State: StateManagement + TypeOperations + GenericsOperations
+{
+    // Implementations for extended methods...
+}
 ```
 
 ### CodeVisitor Implementation
