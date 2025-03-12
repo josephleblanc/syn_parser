@@ -48,7 +48,7 @@ use utils::generics::GenericsProcessor;
 // Blanket implementation for processors with TypeOperations state
 impl<T> TypeProcessor for T 
 where
-    T: CodeProcessor,
+    T: CodeProcessor + processor::TypeOperations,
     T::State: processor::TypeOperations,
 {}
 
@@ -82,13 +82,6 @@ use syn::{
     Visibility,
 };
 
-pub trait CodeProcessor {
-    type State;
-
-    fn state_mut(&mut self) -> &mut Self::State;
-
-    // Shared utility methods
-    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
         match vis {
             Visibility::Public(_) => VisibilityKind::Public,
             Visibility::Restricted(restricted) => {

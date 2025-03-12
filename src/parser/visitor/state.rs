@@ -43,13 +43,13 @@ impl crate::parser::visitor::processor::DocOperations for VisitorState {
     }
 }
 
-impl processor::AttributeOperations for VisitorState {
+impl crate::parser::visitor::processor::AttributeOperations for VisitorState {
     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
         attributes::extract_attributes(attrs)
     }
 }
 
-impl processor::GenericsOperations for VisitorState {
+impl crate::parser::visitor::processor::GenericsOperations for VisitorState {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         generics::process_generics(self, generics)
     }
