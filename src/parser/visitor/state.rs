@@ -93,6 +93,24 @@ impl CodeProcessor for VisitorState {
 
 // StateManagement implementation
 impl StateManagement for VisitorState {
+    fn add_function(&mut self, function: FunctionNode) {
+        self.code_graph.functions.push(function);
+    }
+
+    fn add_relation(&mut self, relation: Relation) {
+        self.code_graph.relations.push(relation);
+    }
+
+    fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
+        let type_str = ty.to_token_stream().to_string();
+        if let Some(&id) = self.type_map.get(&type_str) {
+            return id;
+        }
+
+        let id = self.next_type_id();
+        self.type_map.insert(type_str, id);
+        id
+    }
     fn next_node_id(&mut self) -> NodeId {
         let id = self.next_node_id;
         self.next_node_id += 1;

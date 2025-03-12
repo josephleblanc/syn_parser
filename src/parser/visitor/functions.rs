@@ -23,7 +23,7 @@ pub trait FunctionVisitor: TypeProcessor {
 
         // Process function parameters
         // This method is giving an error. AI!
-        let parameters = self.process_parameters(&func.sig.inputs);
+        let parameters = self.process_parameters(func.sig.inputs.iter().collect::<Vec<_>>().as_slice());
 
         // Process return type
         let return_type = match &func.sig.output {
@@ -55,7 +55,7 @@ pub trait FunctionVisitor: TypeProcessor {
         };
 
         // Add to code graph
-        self.state_mut().code_graph.functions.push(function_node);
+        self.state_mut().add_function(function_node);
 
         // Create relations for parameter types and return type
         self.create_function_relations(fn_id, &parameters, return_type);
