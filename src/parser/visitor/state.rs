@@ -37,7 +37,7 @@ impl StateManagement for VisitorState {
     }
 }
 
-impl processor::DocOperations for VisitorState {
+impl crate::parser::visitor::processor::DocOperations for VisitorState {
     fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
         docs::extract_docstring(attrs)
     }

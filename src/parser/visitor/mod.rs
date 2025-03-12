@@ -14,6 +14,29 @@ pub mod state;
 pub mod structures;
 pub mod traits_impls;
 pub mod type_processing;
+
+/// Core processor trait with state management
+pub trait CodeProcessor {
+    type State;
+    
+    fn state_mut(&mut self) -> &mut Self::State;
+
+    fn convert_visibility(&mut self, vis: &Visibility) -> VisibilityKind {
+        match vis {
+            Visibility::Public(_) => VisibilityKind::Public,
+            Visibility::Restricted(restricted) => {
+                let path = restricted
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect();
+                VisibilityKind::Restricted(path)
+            }
+            _ => VisibilityKind::Inherited,
+        }
+    }
+}
 pub mod utils;
 
 use syn::visit;
@@ -29,7 +52,19 @@ where
     T::State: processor::TypeOperations,
 {}
 
-impl<T: CodeProcessor> GenericsProcessor for T {
+impl<T: CodeProcessor + TypeOperations> GenericsProcessor for T {
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        generics::process_generics(self.state_mut(), generics)
+    }
+
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
+        self.state_mut().process_type_bound(bound)
+    }
+
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        self.state_mut().process_lifetime_bound(bound)
+    }
+}
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         generics::process_generics(self.state_mut(), generics)
     }

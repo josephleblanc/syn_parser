@@ -9,10 +9,10 @@ use syn::TypePath;
 use syn::{GenericParam, Generics, Lifetime, TypeParam};
 use syn::{Type, TypeParamBound};
 
-pub trait GenericsProcessor: TypeOperations {
+pub trait GenericsProcessor: TypeOperations + CodeProcessor {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
-    // fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
-    // fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
 }
 
 pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<GenericParamNode> {
