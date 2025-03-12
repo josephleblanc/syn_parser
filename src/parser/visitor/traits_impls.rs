@@ -1,11 +1,17 @@
-use crate::parser::nodes::{FunctionNode, ImplNode, NodeId, TraitNode, VisibilityKind};
+use crate::parser::nodes::{FunctionNode, ImplNode, NodeId, TraitNode};
 use crate::parser::relations::{Relation, RelationKind};
+use crate::parser::types::VisibilityKind;
+// use crate::parser::state::Visitor;
 use crate::parser::types::TypeId;
 use crate::parser::visitor::functions::FunctionVisitor;
-use crate::parser::visitor::processor::{CodeProcessor, StateManagement, TypeOperations, GenericsOperations};
+use crate::parser::visitor::processor::{
+    CodeProcessor, GenericsOperations, StateManagement, TypeOperations,
+};
 use crate::parser::visitor::type_processing::TypeProcessor;
 use quote::ToTokens;
 use syn::{ImplItem, ImplItemFn, Item, ItemImpl, ItemTrait, TraitItem, TraitItemFn, Visibility};
+
+use super::{AttributeOperations, DocOperations};
 
 /// Trait for processing trait definitions
 ///
@@ -13,26 +19,27 @@ use syn::{ImplItem, ImplItemFn, Item, ItemImpl, ItemTrait, TraitItem, TraitItemF
 pub trait TraitVisitor: FunctionVisitor {
     /// Process a trait definition
     fn process_trait(&mut self, t: &ItemTrait) {
-        let trait_id = self.next_node_id();
+        let trait_id = self.state_mut().next_node_id();
         let trait_name = t.ident.to_string();
         let visibility = self.convert_visibility(&t.vis);
-        
+
         // Process generic parameters
-        let generic_params = self.process_generics(&t.generics);
-        
+        let generic_params = self.state_mut().process_generics(&t.generics);
+
         // Process super traits (bounds)
-        let super_traits: Vec<TypeId> = t.supertraits
+        let super_traits: Vec<TypeId> = t
+            .supertraits
             .iter()
             .map(|bound| self.process_type_bound(bound))
             .collect();
-        
+
         // Process trait methods
         let methods = self.process_trait_methods(t, trait_id);
-        
+
         // Extract documentation and attributes
-        let docstring = self.extract_docstring(&t.attrs);
-        let attributes = self.extract_attributes(&t.attrs);
-        
+        let docstring = self.state_mut().extract_docstring(&t.attrs);
+        let attributes = self.state_mut().extract_attributes(&t.attrs);
+
         // Create trait node
         let trait_node = TraitNode {
             id: trait_id,
@@ -44,14 +51,14 @@ pub trait TraitVisitor: FunctionVisitor {
             attributes,
             docstring,
         };
-        
+
         // Add to code graph - public or private collection based on visibility
         if matches!(visibility, VisibilityKind::Public) {
             self.state_mut().code_graph.traits.push(trait_node);
         } else {
             self.state_mut().code_graph.private_traits.push(trait_node);
         }
-        
+
         // Create relations for super traits
         for super_trait_id in &super_traits {
             self.state_mut().code_graph.relations.push(Relation {
@@ -61,7 +68,7 @@ pub trait TraitVisitor: FunctionVisitor {
             });
         }
     }
-    
+
     /// Process trait methods
     fn process_trait_methods(&mut self, t: &ItemTrait, trait_id: NodeId) -> Vec<FunctionNode> {
         t.items
@@ -75,33 +82,34 @@ pub trait TraitVisitor: FunctionVisitor {
             })
             .collect()
     }
-    
+
     /// Process a single trait method
     fn process_trait_method(&mut self, method: &TraitItemFn, trait_id: NodeId) -> FunctionNode {
-        let method_id = self.next_node_id();
+        let method_id = self.state_mut().next_node_id();
         let method_name = method.sig.ident.to_string();
-        
+
         // Process method parameters
         let parameters = self.process_parameters(&method.sig.inputs);
-        
+
         // Process return type
         let return_type = match &method.sig.output {
             syn::ReturnType::Default => None,
-            syn::ReturnType::Type(_, ty) => Some(self.get_or_create_type(ty)),
+            syn::ReturnType::Type(_, ty) => Some(self.state_mut().get_or_create_type(ty)),
         };
-        
+
         // Process generic parameters
-        let generic_params = self.process_generics(&method.sig.generics);
-        
+        let generic_params = self.state_mut().process_generics(&method.sig.generics);
+
         // Extract documentation and attributes
-        let docstring = self.extract_docstring(&method.attrs);
-        let attributes = self.extract_attributes(&method.attrs);
-        
+        let docstring = self.state_mut().extract_docstring(&method.attrs);
+        let attributes = self.state_mut().extract_attributes(&method.attrs);
+
         // Extract body if present (default implementation)
-        let body = method.default.as_ref().map(|block| {
-            format!("{}", quote::quote!(#block))
-        });
-        
+        let body = method
+            .default
+            .as_ref()
+            .map(|block| format!("{}", quote::quote!(#block)));
+
         // Create function node for the method
         FunctionNode {
             id: method_id,
@@ -115,23 +123,23 @@ pub trait TraitVisitor: FunctionVisitor {
             body,
         }
     }
-    
-    /// Convert visibility modifier to our internal representation
-    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
-        match vis {
-            Visibility::Public(_) => VisibilityKind::Public,
-            Visibility::Restricted(restricted) => {
-                let path = restricted
-                    .path
-                    .segments
-                    .iter()
-                    .map(|seg| seg.ident.to_string())
-                    .collect();
-                VisibilityKind::Restricted(path)
-            }
-            _ => VisibilityKind::Inherited,
-        }
-    }
+
+    //// Convert visibility modifier to our internal representation
+    // fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+    //     match vis {
+    //         Visibility::Public(_) => VisibilityKind::Public,
+    //         Visibility::Restricted(restricted) => {
+    //             let path = restricted
+    //                 .path
+    //                 .segments
+    //                 .iter()
+    //                 .map(|seg| seg.ident.to_string())
+    //                 .collect();
+    //             VisibilityKind::Restricted(path)
+    //         }
+    //         _ => VisibilityKind::Inherited,
+    //     }
+    // }
 }
 
 /// Trait for processing impl blocks
@@ -140,27 +148,27 @@ pub trait TraitVisitor: FunctionVisitor {
 pub trait ImplVisitor: FunctionVisitor {
     /// Process an impl block
     fn process_impl(&mut self, i: &ItemImpl) {
-        let impl_id = self.next_node_id();
-        
-        // Process the self type (the type being implemented)
-        let self_type = self.get_or_create_type(&i.self_ty);
-        
+        let impl_id = self.state_mut().next_node_id();
+
+        // Process the self.state_mut() type (the type being implemented)
+        let self_type = self.state_mut().get_or_create_type(&i.self_ty);
+
         // Process the trait being implemented (if any)
         let trait_type = if let Some((_, path, _)) = &i.trait_ {
             // Convert the path to a Type and process it
             let path_str = format!("{}", quote::quote!(#path));
             let ty = syn::parse_str::<syn::Type>(&path_str).ok();
-            ty.map(|t| self.get_or_create_type(&t))
+            ty.map(|t| self.state_mut().get_or_create_type(&t))
         } else {
             None
         };
-        
+
         // Process generic parameters
-        let generic_params = self.process_generics(&i.generics);
-        
+        let generic_params = self.state_mut().process_generics(&i.generics);
+
         // Process impl methods
         let methods = self.process_impl_methods(i, impl_id, self_type);
-        
+
         // Create impl node
         let impl_node = ImplNode {
             id: impl_id,
@@ -169,10 +177,10 @@ pub trait ImplVisitor: FunctionVisitor {
             methods,
             generic_params,
         };
-        
+
         // Add to code graph
         self.state_mut().code_graph.impls.push(impl_node);
-        
+
         // Create relations
         // Self type relation
         self.state_mut().code_graph.relations.push(Relation {
@@ -180,7 +188,7 @@ pub trait ImplVisitor: FunctionVisitor {
             target: self_type,
             kind: RelationKind::ImplementsFor,
         });
-        
+
         // Trait relation if present
         if let Some(trait_id) = trait_type {
             self.state_mut().code_graph.relations.push(Relation {
@@ -190,13 +198,13 @@ pub trait ImplVisitor: FunctionVisitor {
             });
         }
     }
-    
+
     /// Process impl methods
     fn process_impl_methods(
-        &mut self, 
-        i: &ItemImpl, 
+        &mut self,
+        i: &ItemImpl,
         impl_id: NodeId,
-        self_type: TypeId
+        self_type: TypeId,
     ) -> Vec<FunctionNode> {
         i.items
             .iter()
@@ -209,31 +217,31 @@ pub trait ImplVisitor: FunctionVisitor {
             })
             .collect()
     }
-    
+
     /// Process a single impl method
     fn process_impl_method(&mut self, method: &ImplItemFn, impl_id: NodeId) -> FunctionNode {
-        let method_id = self.next_node_id();
+        let method_id = self.state_mut().next_node_id();
         let method_name = method.sig.ident.to_string();
-        
+
         // Process method parameters
         let parameters = self.process_parameters(&method.sig.inputs);
-        
+
         // Process return type
         let return_type = match &method.sig.output {
             syn::ReturnType::Default => None,
-            syn::ReturnType::Type(_, ty) => Some(self.get_or_create_type(ty)),
+            syn::ReturnType::Type(_, ty) => Some(self.state_mut().get_or_create_type(ty)),
         };
-        
+
         // Process generic parameters
-        let generic_params = self.process_generics(&method.sig.generics);
-        
+        let generic_params = self.state_mut().process_generics(&method.sig.generics);
+
         // Extract documentation and attributes
-        let docstring = self.extract_docstring(&method.attrs);
-        let attributes = self.extract_attributes(&method.attrs);
-        
+        let docstring = self.state_mut().extract_docstring(&method.attrs);
+        let attributes = self.state_mut().extract_attributes(&method.attrs);
+
         // Extract body
         let body = Some(format!("{}", quote::quote!(#method.block)));
-        
+
         // Create function node for the method
         FunctionNode {
             id: method_id,
@@ -247,32 +255,26 @@ pub trait ImplVisitor: FunctionVisitor {
             body,
         }
     }
-    
-    /// Convert visibility modifier to our internal representation
-    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
-        match vis {
-            Visibility::Public(_) => VisibilityKind::Public,
-            Visibility::Restricted(restricted) => {
-                let path = restricted
-                    .path
-                    .segments
-                    .iter()
-                    .map(|seg| seg.ident.to_string())
-                    .collect();
-                VisibilityKind::Restricted(path)
-            }
-            _ => VisibilityKind::Inherited,
-        }
-    }
+
+    //// Convert visibility modifier to our internal representation
+    // fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+    //     match vis {
+    //         Visibility::Public(_) => VisibilityKind::Public,
+    //         Visibility::Restricted(restricted) => {
+    //             let path = restricted
+    //                 .path
+    //                 .segments
+    //                 .iter()
+    //                 .map(|seg| seg.ident.to_string())
+    //                 .collect();
+    //             VisibilityKind::Restricted(path)
+    //         }
+    //         _ => VisibilityKind::Inherited,
+    //     }
+    // }
 }
 
 // Blanket implementations
-impl<T> TraitVisitor for T 
-where 
-    T: FunctionVisitor
-{}
+impl<T> TraitVisitor for T where T: FunctionVisitor {}
 
-impl<T> ImplVisitor for T 
-where 
-    T: FunctionVisitor
-{}
+impl<T> ImplVisitor for T where T: FunctionVisitor {}

@@ -30,6 +30,10 @@ pub enum RelationKind {
     MacroDefinition,
     MacroInvocation,
     GenericParameter,
+    Returns,
+    // TODO: Consider removing `HasType` later.
+    // I don't think it's really useful but am wrestling with bugs rn.
+    HasType,
 }
 //ANCHOR_END: Uses
 //ANCHOR_END: Relation

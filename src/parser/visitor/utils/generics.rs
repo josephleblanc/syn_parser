@@ -1,7 +1,7 @@
-use crate::parser::types::{GenericParamNode, TypeId, TypeNode, TypeKind};
-use crate::parser::visitor::processor;
+use crate::parser::types::{GenericParamNode, TypeId, TypeKind, TypeNode};
 use crate::parser::visitor::state::VisitorState;
-use crate::parser::visitor::GenericParamKind;
+use crate::parser::visitor::{processor, GenericsOperations, TypeOperations};
+use crate::parser::visitor::{GenericParamKind, StateManagement};
 use quote::ToTokens;
 use syn::TypePath;
 use syn::{GenericParam, Generics, Lifetime, TypeParam};
@@ -11,15 +11,16 @@ use crate::parser::visitor::CodeProcessor;
 
 /// GenericsProcessor trait for handling generic parameters
 /// Builds on top of CodeProcessor for state management
-pub trait GenericsProcessor: CodeProcessor 
+pub trait GenericsProcessor: CodeProcessor
 where
-    Self::State: processor::StateManagement + processor::TypeOperations + processor::GenericsOperations
+    Self::State:
+        processor::StateManagement + processor::TypeOperations + processor::GenericsOperations,
 {
     /// Process generics from a syn::Generics structure
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         self.state_mut().process_generics(generics)
     }
-    
+
     /// Process a type bound like trait bounds in generics
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
         match bound {
@@ -28,10 +29,10 @@ where
                     qself: None,
                     path: trait_bound.path.clone(),
                 });
-                self.get_or_create_type(&ty)
+                self.state_mut().get_or_create_type(&ty)
             }
             syn::TypeParamBound::Lifetime(_) => {
-                let type_id = self.next_type_id();
+                let type_id = self.state_mut().next_type_id();
                 self.state_mut().code_graph.type_graph.push(TypeNode {
                     id: type_id,
                     kind: TypeKind::Named {
@@ -42,7 +43,7 @@ where
                 });
                 type_id
             }
-            _ => self.next_type_id(),
+            _ => self.state_mut().next_type_id(),
         }
     }
 
@@ -50,7 +51,7 @@ where
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
         bound.ident.to_string()
     }
-    
+
     /// Process an individual generic parameter
     fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode {
         match param {
@@ -76,7 +77,7 @@ where
                 });
 
                 GenericParamNode {
-                    id: self.next_node_id(),
+                    id: self.state_mut().next_node_id(),
                     kind: GenericParamKind::Type {
                         name: ident.to_string(),
                         bounds,
@@ -92,7 +93,7 @@ where
                     .collect();
 
                 GenericParamNode {
-                    id: self.next_node_id(),
+                    id: self.state_mut().next_node_id(),
                     kind: GenericParamKind::Lifetime {
                         name: lifetime_def.lifetime.ident.to_string(),
                         bounds,
@@ -100,9 +101,9 @@ where
                 }
             }
             syn::GenericParam::Const(const_param) => {
-                let type_id = self.get_or_create_type(&const_param.ty);
+                let type_id = self.state_mut().get_or_create_type(&const_param.ty);
                 GenericParamNode {
-                    id: self.next_node_id(),
+                    id: self.state_mut().next_node_id(),
                     kind: GenericParamKind::Const {
                         name: const_param.ident.to_string(),
                         type_id,
@@ -117,8 +118,10 @@ where
 impl<T> GenericsProcessor for T
 where
     T: CodeProcessor,
-    T::State: processor::StateManagement + processor::TypeOperations + processor::GenericsOperations
-{}
+    T::State:
+        processor::StateManagement + processor::TypeOperations + processor::GenericsOperations,
+{
+}
 
 // This is the utility function that's used by VisitorState
 // to implement GenericsOperations
@@ -155,7 +158,7 @@ pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<Ge
                         default: default_type,
                     },
                 }
-            },
+            }
             syn::GenericParam::Lifetime(lifetime_def) => {
                 let bounds: Vec<String> = lifetime_def
                     .bounds
@@ -170,7 +173,7 @@ pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<Ge
                         bounds,
                     },
                 }
-            },
+            }
             syn::GenericParam::Const(const_param) => {
                 let type_id = state.get_or_create_type(&const_param.ty);
                 GenericParamNode {

@@ -1,5 +1,6 @@
 use crate::parser::types::{TypeId, TypeKind, TypeNode};
-use crate::parser::visitor::processor::{CodeProcessor, StateManagement, TypeOperations};
+use crate::parser::visitor::processor::{StateManagement, TypeOperations};
+use crate::parser::visitor::CodeProcessor;
 use quote::ToTokens;
 use syn::{
     AngleBracketedGenericArguments, GenericArgument, PathArguments, ReturnType, Type,
@@ -7,9 +8,9 @@ use syn::{
 };
 
 // TypeProcessor trait that builds on top of CodeProcessor and TypeOperations
-pub trait TypeProcessor: CodeProcessor 
+pub trait TypeProcessor: CodeProcessor
 where
-    Self::State: StateManagement + TypeOperations
+    Self::State: StateManagement + TypeOperations,
 {
     // Extended type processing functionality can be added here
 
@@ -21,7 +22,7 @@ where
                     qself: None,
                     path: trait_bound.path.clone(),
                 });
-                self.get_or_create_type(&ty)
+                self.state_mut().get_or_create_type(&ty)
             }
             TypeParamBound::Lifetime(_) => {
                 let type_id = self.state_mut().next_type_id();
@@ -61,15 +62,16 @@ where
                         {
                             for arg in args {
                                 if let GenericArgument::Type(arg_type) = arg {
-                                    related_types.push(self.get_or_create_type(arg_type));
+                                    related_types
+                                        .push(self.state_mut().get_or_create_type(arg_type));
                                 }
                             }
                         } else if let PathArguments::Parenthesized(parenthesized) = &seg.arguments {
                             for input in &parenthesized.inputs {
-                                related_types.push(self.get_or_create_type(input));
+                                related_types.push(self.state_mut().get_or_create_type(input));
                             }
                             if let ReturnType::Type(_, return_ty) = &parenthesized.output {
-                                related_types.push(self.get_or_create_type(return_ty));
+                                related_types.push(self.state_mut().get_or_create_type(return_ty));
                             }
                         }
                         seg.ident.to_string()
@@ -90,7 +92,7 @@ where
                 mutability,
                 ..
             }) => {
-                let elem_id = self.get_or_create_type(elem);
+                let elem_id = self.state_mut().get_or_create_type(elem);
                 (
                     TypeKind::Reference {
                         lifetime: lifetime.as_ref().map(|lt| lt.ident.to_string()),
@@ -103,23 +105,23 @@ where
                 let elem_ids: Vec<TypeId> = tuple
                     .elems
                     .iter()
-                    .map(|elem| self.get_or_create_type(elem))
+                    .map(|elem| self.state_mut().get_or_create_type(elem))
                     .collect();
                 (TypeKind::Tuple {}, elem_ids)
             }
             Type::Array(array) => {
-                let elem_id = self.get_or_create_type(&array.elem);
+                let elem_id = self.state_mut().get_or_create_type(&array.elem);
                 let size = array.len.to_token_stream().to_string();
                 (TypeKind::Array { size: Some(size) }, vec![elem_id])
             }
             Type::Slice(slice) => {
-                let elem_id = self.get_or_create_type(&slice.elem);
+                let elem_id = self.state_mut().get_or_create_type(&slice.elem);
                 (TypeKind::Slice {}, vec![elem_id])
             }
             Type::Never(_) => (TypeKind::Never, Vec::new()),
             Type::Infer(_) => (TypeKind::Inferred, Vec::new()),
             Type::Ptr(ptr) => {
-                let pointee_id = self.get_or_create_type(&ptr.elem);
+                let pointee_id = self.state_mut().get_or_create_type(&ptr.elem);
                 (
                     TypeKind::RawPointer {
                         is_mutable: ptr.mutability.is_some(),
@@ -130,10 +132,10 @@ where
             Type::BareFn(bare_fn) => {
                 let mut related_ids = Vec::new();
                 for input in &bare_fn.inputs {
-                    related_ids.push(self.get_or_create_type(&input.ty));
+                    related_ids.push(self.state_mut().get_or_create_type(&input.ty));
                 }
                 if let ReturnType::Type(_, return_ty) = &bare_fn.output {
-                    related_ids.push(self.get_or_create_type(return_ty));
+                    related_ids.push(self.state_mut().get_or_create_type(return_ty));
                 }
                 (
                     TypeKind::Function {
@@ -149,7 +151,7 @@ where
                 )
             }
             Type::Paren(paren) => {
-                let inner_id = self.get_or_create_type(&paren.elem);
+                let inner_id = self.state_mut().get_or_create_type(&paren.elem);
                 (TypeKind::Paren {}, vec![inner_id])
             }
             Type::TraitObject(trait_obj) => {
@@ -231,8 +233,9 @@ where
 }
 
 // Blanket implementation for all types that implement CodeProcessor
-impl<T> TypeProcessor for T 
-where 
+impl<T> TypeProcessor for T
+where
     T: CodeProcessor,
-    T::State: StateManagement + TypeOperations
-{}
+    T::State: StateManagement + TypeOperations,
+{
+}

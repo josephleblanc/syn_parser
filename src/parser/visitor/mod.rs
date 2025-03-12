@@ -1,15 +1,12 @@
-use self::processor::*;
 use super::nodes::*;
 use super::types::*;
 use crate::parser::graph::CodeGraph;
 use crate::parser::nodes::NodeId;
-use crate::parser::nodes::*;
 use crate::parser::relations::*;
 use crate::parser::types::GenericParamNode;
 use crate::parser::types::TypeId;
-use crate::parser::types::*;
+pub use crate::parser::types::TypeKind;
 use crate::parser::visitor::utils::attributes::ParsedAttribute;
-use syn::Attribute;
 
 pub mod functions;
 pub mod modules;
@@ -23,9 +20,13 @@ pub mod processor {
     use crate::parser::nodes::NodeId;
     use crate::parser::types::{GenericParamNode, TypeId, TypeKind};
     use crate::parser::visitor::utils::attributes::ParsedAttribute;
-    
+
     pub trait CodeProcessor {
-        type State: StateManagement + TypeOperations + AttributeOperations + DocOperations + GenericsOperations;
+        type State: StateManagement
+            + TypeOperations
+            + AttributeOperations
+            + DocOperations
+            + GenericsOperations;
 
         fn state_mut(&mut self) -> &mut Self::State;
     }
@@ -37,17 +38,11 @@ pub mod processor {
 
     pub trait TypeOperations {
         fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId;
-        fn process_type(
-            &mut self,
-            ty: &syn::Type,
-        ) -> (TypeKind, Vec<TypeId>);
+        fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>);
     }
 
     pub trait AttributeOperations {
-        fn extract_attributes(
-            &mut self,
-            attrs: &[syn::Attribute],
-        ) -> Vec<ParsedAttribute>;
+        fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute>;
     }
 
     pub trait DocOperations {
@@ -55,67 +50,57 @@ pub mod processor {
     }
 
     pub trait GenericsOperations {
-        fn process_generics(
-            &mut self,
-            generics: &syn::Generics,
-        ) -> Vec<GenericParamNode>;
+        fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
     }
 }
 pub mod utils;
 
 // Blanket implementations for CodeProcessor
-impl<T: CodeProcessor> StateManagement for T {
-    fn next_node_id(&mut self) -> NodeId {
-        self.state_mut().next_node_id()
-    }
-    
-    fn next_type_id(&mut self) -> TypeId {
-        self.state_mut().next_type_id()
-    }
-}
+// impl<T: CodeProcessor> StateManagement for T {
+//     fn next_node_id(&mut self) -> NodeId {
+//         self.state_mut().next_node_id()
+//     }
+//
+//     fn next_type_id(&mut self) -> TypeId {
+//         self.state_mut().next_type_id()
+//     }
+// }
 
-impl<T: CodeProcessor> TypeOperations for T {
-    fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
-        self.state_mut().get_or_create_type(ty)
-    }
-    
-    fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>) {
-        self.state_mut().process_type(ty)
-    }
-}
+// impl<T: CodeProcessor> TypeOperations for T {
+//     fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
+//         self.state_mut().get_or_create_type(ty)
+//     }
+//
+//     fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>) {
+//         self.state_mut().process_type(ty)
+//     }
+// }
 
-impl<T: CodeProcessor> AttributeOperations for T {
-    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
-        self.state_mut().extract_attributes(attrs)
-    }
-}
+// impl<T: CodeProcessor> AttributeOperations for T {
+//     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
+//         self.state_mut().extract_attributes(attrs)
+//     }
+// }
 
-impl<T: CodeProcessor> DocOperations for T {
-    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
-        self.state_mut().extract_docstring(attrs)
-    }
-}
-
-impl<T: CodeProcessor> GenericsOperations for T {
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        self.state_mut().process_generics(generics)
-    }
-}
+// impl<T: CodeProcessor> DocOperations for T {
+//     fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
+//         self.state_mut().extract_docstring(attrs)
+//     }
+// }
+//
+// impl<T: CodeProcessor> GenericsOperations for T {
+//     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+//         self.state_mut().process_generics(generics)
+//     }
+// }
 
 // Re-export operation traits from processor module
 pub use processor::{
-    AttributeOperations,
-    CodeProcessor, 
-    DocOperations,
-    GenericsOperations,
-    StateManagement,
-    TypeOperations
+    AttributeOperations, CodeProcessor, DocOperations, GenericsOperations, StateManagement,
+    TypeOperations,
 };
 
 // Re-export types used in processor traits
-pub use crate::parser::nodes::NodeId;
-pub use crate::parser::types::{TypeId, TypeKind};
-pub use crate::parser::visitor::utils::attributes::ParsedAttribute;
 
 use self::utils::{attributes, docs, generics};
 pub use self::{
@@ -262,17 +247,17 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
     // Visit type alias definitions
     fn visit_item_type(&mut self, item_type: &'ast syn::ItemType) {
-        let type_alias_id = self.next_node_id();
+        let type_alias_id = self.state.next_node_id();
         let type_alias_name = item_type.ident.to_string();
 
         // Process the aliased type
-        let type_id = self.get_or_create_type(&item_type.ty);
+        let type_id = self.state.get_or_create_type(&item_type.ty);
 
         // Process generic parameters
-        let generic_params = self.process_generics(&item_type.generics);
+        let generic_params = self.state.process_generics(&item_type.generics);
 
         // Extract doc comments and other attributes
-        let docstring = self.extract_docstring(&item_type.attrs);
+        let docstring = self.state.extract_docstring(&item_type.attrs);
         let attributes = self.extract_attributes(&item_type.attrs);
 
         // Store type alias info only if public
@@ -298,17 +283,17 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     fn visit_item_const(&mut self, item_const: &'ast syn::ItemConst) {
         // Check if the constant is public
         if matches!(item_const.vis, Visibility::Public(_)) {
-            let const_id = self.next_node_id();
+            let const_id = self.state.next_node_id();
             let const_name = item_const.ident.to_string();
 
             // Process the type
-            let type_id = self.get_or_create_type(&item_const.ty);
+            let type_id = self.state.get_or_create_type(&item_const.ty);
 
             // Extract the value expression as a string
             let value = Some(item_const.expr.to_token_stream().to_string());
 
             // Extract doc comments and other attributes
-            let docstring = self.extract_docstring(&item_const.attrs);
+            let docstring = self.state.extract_docstring(&item_const.attrs);
             let attributes = self.extract_attributes(&item_const.attrs);
 
             // Create the constant node
@@ -342,17 +327,17 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     fn visit_item_static(&mut self, item_static: &'ast syn::ItemStatic) {
         // Check if the static variable is public
         if matches!(item_static.vis, Visibility::Public(_)) {
-            let static_id = self.next_node_id();
+            let static_id = self.state.next_node_id();
             let static_name = item_static.ident.to_string();
 
             // Process the type
-            let type_id = self.get_or_create_type(&item_static.ty);
+            let type_id = self.state.get_or_create_type(&item_static.ty);
 
             // Extract the value expression as a string
             let value = Some(item_static.expr.to_token_stream().to_string());
 
             // Extract doc comments and other attributes
-            let docstring = self.extract_docstring(&item_static.attrs);
+            let docstring = self.state.extract_docstring(&item_static.attrs);
             let attributes = self.extract_attributes(&item_static.attrs);
 
             // Create the static node
@@ -395,7 +380,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             return;
         }
 
-        let macro_id = self.next_node_id();
+        let macro_id = self.state.next_node_id();
 
         // Get the macro name
         let macro_name = item_macro
@@ -408,7 +393,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let body = Some(item_macro.mac.tokens.to_string());
 
         // Extract doc comments and other attributes
-        let docstring = self.extract_docstring(&item_macro.attrs);
+        let docstring = self.state.extract_docstring(&item_macro.attrs);
         let attributes = self.extract_attributes(&item_macro.attrs);
 
         // Parse macro rules (simplified approach)
@@ -428,7 +413,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 let expansion = rule[(idx + 2)..].trim().to_string();
 
                 rules.push(MacroRuleNode {
-                    id: self.next_node_id(),
+                    id: self.state.next_node_id(),
                     pattern,
                     expansion,
                 });
@@ -456,7 +441,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     // Visit macro invocations
     fn visit_macro(&mut self, mac: &'ast syn::Macro) {
         // Create a node ID for this macro invocation
-        let invocation_id = self.next_node_id();
+        let invocation_id = self.state.next_node_id();
 
         // Get the macro name
         let macro_path = mac.path.to_token_stream().to_string();

@@ -11,7 +11,10 @@ use syn::Type;
 use syn::{FnArg, Visibility};
 
 use super::processor;
-use super::processor::{AttributeOperations, CodeProcessor, DocOperations, GenericsOperations, StateManagement, TypeOperations};
+use super::processor::{
+    AttributeOperations, CodeProcessor, DocOperations, GenericsOperations, StateManagement,
+    TypeOperations,
+};
 use super::utils::{attributes, docs, generics};
 
 pub struct VisitorState {
@@ -48,11 +51,13 @@ impl VisitorState {
             FnArg::Typed(pat_type) => {
                 let param_id = self.next_node_id();
                 let (name, is_mutable) = match &*pat_type.pat {
-                    syn::Pat::Ident(ident) => (Some(ident.ident.to_string()), ident.mutability.is_some()),
+                    syn::Pat::Ident(ident) => {
+                        (Some(ident.ident.to_string()), ident.mutability.is_some())
+                    }
                     _ => (None, false),
                 };
 
-                let type_id = self.get_or_create_type(&pat_type.ty);
+                let type_id = self.state_mut().get_or_create_type(&pat_type.ty);
 
                 Some(ParameterNode {
                     id: param_id,
@@ -63,7 +68,7 @@ impl VisitorState {
                 })
             }
             FnArg::Receiver(receiver) => {
-                let type_id = self.get_or_create_type(&receiver.ty);
+                let type_id = self.state_mut().get_or_create_type(&receiver.ty);
 
                 Some(ParameterNode {
                     id: self.next_node_id(),
@@ -93,7 +98,7 @@ impl StateManagement for VisitorState {
         self.next_node_id += 1;
         id
     }
-    
+
     fn next_type_id(&mut self) -> TypeId {
         let id = self.next_type_id;
         self.next_type_id += 1;
@@ -112,16 +117,16 @@ impl TypeOperations for VisitorState {
         let (type_kind, related_types) = self.process_type(ty);
         let id = self.next_type_id();
         self.type_map.insert(type_str, id);
-        
+
         self.code_graph.type_graph.push(TypeNode {
             id,
             kind: type_kind,
             related_types,
         });
-        
+
         id
     }
-    
+
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
         // This would be the implementation of process_type
         // For now, we'll use a simple placeholder implementation
@@ -133,35 +138,46 @@ impl TypeOperations for VisitorState {
                     .iter()
                     .map(|seg| seg.ident.to_string())
                     .collect();
-                
+
                 // Process any generic arguments if present
                 let mut related_types = Vec::new();
                 for seg in &type_path.path.segments {
                     if let syn::PathArguments::AngleBracketed(args) = &seg.arguments {
                         for arg in &args.args {
                             if let syn::GenericArgument::Type(arg_type) = arg {
-                                related_types.push(self.get_or_create_type(arg_type));
+                                related_types.push(self.state_mut().get_or_create_type(arg_type));
                             }
                         }
                     }
                 }
-                
-                (TypeKind::Named { 
-                    path, 
-                    is_fully_qualified: type_path.qself.is_some() 
-                }, related_types)
-            },
+
+                (
+                    TypeKind::Named {
+                        path,
+                        is_fully_qualified: type_path.qself.is_some(),
+                    },
+                    related_types,
+                )
+            }
             Type::Reference(type_ref) => {
-                let inner_type_id = self.get_or_create_type(&type_ref.elem);
+                let inner_type_id = self.state_mut().get_or_create_type(&type_ref.elem);
                 let lifetime = type_ref.lifetime.as_ref().map(|l| l.ident.to_string());
-                
-                (TypeKind::Reference { 
-                    lifetime, 
-                    is_mutable: type_ref.mutability.is_some() 
-                }, vec![inner_type_id])
-            },
+
+                (
+                    TypeKind::Reference {
+                        lifetime,
+                        is_mutable: type_ref.mutability.is_some(),
+                    },
+                    vec![inner_type_id],
+                )
+            }
             // Implement other type variants as needed
-            _ => (TypeKind::Unknown, Vec::new()),
+            unknown_type => (
+                TypeKind::Unknown {
+                    type_str: unknown_type.to_token_stream().to_string(),
+                },
+                Vec::new(),
+            ),
         }
     }
 }

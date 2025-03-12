@@ -9,6 +9,11 @@ use crate::parser::{
 use syn::visit::Visit;
 use syn::{visit, ItemExternCrate, ItemMod, ItemUse, Visibility};
 
+use super::AttributeOperations;
+use super::DocOperations;
+use super::FunctionVisitor;
+use super::StateManagement;
+
 pub trait ModuleVisitor<'ast> {
     fn process_module(&mut self, module: &'ast ItemMod);
     fn process_use_stmt(&mut self, use_item: &'ast ItemUse);
