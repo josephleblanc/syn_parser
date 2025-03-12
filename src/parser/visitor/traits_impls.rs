@@ -61,7 +61,7 @@ pub trait TraitVisitor: FunctionVisitor {
 
         // Create relations for super traits
         for super_trait_id in &super_traits {
-            self.state_mut().code_graph.relations.push(Relation {
+            self.state_mut().add_relation(Relation {
                 source: trait_id,
                 target: *super_trait_id,
                 kind: RelationKind::Inherits,
@@ -167,7 +167,7 @@ pub trait ImplVisitor: FunctionVisitor {
 
         // Create relations
         // Self type relation
-        self.state_mut().code_graph.relations.push(Relation {
+        self.state_mut().add_relation(Relation {
             source: impl_id,
             target: self_type,
             kind: RelationKind::ImplementsFor,
@@ -175,7 +175,7 @@ pub trait ImplVisitor: FunctionVisitor {
 
         // Trait relation if present
         if let Some(trait_id) = trait_type {
-            self.state_mut().code_graph.relations.push(Relation {
+            self.state_mut().add_relation(Relation {
                 source: impl_id,
                 target: trait_id,
                 kind: RelationKind::ImplementsTrait,
