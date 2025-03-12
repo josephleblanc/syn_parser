@@ -1,6 +1,7 @@
-use super::nodes::*;
-use super::types::*;
 use crate::parser::graph::CodeGraph;
+use crate::parser::nodes::*;
+use crate::parser::relations::Relation;
+use crate::parser::types::*;
 use crate::parser::nodes::NodeId;
 use crate::parser::relations::*;
 use crate::parser::types::GenericParamNode;
@@ -168,6 +169,14 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
 // Visitor implementation
 pub struct CodeVisitor<'a> {
     state: &'a mut state::VisitorState,
+}
+
+impl<'a> CodeProcessor for CodeVisitor<'a> {
+    type State = state::VisitorState;
+
+    fn state_mut(&mut self) -> &mut Self::State {
+        &mut self.state
+    }
 }
 
 impl<'a> CodeVisitor<'a> {
@@ -456,7 +465,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             .code_graph
             .macros
             .iter()
-            .find(|m| m.name == macro_path.split("::").last().unwrap_or(&macro_path));
+            .find(|m| m.name == macro_path.split("::").last().unwrap_or(macro_path));
 
         if let Some(defined_macro) = defined_macro {
             // Add a relation between the invocation and the macro definition

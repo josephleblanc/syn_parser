@@ -223,6 +223,6 @@ impl AttributeOperations for VisitorState {
 // GenericsOperations implementation
 impl GenericsOperations for VisitorState {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        generics::process_generics(self, generics)
+        crate::parser::visitor::utils::generics::process_generics(self, generics)
     }
 }

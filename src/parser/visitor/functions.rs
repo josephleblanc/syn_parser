@@ -32,7 +32,7 @@ pub trait FunctionVisitor: TypeProcessor {
         };
 
         // Process generic parameters if any
-        let generic_params = self.state_mut().process_generics(&func.sig.generics);
+        let generic_params = GenericsOperations::process_generics(self.state_mut(), &func.sig.generics);
 
         // Extract documentation and attributes
         let docstring = self.state_mut().extract_docstring(&func.attrs);
@@ -133,7 +133,7 @@ pub trait FunctionVisitor: TypeProcessor {
 
         // Add relation for return type
         if let Some(type_id) = return_type {
-            self.state_mut().code_graph.relations.push(Relation {
+            self.state_mut().code_graph().relations.push(Relation {
                 source: fn_id,
                 target: type_id,
                 kind: RelationKind::Returns,
