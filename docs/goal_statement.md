@@ -2,7 +2,7 @@
 
 ## Project Goal
 
-The Rust Code Graph Parser is a tool designed to analyze Rust source code and generate a structured representation of the code's components and their relationships. This representation, called a "Code Graph," captures the structure and semantics of Rust code in a way that's easy to query and navigate programmatically.
+The Rust Code Graph Parser is a tool designed to analyze Rust source code and generate a structured representation of the code's components and their relationships. This representation, called a "Code Graph," captures the structure and semantics of Rust code in a way that's easy to query and navigate programmatically. The intention is to use this project as part of an RAG for an LLM that does code generation and refactoring of potentially large rust code repositories.
 
 ## Key Features
 
