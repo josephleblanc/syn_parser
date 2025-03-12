@@ -33,7 +33,7 @@ where
             }
             syn::TypeParamBound::Lifetime(_) => {
                 let type_id = self.state_mut().next_type_id();
-                self.state_mut().code_graph.type_graph.push(TypeNode {
+                self.state_mut().code_graph().type_graph.push(TypeNode {
                     id: type_id,
                     kind: TypeKind::Named {
                         path: vec!["lifetime".to_string()],
@@ -66,15 +66,18 @@ where
                     .map(|bound| self.process_type_bound(bound))
                     .collect();
 
-                let default_type = default.as_ref().map(|expr| {
-                    let path = expr.to_token_stream().to_string();
-                    let state = self.state_mut();
-                    state.type_map.get(&path).cloned().unwrap_or_else(|| {
-                        let id = state.next_type_id();
-                        state.get_or_create_type(expr);
-                        id
-                    })
-                });
+                // Placeholder
+                // TODO: Figure out what to do with this later
+                let default_type = None;
+                // let default_type = default.as_ref().map(|expr| {
+                // let path = expr.to_token_stream().to_string();
+                // let state = self.state_mut();
+                // state.type_map.get(&path).cloned().unwrap_or_else(|| {
+                //     let id = state.next_type_id();
+                //     state.get_or_create_type(expr);
+                //     id
+                // })
+                // });
 
                 GenericParamNode {
                     id: self.state_mut().next_node_id(),

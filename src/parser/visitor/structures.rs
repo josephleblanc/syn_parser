@@ -92,7 +92,8 @@ pub trait StructVisitor: TypeProcessor {
         let union_name = u.ident.to_string();
 
         // Process fields
-        let fields = self.process_fields(&Into::<Fields>::into(u.fields), union_id);
+        // TODO: Try to remove this clone later
+        let fields = self.process_fields(&Into::<Fields>::into(u.fields.clone()), union_id);
 
         // Process generic parameters
         let generic_params = self.state_mut().process_generics(&u.generics);
@@ -138,7 +139,7 @@ pub trait StructVisitor: TypeProcessor {
             .map(|field| {
                 let field_id = self.state_mut().next_node_id();
                 let field_name = field.ident.as_ref().map(|i| i.to_string());
-                let type_id = <dyn TypeOperations>::get_or_create_type(self.state_mut(), &field.ty);
+                let type_id = self.state_mut().get_or_create_type(&field.ty);
 
                 // Create a relation between the field and its type
                 self.state_mut().add_relation(Relation {

@@ -1,7 +1,7 @@
 use crate::parser::graph::CodeGraph;
 use crate::parser::nodes::FunctionNode;
-use crate::parser::relations::Relation;
 use crate::parser::nodes::{NodeId, ParameterNode};
+use crate::parser::relations::Relation;
 use crate::parser::types::VisibilityKind;
 use crate::parser::types::{GenericParamNode, TypeId};
 use crate::parser::types::{TypeKind, TypeNode};
@@ -59,7 +59,7 @@ impl VisitorState {
                     _ => (None, false),
                 };
 
-                let type_id = <dyn TypeOperations>::get_or_create_type(self.state_mut(), &pat_type.ty);
+                let type_id = self.state_mut().get_or_create_type(&pat_type.ty);
 
                 Some(ParameterNode {
                     id: param_id,
@@ -70,7 +70,7 @@ impl VisitorState {
                 })
             }
             FnArg::Receiver(receiver) => {
-                let type_id = <dyn TypeOperations>::get_or_create_type(self.state_mut(), &receiver.ty);
+                let type_id = self.state_mut().get_or_create_type(&receiver.ty);
 
                 Some(ParameterNode {
                     id: self.next_node_id(),
@@ -132,24 +132,24 @@ impl StateManagement for VisitorState {
 
 // TypeOperations implementation
 impl TypeOperations for VisitorState {
-    fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
-        let type_str = ty.to_token_stream().to_string();
-        if let Some(&id) = self.type_map.get(&type_str) {
-            return id;
-        }
-
-        let (type_kind, related_types) = self.process_type(ty);
-        let id = self.next_type_id();
-        self.type_map.insert(type_str, id);
-
-        self.code_graph.type_graph.push(TypeNode {
-            id,
-            kind: type_kind,
-            related_types,
-        });
-
-        id
-    }
+    // fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
+    //     let type_str = ty.to_token_stream().to_string();
+    //     if let Some(&id) = self.type_map.get(&type_str) {
+    //         return id;
+    //     }
+    //
+    //     let (type_kind, related_types) = self.process_type(ty);
+    //     let id = self.next_type_id();
+    //     self.type_map.insert(type_str, id);
+    //
+    //     self.code_graph.type_graph.push(TypeNode {
+    //         id,
+    //         kind: type_kind,
+    //         related_types,
+    //     });
+    //
+    //     id
+    // }
 
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
         // This would be the implementation of process_type
@@ -169,7 +169,7 @@ impl TypeOperations for VisitorState {
                     if let syn::PathArguments::AngleBracketed(args) = &seg.arguments {
                         for arg in &args.args {
                             if let syn::GenericArgument::Type(arg_type) = arg {
-                                related_types.push(<dyn TypeOperations>::get_or_create_type(self.state_mut(), arg_type));
+                                related_types.push(self.state_mut().get_or_create_type(&arg_type));
                             }
                         }
                     }
@@ -184,7 +184,7 @@ impl TypeOperations for VisitorState {
                 )
             }
             Type::Reference(type_ref) => {
-                let inner_type_id = <dyn TypeOperations>::get_or_create_type(self.state_mut(), &type_ref.elem);
+                let inner_type_id = self.state_mut().get_or_create_type(&type_ref.elem);
                 let lifetime = type_ref.lifetime.as_ref().map(|l| l.ident.to_string());
 
                 (

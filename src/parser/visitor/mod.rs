@@ -1,12 +1,12 @@
 use crate::parser::graph::CodeGraph;
+use crate::parser::nodes::NodeId;
 use crate::parser::nodes::*;
 use crate::parser::relations::Relation;
-use crate::parser::types::*;
-use crate::parser::nodes::NodeId;
 use crate::parser::relations::*;
 use crate::parser::types::GenericParamNode;
 use crate::parser::types::TypeId;
 pub use crate::parser::types::TypeKind;
+use crate::parser::types::*;
 use crate::parser::visitor::utils::attributes::ParsedAttribute;
 
 pub mod functions;
@@ -18,9 +18,11 @@ pub mod type_processing;
 
 /// Core processor trait with state management
 pub mod processor {
-    use crate::parser::nodes::{CodeGraph, FunctionNode, NodeId, Relation};
+    use crate::parser::nodes::{FunctionNode, NodeId};
     use crate::parser::types::{GenericParamNode, TypeId, TypeKind};
     use crate::parser::visitor::utils::attributes::ParsedAttribute;
+    use crate::parser::visitor::Relation;
+    use crate::CodeGraph;
 
     pub trait CodeProcessor {
         type State: StateManagement
@@ -42,7 +44,6 @@ pub mod processor {
     }
 
     pub trait TypeOperations {
-        fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId;
         fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>);
     }
 
@@ -122,14 +123,6 @@ use syn::{
     visit::Visit, FnArg, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType,
     Visibility,
 };
-
-impl<'a> CodeProcessor for CodeVisitor<'a> {
-    type State = state::VisitorState;
-
-    fn state_mut(&mut self) -> &mut Self::State {
-        &mut self.state
-    }
-}
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
@@ -465,7 +458,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             .code_graph
             .macros
             .iter()
-            .find(|m| m.name == macro_path.split("::").last().unwrap_or(macro_path));
+            .find(|m| m.name == macro_path.split("::").last().unwrap_or(&macro_path));
 
         if let Some(defined_macro) = defined_macro {
             // Add a relation between the invocation and the macro definition

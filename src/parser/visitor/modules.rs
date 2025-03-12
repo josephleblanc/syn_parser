@@ -9,7 +9,7 @@ use crate::parser::{
 use syn::visit::Visit;
 use syn::{visit, ItemExternCrate, ItemMod, ItemUse, Visibility};
 
-use super::{state::VisitorState, processor::CodeProcessor};
+use super::processor::CodeProcessor;
 use super::AttributeOperations;
 use super::DocOperations;
 use super::FunctionVisitor;
@@ -49,10 +49,6 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
             };
 
         let mod_id = self.state.next_node_id();
-        let current_scope = {
-            let state = self.state_mut();
-            state.current_scope()
-        };
 
         if let Some((_, mod_items)) = &module.content {
             for item in mod_items {
@@ -106,13 +102,16 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
             }
         }
 
+        let attributes = self.state.extract_attributes(&module.attrs);
+        let docstring = self.state.extract_docstring(&module.attrs);
+
         // Add module to graph
         self.state.code_graph().modules.push(ModuleNode {
             id: module_id,
             name: module_name,
             visibility,
-            attributes: self.state.extract_attributes(&module.attrs),
-            docstring: self.state.extract_docstring(&module.attrs),
+            attributes,
+            docstring,
             submodules,
             items,
             imports: Vec::new(),

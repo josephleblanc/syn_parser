@@ -3,7 +3,6 @@ use crate::parser::visitor::utils::ParsedAttribute;
 
 use serde::{Deserialize, Serialize};
 
-
 // Unique ID for a node in the graph
 pub type NodeId = usize;
 

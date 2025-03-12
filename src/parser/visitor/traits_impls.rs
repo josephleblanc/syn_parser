@@ -47,7 +47,8 @@ pub trait TraitVisitor: FunctionVisitor {
             visibility: visibility.clone(),
             methods,
             generic_params,
-            super_traits,
+            // TODO: See if this clone is really needed.
+            super_traits: super_traits.clone(),
             attributes,
             docstring,
         };
@@ -56,14 +57,17 @@ pub trait TraitVisitor: FunctionVisitor {
         if matches!(visibility, VisibilityKind::Public) {
             self.state_mut().code_graph().traits.push(trait_node);
         } else {
-            self.state_mut().code_graph().private_traits.push(trait_node);
+            self.state_mut()
+                .code_graph()
+                .private_traits
+                .push(trait_node);
         }
 
         // Create relations for super traits
-        for super_trait_id in &super_traits {
+        for super_trait_id in super_traits.iter() {
             self.state_mut().add_relation(Relation {
                 source: trait_id,
-                target: *super_trait_id,
+                target: super_trait_id.clone(),
                 kind: RelationKind::Inherits,
             });
         }
@@ -89,7 +93,14 @@ pub trait TraitVisitor: FunctionVisitor {
         let method_name = method.sig.ident.to_string();
 
         // Process method parameters
-        let parameters = self.process_parameters(method.sig.inputs.iter());
+        let parameters = self.process_parameters(
+            method
+                .sig
+                .inputs
+                .pairs()
+                .map(|pair| *pair.value())
+                .collect(),
+        );
 
         // Process return type
         let return_type = match &method.sig.output {
@@ -123,7 +134,6 @@ pub trait TraitVisitor: FunctionVisitor {
             body,
         }
     }
-
 }
 
 /// Trait for processing impl blocks
@@ -208,7 +218,14 @@ pub trait ImplVisitor: FunctionVisitor {
         let method_name = method.sig.ident.to_string();
 
         // Process method parameters
-        let parameters = self.process_parameters(method.sig.inputs.as_ref());
+        let parameters = self.process_parameters(
+            method
+                .sig
+                .inputs
+                .pairs()
+                .map(|pair| *pair.value())
+                .collect(),
+        );
 
         // Process return type
         let return_type = match &method.sig.output {
@@ -239,7 +256,6 @@ pub trait ImplVisitor: FunctionVisitor {
             body,
         }
     }
-
 }
 
 // Blanket implementations

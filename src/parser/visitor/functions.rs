@@ -23,16 +23,17 @@ pub trait FunctionVisitor: TypeProcessor {
 
         // Process function parameters
         // This method is giving an error. AI!
-        let parameters = FunctionVisitor::process_parameters(self, func.sig.inputs.iter().collect::<Vec<_>>().as_slice());
-
+        let parameters =
+            self.process_parameters(func.sig.inputs.pairs().map(|pair| *pair.value()).collect());
         // Process return type
         let return_type = match &func.sig.output {
             ReturnType::Default => None,
-            ReturnType::Type(_, ref ty) => Some(TypeOperations::get_or_create_type(self.state_mut(), ty)),
+            ReturnType::Type(_, ref ty) => Some(self.state_mut().get_or_create_type(ty)),
         };
 
         // Process generic parameters if any
-        let generic_params = GenericsOperations::process_generics(self.state_mut(), &func.sig.generics);
+        let generic_params =
+            GenericsOperations::process_generics(self.state_mut(), &func.sig.generics);
 
         // Extract documentation and attributes
         let docstring = self.state_mut().extract_docstring(&func.attrs);
@@ -41,6 +42,8 @@ pub trait FunctionVisitor: TypeProcessor {
         // Extract function body if we need it
         let body = Some(func.block.to_token_stream().to_string());
 
+        // Create relations for parameter types and return type
+        self.create_function_relations(fn_id, &parameters, return_type);
         // Create function node
         let function_node = FunctionNode {
             id: fn_id,
@@ -56,15 +59,12 @@ pub trait FunctionVisitor: TypeProcessor {
 
         // Add to code graph
         self.state_mut().add_function(function_node);
-
-        // Create relations for parameter types and return type
-        self.create_function_relations(fn_id, &parameters, return_type);
     }
 
     /// Process function parameters
     // This function is not being called correctly elsewhere, lets decide how to handle the
     // `params` parameter.
-    fn process_parameters(&mut self, params: &[FnArg]) -> Vec<ParameterNode> {
+    fn process_parameters(&mut self, params: Vec<&FnArg>) -> Vec<ParameterNode> {
         params
             .iter()
             .filter_map(|arg| self.process_fn_arg(arg))
@@ -96,13 +96,16 @@ pub trait FunctionVisitor: TypeProcessor {
             FnArg::Receiver(receiver) => {
                 let param_id = self.state_mut().next_node_id();
                 // For self parameters, create a special parameter node
-                let type_id = if let Some(ty) = &receiver.ty {
-                    self.state_mut().get_or_create_type(ty)
-                } else {
-                    // Create a placeholder type for self
-                    self.state_mut().next_type_id()
-                    // Ideally we would resolve to the impl type here
-                };
+                let ty = &*receiver.ty;
+                let type_id = self.state_mut().get_or_create_type(ty);
+                // {
+                // let type_id = if let Some(ty) = &receiver.ty{
+                //     self.state_mut().get_or_create_type(ty)
+                // } else {
+                //     // Create a placeholder type for self
+                //     self.state_mut().next_type_id()
+                //     // Ideally we would resolve to the impl type here
+                // };
 
                 Some(ParameterNode {
                     id: param_id,
