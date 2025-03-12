@@ -48,7 +48,7 @@ pub trait StructVisitor: TypeProcessor {
 
         // Add to code graph
         self.state_mut()
-            .code_graph
+            .code_graph()
             .defined_types
             .push(TypeDefNode::Struct(struct_node));
     }
@@ -81,7 +81,7 @@ pub trait StructVisitor: TypeProcessor {
 
         // Add to code graph
         self.state_mut()
-            .code_graph
+            .code_graph()
             .defined_types
             .push(TypeDefNode::Enum(enum_node));
     }
@@ -114,7 +114,7 @@ pub trait StructVisitor: TypeProcessor {
 
         // Add to code graph
         self.state_mut()
-            .code_graph
+            .code_graph()
             .defined_types
             .push(TypeDefNode::Union(union_node));
     }
@@ -141,7 +141,7 @@ pub trait StructVisitor: TypeProcessor {
                 let type_id = self.state_mut().get_or_create_type(&field.ty);
 
                 // Create a relation between the field and its type
-                self.state_mut().code_graph.relations.push(Relation {
+                self.state_mut().add_relation(Relation {
                     source: field_id,
                     target: type_id,
                     kind: RelationKind::HasType,
@@ -176,7 +176,7 @@ pub trait StructVisitor: TypeProcessor {
                 let type_id = self.state_mut().get_or_create_type(&field.ty);
 
                 // Create a relation between the field and its type
-                self.state_mut().code_graph.relations.push(Relation {
+                self.state_mut().add_relation(Relation {
                     source: field_id,
                     target: type_id,
                     kind: RelationKind::HasType,
