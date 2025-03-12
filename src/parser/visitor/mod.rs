@@ -164,6 +164,34 @@ pub mod processor {
     }
 }
 
+pub trait CodeProcessor: 
+    processor::StateManagement +
+    processor::TypeOperations +
+    processor::AttributeOperations +
+    processor::DocOperations +
+    processor::GenericsOperations 
+{
+    type State;
+    
+    fn state_mut(&mut self) -> &mut Self::State;
+
+    fn convert_visibility(&mut self, vis: &Visibility) -> VisibilityKind {
+        match vis {
+            Visibility::Public(_) => VisibilityKind::Public,
+            Visibility::Restricted(restricted) => {
+                let path = restricted
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect();
+                VisibilityKind::Restricted(path)
+            }
+            _ => VisibilityKind::Inherited,
+        }
+    }
+}
+
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;

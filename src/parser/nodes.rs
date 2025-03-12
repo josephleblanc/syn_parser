@@ -1,5 +1,5 @@
 use crate::parser::types::{GenericParamNode, TypeId, VisibilityKind};
-use crate::parser::visitor::utils::attributes::ParsedAttribute;
+use crate::parser::visitor::utils::ParsedAttribute;
 
 use serde::{Deserialize, Serialize};
 

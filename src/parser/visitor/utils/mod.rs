@@ -11,3 +11,4 @@ pub mod generics;
 pub use self::attributes::extract_attributes;
 pub use self::docs::extract_docstring;
 pub use self::generics::process_generics;
+pub use self::attributes::ParsedAttribute;
