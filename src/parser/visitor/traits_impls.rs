@@ -6,7 +6,8 @@ use syn::visit;
 
 use super::CodeVisitor;
 
-use super::type_processing::TypeProcessor;
+use super::TypeProcessor;  // Use re-export from parent module
+use super::CodeProcessor;
 use syn::{ItemImpl, ItemTrait, ReturnType, Type};
 
 pub trait ImplVisitor<'ast> {

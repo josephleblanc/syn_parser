@@ -10,7 +10,7 @@ use syn::{Type, TypeParamBound};
 
 use super::CodeProcessor;
 
-pub trait GenericsProcessor: CodeProcessor {
+pub trait GenericsProcessor: super::CodeProcessor {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
     fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode;
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
