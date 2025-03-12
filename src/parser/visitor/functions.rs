@@ -1,151 +1,159 @@
-use crate::parser::visitor::GenericParamKind;
-use crate::parser::{
-    nodes::{FunctionNode, MacroKind, MacroNode, ParameterNode, ProcMacroKind},
-    relations::{Relation, RelationKind},
-    types::{TypeId, VisibilityKind},
-    visitor::{state::VisitorState, utils::generics::process_generics},
-};
+use crate::parser::nodes::{FunctionNode, NodeId, ParameterNode, VisibilityKind};
+use crate::parser::relations::{Relation, RelationKind};
+use crate::parser::types::TypeId;
+use crate::parser::visitor::processor::{CodeProcessor, StateManagement, TypeOperations};
+use crate::parser::visitor::type_processing::TypeProcessor;
 use quote::ToTokens;
-use syn::{visit, FnArg, ItemFn, ReturnType};
+use syn::{FnArg, ItemFn, PatType, ReturnType, Signature, Type, Visibility};
 
-pub trait FunctionVisitor<'ast> {
-    fn process_function(&mut self, func: &'ast ItemFn);
-}
-
-impl<'ast> FunctionVisitor<'ast> for super::CodeVisitor<'ast> {
-    fn process_function(&mut self, func: &'ast ItemFn) {
-        // Check if this function is a procedural macro
-        let is_proc_macro = func.attrs.iter().any(|attr| {
-            attr.path().is_ident("proc_macro")
-                || attr.path().is_ident("proc_macro_derive")
-                || attr.path().is_ident("proc_macro_attribute")
-        });
-
-        if is_proc_macro {
-            let macro_id = self.state.next_node_id();
-            let macro_name = func.sig.ident.to_string();
-
-            // Determine the kind of procedural macro
-            let proc_macro_kind = if func
-                .attrs
-                .iter()
-                .any(|attr| attr.path().is_ident("proc_macro_derive"))
-            {
-                ProcMacroKind::Derive
-            } else if func
-                .attrs
-                .iter()
-                .any(|attr| attr.path().is_ident("proc_macro_attribute"))
-            {
-                ProcMacroKind::ParsedAttribute
-            } else {
-                ProcMacroKind::Function
-            };
-
-            // Extract doc comments and other attributes
-            let docstring = self.state.extract_docstring(&func.attrs);
-            let attributes = self.state.extract_attributes(&func.attrs);
-
-            // Extract function body as a string
-            let body = Some(func.block.to_token_stream().to_string());
-
-            // Create the macro node
-            let macro_node = MacroNode {
-                //Missing fields AI!
-                id: macro_id,
-                name: macro_name,
-                visibility: self.state.convert_visibility(&func.vis),
-                kind: MacroKind::ProcedureMacro {
-                    kind: proc_macro_kind,
-                },
-                rules: Vec::new(), // Procedural macros don't have declarative rules
-                attributes,
-                docstring,
-                body,
-            };
-
-            // Add the macro to the code graph
-            self.state.code_graph.macros.push(macro_node);
-        }
-
-        let fn_id = self.state.next_node_id();
+/// Trait for processing function-related AST nodes
+///
+/// Builds on top of TypeProcessor for type resolution capabilities
+pub trait FunctionVisitor: TypeProcessor {
+    /// Process a function definition
+    fn process_function(&mut self, func: &ItemFn) {
+        let fn_id = self.next_node_id();
         let fn_name = func.sig.ident.to_string();
-
-        // Process function parameters and track type relations
-        let mut parameters = Vec::new();
-        let mut param_type_ids = Vec::new();
-
-        for arg in &func.sig.inputs {
-            if let Some(param) = self.state.process_fn_arg(arg) {
-                // Track parameter type relationship
-                // Need to decide if param.type_id should be an Option as it originally was or if
-                // no option makes sense for the data structure
-                // if let Some(type_id) = param.type_id {
-                if let type_id = param.type_id {
-                    self.state.code_graph.relations.push(Relation {
-                        source: fn_id,
-                        target: type_id,
-                        kind: RelationKind::FunctionParameter,
-                    });
-                    param_type_ids.push(type_id);
-                }
-                parameters.push(param);
-            }
-        }
-
-        // Extract return type if it exists and track relation
+        let visibility = self.convert_visibility(&func.vis);
+        
+        // Process function parameters
+        let parameters = self.process_parameters(&func.sig.inputs);
+        
+        // Process return type
         let return_type = match &func.sig.output {
             ReturnType::Default => None,
-            ReturnType::Type(_, ty) => {
-                let type_id = self.state.get_or_create_type(ty);
-                // Add return type relationship
-                self.state.code_graph.relations.push(Relation {
-                    source: fn_id,
-                    target: type_id,
-                    kind: RelationKind::FunctionReturn,
-                });
-                Some(type_id)
-            }
+            ReturnType::Type(_, ref ty) => Some(self.get_or_create_type(ty)),
         };
-
-        // Process generic parameters first
-        let generic_params = self.state.process_generics(&func.sig.generics);
-
-        // Track generic parameter relationships after processing
-        for generic_param in &generic_params {
-            if let GenericParamKind::Type { name, .. } = &generic_param.kind {
-                let type_id = self
-                    .state
-                    .get_or_create_type(&syn::parse_str::<syn::Type>(name).unwrap());
-                self.state.code_graph.relations.push(Relation {
-                    source: fn_id,
-                    target: type_id,
-                    kind: RelationKind::GenericParameter,
-                });
-            }
-        }
-
-        // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&func.attrs);
-        let attributes = self.state.extract_attributes(&func.attrs);
-
-        // Extract function body as a string
+        
+        // Process generic parameters if any
+        let generic_params = self.process_generics(&func.sig.generics);
+        
+        // Extract documentation and attributes
+        let docstring = self.extract_docstring(&func.attrs);
+        let attributes = self.extract_attributes(&func.attrs);
+        
+        // Extract function body if we need it
         let body = Some(func.block.to_token_stream().to_string());
-
-        // Store function info
-        self.state.code_graph.functions.push(FunctionNode {
+        
+        // Create function node
+        let function_node = FunctionNode {
             id: fn_id,
             name: fn_name,
-            visibility: self.state.convert_visibility(&func.vis),
+            visibility,
             parameters,
             return_type,
             generic_params,
             attributes,
             docstring,
             body,
-        });
-
-        // Continue visiting the function body
-        visit::visit_item_fn(self, func);
+        };
+        
+        // Add to code graph
+        self.state_mut().code_graph.functions.push(function_node);
+        
+        // Create relations for parameter types and return type
+        self.create_function_relations(fn_id, &parameters, return_type);
+    }
+    
+    /// Process function parameters
+    fn process_parameters(&mut self, params: &[FnArg]) -> Vec<ParameterNode> {
+        params
+            .iter()
+            .filter_map(|arg| self.process_fn_arg(arg))
+            .collect()
+    }
+    
+    /// Process a single function argument
+    fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
+        match arg {
+            FnArg::Typed(pat_type) => {
+                let param_id = self.next_node_id();
+                let (name, is_mutable) = match &*pat_type.pat {
+                    syn::Pat::Ident(ident) => (
+                        Some(ident.ident.to_string()), 
+                        ident.mutability.is_some()
+                    ),
+                    _ => (None, false),
+                };
+                
+                let type_id = self.get_or_create_type(&pat_type.ty);
+                
+                Some(ParameterNode {
+                    id: param_id,
+                    name,
+                    type_id,
+                    is_mutable,
+                    is_self: false,
+                })
+            }
+            FnArg::Receiver(receiver) => {
+                let param_id = self.next_node_id();
+                // For self parameters, create a special parameter node
+                let type_id = if let Some(ty) = &receiver.ty {
+                    self.get_or_create_type(ty)
+                } else {
+                    // Create a placeholder type for self
+                    self.state_mut().next_type_id()
+                    // Ideally we would resolve to the impl type here
+                };
+                
+                Some(ParameterNode {
+                    id: param_id,
+                    name: Some("self".to_string()),
+                    type_id,
+                    is_mutable: receiver.mutability.is_some(),
+                    is_self: true,
+                })
+            }
+        }
+    }
+    
+    /// Create relations between function and its parameter/return types
+    fn create_function_relations(
+        &mut self, 
+        fn_id: NodeId, 
+        parameters: &[ParameterNode], 
+        return_type: Option<TypeId>
+    ) {
+        // Add relations for parameter types
+        for param in parameters {
+            self.state_mut().code_graph.relations.push(Relation {
+                source: fn_id,
+                target: param.type_id,
+                kind: RelationKind::Uses,
+            });
+        }
+        
+        // Add relation for return type
+        if let Some(type_id) = return_type {
+            self.state_mut().code_graph.relations.push(Relation {
+                source: fn_id,
+                target: type_id,
+                kind: RelationKind::Returns,
+            });
+        }
+    }
+    
+    /// Convert visibility modifier to our internal representation
+    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+        match vis {
+            Visibility::Public(_) => VisibilityKind::Public,
+            Visibility::Restricted(restricted) => {
+                let path = restricted
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect();
+                VisibilityKind::Restricted(path)
+            }
+            _ => VisibilityKind::Inherited,
+        }
     }
 }
+
+// Blanket implementation for all types that implement TypeProcessor
+impl<T> FunctionVisitor for T 
+where 
+    T: TypeProcessor
+{}
