@@ -23,6 +23,15 @@ pub struct VisitorState {
 }
 
 // In src/parser/visitor/state.rs
+impl processor::CodeProcessor for VisitorState {
+    type State = Self;
+
+    fn state_mut(&mut self) -> &mut Self::State {
+        self
+    }
+}
+
+// In src/parser/visitor/state.rs
 impl processor::StateManagement for VisitorState {
     fn next_node_id(&mut self) -> NodeId {
         let id = self.next_node_id;
