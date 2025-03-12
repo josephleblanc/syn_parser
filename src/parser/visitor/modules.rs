@@ -52,18 +52,27 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
 
         if let Some((_, mod_items)) = &module.content {
             for item in mod_items {
-                let item_id = self.state.next_node_id();
-                items.push(item_id);
-
                 match item {
                     syn::Item::Fn(func) => {
                         self.visit_item_fn(func);
+                        // Get the last added function ID
+                        if let Some(func_node) = self.state.code_graph.functions.last() {
+                            items.push(func_node.id);
+                        }
                     }
                     syn::Item::Struct(strct) => {
                         self.visit_item_struct(strct);
+                        // Get the last added struct ID
+                        if let Some(TypeDefNode::Struct(struct_node)) = self.state.code_graph.defined_types.last() {
+                            items.push(struct_node.id);
+                        }
                     }
                     syn::Item::Enum(enm) => {
                         self.visit_item_enum(enm);
+                        // Get the last added enum ID
+                        if let Some(TypeDefNode::Enum(enum_node)) = self.state.code_graph.defined_types.last() {
+                            items.push(enum_node.id);
+                        }
                     }
                     syn::Item::Impl(impl_block) => {
                         self.visit_item_impl(impl_block);
