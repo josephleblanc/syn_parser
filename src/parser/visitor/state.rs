@@ -58,7 +58,6 @@ impl TypeOperations for VisitorState {
     }
 }
 
-// Conflicting implementation 2 AI!
 impl generics::GenericsProcessor for VisitorState {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         generics::process_generics(self, generics)

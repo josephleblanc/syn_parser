@@ -29,11 +29,11 @@ impl<T: CodeProcessor> GenericsProcessor for T {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         generics::process_generics(self.state_mut(), generics)
     }
-    
+
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
         self.state_mut().process_type_bound(bound)
     }
-    
+
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
         self.state_mut().process_lifetime_bound(bound)
     }
@@ -303,9 +303,9 @@ impl<'a> CodeVisitor<'a> {
     }
 }
 
-impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> 
+impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a>
 where
-    Self: TypeOperations + DocProcessor + AttributeProcessor + GenericsProcessor
+    Self: TypeOperations + DocProcessor + AttributeProcessor + GenericsProcessor,
 {
     fn visit_item_fn(&mut self, func: &'ast ItemFn)
     where
@@ -386,42 +386,6 @@ where
     // ...
     // }
     // moved to src/parser/visitor/structures.rs
-
-    // Visit enum definitions
-    // fn visit_item_enum(&mut self, item_enum: &'ast ItemEnum) {
-    // ...
-    // }
-    // moved to src/parser/visitor/structures.rs
-
-    // Visit impl blocks
-    // fn visit_item_impl(&mut self, item_impl: &'ast ItemImpl) {
-    // ...
-    // }
-    // moved to src/parser/visitor/traits_impls.rs
-
-    // Visit trait definitions
-    // fn visit_item_trait(&mut self, item_trait: &'ast ItemTrait) {
-    // ...
-    // }
-    // moved to src/parser/visitor/traits_impls.rs
-
-    // Visit modules
-    // fn visit_item_mod(&mut self, module: &'ast ItemMod) {
-    // ...
-    // }
-    // moved to src/parser/visitor/modules.rs
-
-    // Visit use statements
-    // fn visit_item_use(&mut self, use_item: &'ast syn::ItemUse) {
-    // ...
-    // }
-    // moved to src/parser/visitor/modules.rs
-
-    // Visit extern crate statements
-    // fn visit_item_extern_crate(&mut self, extern_crate: &'ast syn::ItemExternCrate) {
-    // ...
-    // }
-    // moved to src/parser/visitor/modules.rs
 
     // Visit constant items
     // This needs to be moved to another module most likely.
