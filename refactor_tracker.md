@@ -11,17 +11,21 @@
 ### Immediate Attention Needed
 
 🛑 **Trait Definition Conflicts (E0428)**  
+
 - Duplicate `CodeProcessor` trait definitions in `visitor/mod.rs`
 
 🛑 **Import Resolution (E0432)**  
+
 - Missing `processor` module imports in attributes/generics
 - Broken `CodeProcessor` imports in utility modules
 
 🛑 **Trait Visibility (E0405)**  
+
 - Missing `pub use` for processor traits
 - Incorrect module paths for `AttributeProcessor`
 
 🛑 **Type Visibility (E0412)**  
+
 - Missing imports for `NodeId`, `TypeId` in processor traits
 - `ParsedAttribute` not properly re-exported
 
@@ -32,12 +36,14 @@
    - Consolidate TypeProcessor implementations
 
 2. **Fix Module Imports**
+
    ```rust
    // Needed in src/parser/visitor/utils/attributes.rs
    use super::super::processor;  // Fix module path
    ```
 
 3. **Type Visibility Fixes**
+
    ```rust
    // Add to src/parser/visitor/mod.rs
    pub use crate::parser::nodes::NodeId;
@@ -79,11 +85,13 @@ gantt
 ```
 
 **Key Architectural Risks:**
+
 1. Trait method collision in blanket implementations
 2. State management lifetime issues
 3. Circular module dependencies
 
 **Success Metrics:**
+
 - Zero E0xxx errors from cargo check
 - All integration tests passing
 - <50 compiler warnings

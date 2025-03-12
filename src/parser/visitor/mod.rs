@@ -1,14 +1,14 @@
+use self::processor::*;
+use super::nodes::*;
+use super::types::*;
 use crate::parser::graph::CodeGraph;
 use crate::parser::nodes::NodeId;
 use crate::parser::nodes::*;
-use crate::parser::visitor::utils::attributes::ParsedAttribute;
 use crate::parser::relations::*;
 use crate::parser::types::GenericParamNode;
 use crate::parser::types::TypeId;
 use crate::parser::types::*;
-use self::processor::*;
-use super::nodes::*;
-use super::types::*;
+use crate::parser::visitor::utils::attributes::ParsedAttribute;
 use syn::Attribute;
 
 pub mod functions;
@@ -21,10 +21,13 @@ pub mod type_processing;
 /// Core processor trait with state management
 pub trait CodeProcessor {
     type State;
-    
+
     fn state_mut(&mut self) -> &mut Self::State;
 
-    fn convert_visibility(&mut self, vis: &syn::Visibility) -> crate::parser::types::VisibilityKind {
+    fn convert_visibility(
+        &mut self,
+        vis: &syn::Visibility,
+    ) -> crate::parser::types::VisibilityKind {
         match vis {
             syn::Visibility::Public(_) => crate::parser::types::VisibilityKind::Public,
             syn::Visibility::Restricted(restricted) => {
@@ -44,7 +47,6 @@ pub mod utils;
 
 use syn::visit;
 pub use type_processing::TypeProcessor;
-use crate::parser::visitor::utils::attributes::AttributeProcessor;
 use utils::docs::DocProcessor;
 use utils::generics::GenericsProcessor;
 
@@ -120,41 +122,38 @@ use syn::{
     Visibility,
 };
 
-    fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
-        match arg {
-            FnArg::Typed(pat_type) => {
-                let param_id = self.state.next_node_id();
-                let (name, is_mutable) = match &*pat_type.pat {
-                    Pat::Ident(ident) => (
-                        Some(ident.ident.to_string()),
-                        ident.mutability.is_some()
-                    ),
-                    _ => (None, false),
-                };
-                
-                let type_id = self.state.get_or_create_type(&pat_type.ty);
+fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
+    match arg {
+        FnArg::Typed(pat_type) => {
+            let param_id = self.state.next_node_id();
+            let (name, is_mutable) = match &*pat_type.pat {
+                Pat::Ident(ident) => (Some(ident.ident.to_string()), ident.mutability.is_some()),
+                _ => (None, false),
+            };
 
-                Some(ParameterNode {
-                    id: param_id,
-                    name,
-                    type_id,
-                    is_mutable,
-                    is_self: false,
-                })
-            }
-            FnArg::Receiver(receiver) => {
-                let type_id = self.state.get_or_create_type(&receiver.ty);
-                
-                Some(ParameterNode {
-                    id: self.state.next_node_id(),
-                    name: Some("self".to_string()),
-                    type_id,
-                    is_mutable: receiver.mutability.is_some(),
-                    is_self: true,
-                })
-            }
+            let type_id = self.state.get_or_create_type(&pat_type.ty);
+
+            Some(ParameterNode {
+                id: param_id,
+                name,
+                type_id,
+                is_mutable,
+                is_self: false,
+            })
+        }
+        FnArg::Receiver(receiver) => {
+            let type_id = self.state.get_or_create_type(&receiver.ty);
+
+            Some(ParameterNode {
+                id: self.state.next_node_id(),
+                name: Some("self".to_string()),
+                type_id,
+                is_mutable: receiver.mutability.is_some(),
+                is_self: true,
+            })
         }
     }
+}
 
 impl<'a> CodeProcessor for CodeVisitor<'a> {
     type State = VisitorState;
@@ -172,11 +171,20 @@ pub mod processor {
 
     pub trait TypeOperations {
         fn get_or_create_type(&mut self, ty: &syn::Type) -> crate::parser::types::TypeId;
-        fn process_type(&mut self, ty: &syn::Type) -> (crate::parser::types::TypeKind, Vec<crate::parser::types::TypeId>);
+        fn process_type(
+            &mut self,
+            ty: &syn::Type,
+        ) -> (
+            crate::parser::types::TypeKind,
+            Vec<crate::parser::types::TypeId>,
+        );
     }
 
     pub trait AttributeOperations {
-        fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<crate::parser::visitor::utils::attributes::ParsedAttribute>;
+        fn extract_attributes(
+            &mut self,
+            attrs: &[syn::Attribute],
+        ) -> Vec<crate::parser::visitor::utils::attributes::ParsedAttribute>;
     }
 
     pub trait DocOperations {
@@ -184,12 +192,12 @@ pub mod processor {
     }
 
     pub trait GenericsOperations {
-        fn process_generics(&mut self, generics: &syn::Generics) -> Vec<crate::parser::types::GenericParamNode>;
+        fn process_generics(
+            &mut self,
+            generics: &syn::Generics,
+        ) -> Vec<crate::parser::types::GenericParamNode>;
     }
 }
-
-
-
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
