@@ -18,7 +18,10 @@ pub trait TraitVisitor<'ast> {
     fn process_trait(&mut self, item_trait: &'ast ItemTrait);
 }
 
-impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a> {
+impl<'a, 'ast> ImplVisitor<'ast> for CodeVisitor<'a>
+where
+    Self: TypeProcessor + CodeProcessor  // Add CodeProcessor bound
+{
     fn process_impl(&mut self, item_impl: &'ast ItemImpl) {
         let impl_id = self.state.next_node_id();
         let self_type_id = self.state.get_or_create_type(&item_impl.self_ty);
