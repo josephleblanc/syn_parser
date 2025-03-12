@@ -9,6 +9,7 @@
 | Date       | Passing | Failing | Notes                          |
 |------------|---------|---------|--------------------------------|
 | 2025-03-12 | 27      | 9       | Initial baseline after refactor |
+| 2025-03-13 | 27      | 9       | Module processing fix attempt - needs validation |
 
 <!-- Add new rows above this line as progress is made -->
 
@@ -68,4 +69,6 @@
    - Regression risks
    - Fixed test cases
 4. Maintain version control discipline
-5. Verify fixes by re-running relevant tests before marking tasks complete
+5. Verify fixes by re-running relevant tests with `2>/dev/null` to check pass/fail status
+   Example: `cargo test <test_name> 2>/dev/null`
+6. Check for compiler errors with `cargo check 2>&1 | rg -A 8 E0` after each change

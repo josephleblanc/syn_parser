@@ -391,6 +391,32 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     }
 
     // Visit macro definitions (macro_rules!)
+    fn visit_item_mod(&mut self, m: &'ast syn::ItemMod) {
+        let module_id = self.state.next_node_id();
+        let module_name = m.ident.to_string();
+        
+        // Create and store the module node
+        let module = ModuleNode {
+            id: module_id,
+            name: module_name.clone(),
+            visibility: self.convert_visibility(&m.vis),
+            attributes: self.state.extract_attributes(&m.attrs),
+            docstring: self.state.extract_docstring(&m.attrs),
+            submodules: Vec::new(),
+            items: Vec::new(),
+            imports: Vec::new(),
+            exports: Vec::new(),
+        };
+        self.state.code_graph.modules.push(module);
+
+        // Continue visiting into the module content
+        if let Some((_, items)) = &m.content {
+            for item in items {
+                self.visit_item(item);
+            }
+        }
+    }
+
     fn visit_item_macro(&mut self, item_macro: &'ast syn::ItemMacro) {
         // Only process macros with #[macro_export]
         if !item_macro
