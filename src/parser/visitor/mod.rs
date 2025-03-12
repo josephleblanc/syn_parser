@@ -24,19 +24,19 @@ pub trait CodeProcessor {
     
     fn state_mut(&mut self) -> &mut Self::State;
 
-    fn convert_visibility(&mut self, vis: &Visibility) -> VisibilityKind {
+    fn convert_visibility(&mut self, vis: &syn::Visibility) -> crate::parser::types::VisibilityKind {
         match vis {
-            Visibility::Public(_) => VisibilityKind::Public,
-            Visibility::Restricted(restricted) => {
+            syn::Visibility::Public(_) => crate::parser::types::VisibilityKind::Public,
+            syn::Visibility::Restricted(restricted) => {
                 let path = restricted
                     .path
                     .segments
                     .iter()
                     .map(|seg| seg.ident.to_string())
                     .collect();
-                VisibilityKind::Restricted(path)
+                crate::parser::types::VisibilityKind::Restricted(path)
             }
-            _ => VisibilityKind::Inherited,
+            _ => crate::parser::types::VisibilityKind::Inherited,
         }
     }
 }
@@ -166,17 +166,17 @@ impl<'a> CodeProcessor for CodeVisitor<'a> {
 
 pub mod processor {
     pub trait StateManagement {
-        fn next_node_id(&mut self) -> NodeId;
-        fn next_type_id(&mut self) -> TypeId;
+        fn next_node_id(&mut self) -> crate::parser::nodes::NodeId;
+        fn next_type_id(&mut self) -> crate::parser::types::TypeId;
     }
 
     pub trait TypeOperations {
-        fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId;
-        fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>);
+        fn get_or_create_type(&mut self, ty: &syn::Type) -> crate::parser::types::TypeId;
+        fn process_type(&mut self, ty: &syn::Type) -> (crate::parser::types::TypeKind, Vec<crate::parser::types::TypeId>);
     }
 
     pub trait AttributeOperations {
-        fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute>;
+        fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<crate::parser::visitor::utils::attributes::ParsedAttribute>;
     }
 
     pub trait DocOperations {
@@ -184,17 +184,11 @@ pub mod processor {
     }
 
     pub trait GenericsOperations {
-        fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
+        fn process_generics(&mut self, generics: &syn::Generics) -> Vec<crate::parser::types::GenericParamNode>;
     }
 }
 
 
-// Blanket implementation for processors with TypeOperations state
-impl<T> TypeProcessor for T 
-where
-    T: CodeProcessor + processor::TypeOperations,
-    T::State: processor::TypeOperations,
-{}
 
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
