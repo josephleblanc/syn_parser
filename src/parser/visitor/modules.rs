@@ -87,8 +87,12 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                         self.visit_item_union(union_def);
                     }
                     syn::Item::Mod(md) => {
-                        submodules.push(item_id); // Add to submodules
-                        self.visit_item_mod(md); // Recursive call
+                        // Process the module and get its ID
+                        self.visit_item_mod(md);
+                        if let Some(module) = self.state.code_graph.modules.last() {
+                            submodules.push(module.id);
+                            items.push(module.id);
+                        }
                     }
                     syn::Item::Use(use_item) => {
                         self.visit_item_use(use_item);
