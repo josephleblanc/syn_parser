@@ -6,10 +6,19 @@
 **27 passed | 9 failed**
 
 ## Progress History
-| Date       | Passing | Failing | Notes                          |
-|------------|---------|---------|--------------------------------|
-| 2025-03-12 | 27      | 9       | Initial baseline after refactor |
-| 2025-03-13 | 27      | 9       | Module processing fix attempt - needs validation |
+| Date     | Passing | Failing | Notes                          |
+|----------|---------|---------|--------------------------------|
+| 03-25    | 27      | 9       | Initial baseline after refactor |
+| 03-25 14:45 | 27      | 9       | Module hierarchy partially resolved - submodules detected but items not tracked |
+
+## Lessons Learned
+1. Module hierarchy detection requires:
+   - Tracking nested module declarations
+   - Maintaining parent-child relationships during visitation
+   - Separating AST visitation from post-processing
+2. Item tracking within modules needs:
+   - Current module context tracking
+   - Delayed relationship creation until hierarchy is built
 
 <!-- Add new rows above this line as progress is made -->
 
