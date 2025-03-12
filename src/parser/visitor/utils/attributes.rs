@@ -2,7 +2,7 @@ use quote::ToTokens;
 use serde::{Deserialize, Serialize};
 use syn::parse::Parser;
 
-use crate::parser::visitor::{processor::AttributeOperations, CodeProcessor};
+use crate::parser::visitor::processor::{AttributeOperations, CodeProcessor};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ParsedAttribute {
@@ -14,9 +14,10 @@ pub struct ParsedAttribute {
 impl<T> AttributeOperations for T
 where
     T: CodeProcessor,
+    T::State: AttributeOperations
 {
     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
-        extract_attributes(attrs)
+        self.state_mut().extract_attributes(attrs)
     }
 }
 

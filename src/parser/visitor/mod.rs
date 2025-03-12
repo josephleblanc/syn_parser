@@ -20,10 +20,12 @@ pub mod type_processing;
 
 /// Core processor trait with state management
 pub mod processor {
-    use super::*;
+    use crate::parser::nodes::NodeId;
+    use crate::parser::types::{GenericParamNode, TypeId, TypeKind};
+    use crate::parser::visitor::utils::attributes::ParsedAttribute;
     
     pub trait CodeProcessor {
-        type State;
+        type State: StateManagement + TypeOperations + AttributeOperations + DocOperations + GenericsOperations;
 
         fn state_mut(&mut self) -> &mut Self::State;
     }
@@ -45,7 +47,7 @@ pub mod processor {
         fn extract_attributes(
             &mut self,
             attrs: &[syn::Attribute],
-        ) -> Vec<crate::parser::visitor::utils::attributes::ParsedAttribute>;
+        ) -> Vec<ParsedAttribute>;
     }
 
     pub trait DocOperations {
@@ -56,16 +58,13 @@ pub mod processor {
         fn process_generics(
             &mut self,
             generics: &syn::Generics,
-        ) -> Vec<crate::parser::types::GenericParamNode>;
+        ) -> Vec<GenericParamNode>;
     }
 }
 pub mod utils;
 
 // Blanket implementations for CodeProcessor
-impl<T: CodeProcessor> StateManagement for T 
-where 
-    T::State: StateManagement 
-{
+impl<T: CodeProcessor> StateManagement for T {
     fn next_node_id(&mut self) -> NodeId {
         self.state_mut().next_node_id()
     }
@@ -75,10 +74,7 @@ where
     }
 }
 
-impl<T: CodeProcessor> TypeOperations for T 
-where 
-    T::State: TypeOperations 
-{
+impl<T: CodeProcessor> TypeOperations for T {
     fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
         self.state_mut().get_or_create_type(ty)
     }
@@ -88,28 +84,19 @@ where
     }
 }
 
-impl<T: CodeProcessor> AttributeOperations for T 
-where 
-    T::State: AttributeOperations 
-{
+impl<T: CodeProcessor> AttributeOperations for T {
     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
         self.state_mut().extract_attributes(attrs)
     }
 }
 
-impl<T: CodeProcessor> DocOperations for T 
-where 
-    T::State: DocOperations 
-{
+impl<T: CodeProcessor> DocOperations for T {
     fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
         self.state_mut().extract_docstring(attrs)
     }
 }
 
-impl<T: CodeProcessor> GenericsOperations for T 
-where 
-    T::State: GenericsOperations 
-{
+impl<T: CodeProcessor> GenericsOperations for T {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         self.state_mut().process_generics(generics)
     }
@@ -124,6 +111,11 @@ pub use processor::{
     StateManagement,
     TypeOperations
 };
+
+// Re-export types used in processor traits
+pub use crate::parser::nodes::NodeId;
+pub use crate::parser::types::{TypeId, TypeKind};
+pub use crate::parser::visitor::utils::attributes::ParsedAttribute;
 
 use self::utils::{attributes, docs, generics};
 pub use self::{
@@ -142,7 +134,7 @@ use syn::{
 };
 
 impl<'a> CodeProcessor for CodeVisitor<'a> {
-    type State = VisitorState;
+    type State = state::VisitorState;
 
     fn state_mut(&mut self) -> &mut Self::State {
         &mut self.state
@@ -218,12 +210,26 @@ impl<'a> CodeVisitor<'a> {
             }
         }
     }
+
+    // Add visibility conversion as a method to align with trait-based architecture
+    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+        match vis {
+            Visibility::Public(_) => VisibilityKind::Public,
+            Visibility::Restricted(restricted) => {
+                let path = restricted
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect();
+                VisibilityKind::Restricted(path)
+            }
+            _ => VisibilityKind::Inherited,
+        }
+    }
 }
 
-impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a>
-where
-    Self: TypeOperations + DocOperations + AttributeOperations + GenericsOperations,
-{
+impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     fn visit_item_fn(&mut self, func: &'ast ItemFn) {
         <Self as FunctionVisitor>::process_function(self, func);
         syn::visit::visit_item_fn(self, func);
@@ -474,24 +480,5 @@ where
 
         // Continue visiting
         syn::visit::visit_macro(self, mac);
-    }
-}
-
-// Add convert_visibility as a method on CodeVisitor
-impl<'a> CodeVisitor<'a> {
-    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
-        match vis {
-            Visibility::Public(_) => VisibilityKind::Public,
-            Visibility::Restricted(restricted) => {
-                let path = restricted
-                    .path
-                    .segments
-                    .iter()
-                    .map(|seg| seg.ident.to_string())
-                    .collect();
-                VisibilityKind::Restricted(path)
-            }
-            _ => VisibilityKind::Inherited,
-        }
     }
 }

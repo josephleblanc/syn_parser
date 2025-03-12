@@ -7,7 +7,7 @@ use syn::{
 };
 
 // TypeProcessor trait that builds on top of CodeProcessor and TypeOperations
-pub trait TypeProcessor: CodeProcessor + TypeOperations 
+pub trait TypeProcessor: CodeProcessor 
 where
     Self::State: StateManagement + TypeOperations
 {
@@ -233,6 +233,6 @@ where
 // Blanket implementation for all types that implement CodeProcessor
 impl<T> TypeProcessor for T 
 where 
-    T: CodeProcessor + TypeOperations,
+    T: CodeProcessor,
     T::State: StateManagement + TypeOperations
 {}

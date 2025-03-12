@@ -9,30 +9,53 @@ use syn::{Type, TypeParamBound};
 
 use crate::parser::visitor::CodeProcessor;
 
-pub trait GenericsProcessor {
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
-    fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode;
-    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
+pub trait GenericsProcessor: CodeProcessor 
+where
+    Self::State: processor::StateManagement + processor::TypeOperations + processor::GenericsOperations
+{
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        self.state_mut().process_generics(generics)
+    }
+    
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
+        match bound {
+            syn::TypeParamBound::Trait(trait_bound) => {
+                let ty = Type::Path(TypePath {
+                    qself: None,
+                    path: trait_bound.path.clone(),
+                });
+                self.get_or_create_type(&ty)
+            }
+            syn::TypeParamBound::Lifetime(_) => {
+                let type_id = self.state_mut().next_type_id();
+                self.state_mut().code_graph.type_graph.push(TypeNode {
+                    id: type_id,
+                    kind: TypeKind::Named {
+                        path: vec!["lifetime".to_string()],
+                        is_fully_qualified: false,
+                    },
+                    related_types: Vec::new(),
+                });
+                type_id
+            }
+            _ => self.state_mut().next_type_id(),
+        }
+    }
+
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        bound.ident.to_string()
+    }
+    
+    fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode {
+        self.state_mut().process_generic_param(param)
+    }
 }
 
 impl<T> GenericsProcessor for T
 where
-    T: CodeProcessor + processor::TypeOperations + processor::StateManagement
-{
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        let state = self.state_mut();
-        process_generics(state, generics)
-    }
-    
-    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
-        self.state_mut().process_type_bound(bound)
-    }
-
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
-        self.state_mut().process_lifetime_bound(bound)
-    }
-}
+    T: CodeProcessor,
+    T::State: processor::StateManagement + processor::TypeOperations + processor::GenericsOperations
+{}
 
 impl GenericsProcessor for VisitorState {
     fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode {
@@ -121,6 +144,10 @@ impl GenericsProcessor for VisitorState {
     
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
         bound.ident.to_string()
+    }
+    
+    fn process_generics(&mut self, generics: &Generics) -> Vec<GenericParamNode> {
+        process_generics(self, generics)
     }
 }
 
