@@ -56,7 +56,7 @@ pub trait TraitVisitor: FunctionVisitor {
         if matches!(visibility, VisibilityKind::Public) {
             self.state_mut().code_graph().traits.push(trait_node);
         } else {
-            self.state_mut().code_graph.private_traits.push(trait_node);
+            self.state_mut().code_graph().private_traits.push(trait_node);
         }
 
         // Create relations for super traits
@@ -163,7 +163,7 @@ pub trait ImplVisitor: FunctionVisitor {
         };
 
         // Add to code graph
-        self.state_mut().code_graph.impls.push(impl_node);
+        self.state_mut().code_graph().impls.push(impl_node);
 
         // Create relations
         // Self type relation
