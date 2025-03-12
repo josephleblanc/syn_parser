@@ -26,7 +26,7 @@ where
             }
             TypeParamBound::Lifetime(_) => {
                 let type_id = self.state_mut().next_type_id();
-                self.state_mut().code_graph.type_graph.push(TypeNode {
+                self.state_mut().code_graph().type_graph.push(TypeNode {
                     id: type_id,
                     kind: TypeKind::Named {
                         path: vec!["lifetime".to_string()],
@@ -161,7 +161,7 @@ where
                     .filter_map(|bound| {
                         if let TypeParamBound::Trait(trait_bound) = bound {
                             let bound_id = self.state_mut().next_type_id();
-                            self.state_mut().code_graph.type_graph.push(TypeNode {
+                            self.state_mut().code_graph().type_graph.push(TypeNode {
                                 id: bound_id,
                                 kind: TypeKind::Named {
                                     path: trait_bound
@@ -194,7 +194,7 @@ where
                     .filter_map(|bound| {
                         if let TypeParamBound::Trait(trait_bound) = bound {
                             let bound_id = self.state_mut().next_type_id();
-                            self.state_mut().code_graph.type_graph.push(TypeNode {
+                            self.state_mut().code_graph().type_graph.push(TypeNode {
                                 id: bound_id,
                                 kind: TypeKind::Named {
                                     path: trait_bound
