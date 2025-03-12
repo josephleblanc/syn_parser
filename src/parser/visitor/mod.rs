@@ -22,8 +22,12 @@ use utils::attributes::AttributeProcessor;
 use utils::docs::DocProcessor;
 use utils::generics::GenericsProcessor;
 
-// Blanket implementation for all CodeProcessors
-impl<T: CodeProcessor> TypeProcessor for T {}
+// Blanket implementation for processors with TypeOperations state
+impl<T> TypeProcessor for T 
+where
+    T: CodeProcessor,
+    T::State: processor::TypeOperations,
+{}
 
 impl<T: CodeProcessor> GenericsProcessor for T {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
