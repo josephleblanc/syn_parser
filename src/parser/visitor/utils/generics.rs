@@ -7,7 +7,7 @@ use syn::TypePath;
 use syn::{GenericParam, Generics, Lifetime, TypeParam};
 use syn::{Type, TypeParamBound};
 
-use super::CodeProcessor;
+use crate::parser::visitor::CodeProcessor;
 
 pub trait GenericsProcessor {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
@@ -18,9 +18,7 @@ pub trait GenericsProcessor {
 
 impl<T> GenericsProcessor for T
 where
-    T: crate::parser::visitor::CodeProcessor + 
-       crate::parser::visitor::processor::TypeOperations + 
-       crate::parser::visitor::processor::StateManagement
+    T: CodeProcessor + processor::TypeOperations + processor::StateManagement
 {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         let state = self.state_mut();

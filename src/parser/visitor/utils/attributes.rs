@@ -2,7 +2,7 @@ use quote::ToTokens;
 use serde::{Deserialize, Serialize};
 use syn::parse::Parser;
 
-use super::processor::AttributeOperations;
+use crate::parser::visitor::processor::AttributeOperations;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ParsedAttribute {

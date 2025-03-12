@@ -44,7 +44,7 @@ pub mod utils;
 
 use syn::visit;
 pub use type_processing::TypeProcessor;
-use utils::attributes::AttributeProcessor;
+use crate::parser::visitor::utils::attributes::AttributeProcessor;
 use utils::docs::DocProcessor;
 use utils::generics::GenericsProcessor;
 
