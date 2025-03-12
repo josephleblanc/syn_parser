@@ -19,7 +19,6 @@ pub mod traits_impls;
 pub mod type_processing;
 
 /// Core processor trait with state management
-/// Core processor trait with state management
 pub mod processor {
     use super::*;
     
@@ -27,159 +26,19 @@ pub mod processor {
         type State;
 
         fn state_mut(&mut self) -> &mut Self::State;
-
-        fn convert_visibility(&mut self, vis: &syn::Visibility) -> VisibilityKind {
-            match vis {
-                syn::Visibility::Public(_) => VisibilityKind::Public,
-                syn::Visibility::Restricted(restricted) => {
-                    let path = restricted
-                        .path
-                        .segments
-                        .iter()
-                        .map(|seg| seg.ident.to_string())
-                        .collect();
-                    VisibilityKind::Restricted(path)
-                }
-                _ => VisibilityKind::Inherited,
-            }
-        }
-    }
-}
-pub mod utils;
-
-use syn::visit;
-pub use type_processing::TypeProcessor;
-use utils::docs::DocProcessor;
-use utils::generics::GenericsProcessor;
-
-// Implement remaining processor traits for VisitorState
-impl processor::TypeOperations for VisitorState {
-    fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
-        let type_str = ty.to_token_stream().to_string();
-        if let Some(&id) = self.type_map.get(&type_str) {
-            return id;
-        }
-
-        let (type_kind, related_types) = self.process_type(ty);
-        let id = self.next_type_id();
-        self.type_map.insert(type_str, id);
-        self.code_graph.type_graph.push(TypeNode {
-            id,
-            kind: type_kind,
-            related_types,
-        });
-        id
     }
 
-    fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>) {
-        // Delegate to existing process_type implementation
-        self.process_type(ty)
-    }
-}
-
-impl processor::AttributeOperations for VisitorState {
-    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
-        attributes::extract_attributes(attrs)
-    }
-}
-
-impl processor::DocOperations for VisitorState {
-    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
-        docs::extract_docstring(attrs)
-    }
-}
-
-impl processor::GenericsOperations for VisitorState {
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        generics::process_generics(self, generics)
-    }
-}
-impl<T: CodeProcessor + TypeOperations> GenericsProcessor for T {
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        generics::process_generics(self.state_mut(), generics)
-    }
-
-    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
-        self.state_mut().process_type_bound(bound)
-    }
-
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
-        self.state_mut().process_lifetime_bound(bound)
-    }
-}
-
-use self::utils::{attributes, docs, generics};
-pub use self::{
-    functions::FunctionVisitor,
-    modules::ModuleVisitor,
-    structures::StructVisitor,
-    traits_impls::{ImplVisitor, TraitVisitor},
-};
-
-use quote::ToTokens;
-use std::collections::HashMap;
-use std::path::Path;
-use syn::{
-    visit::Visit, FnArg, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType,
-    Visibility,
-};
-
-fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
-    match arg {
-        FnArg::Typed(pat_type) => {
-            let param_id = self.state.next_node_id();
-            let (name, is_mutable) = match &*pat_type.pat {
-                Pat::Ident(ident) => (Some(ident.ident.to_string()), ident.mutability.is_some()),
-                _ => (None, false),
-            };
-
-            let type_id = self.state.get_or_create_type(&pat_type.ty);
-
-            Some(ParameterNode {
-                id: param_id,
-                name,
-                type_id,
-                is_mutable,
-                is_self: false,
-            })
-        }
-        FnArg::Receiver(receiver) => {
-            let type_id = self.state.get_or_create_type(&receiver.ty);
-
-            Some(ParameterNode {
-                id: self.state.next_node_id(),
-                name: Some("self".to_string()),
-                type_id,
-                is_mutable: receiver.mutability.is_some(),
-                is_self: true,
-            })
-        }
-    }
-}
-
-impl<'a> CodeProcessor for CodeVisitor<'a> {
-    type State = VisitorState;
-
-    fn state_mut(&mut self) -> &mut Self::State {
-        &mut self.state
-    }
-}
-
-pub mod processor {
     pub trait StateManagement {
-        fn next_node_id(&mut self) -> crate::parser::nodes::NodeId;
-        fn next_type_id(&mut self) -> crate::parser::types::TypeId;
+        fn next_node_id(&mut self) -> NodeId;
+        fn next_type_id(&mut self) -> TypeId;
     }
 
     pub trait TypeOperations {
-        fn get_or_create_type(&mut self, ty: &syn::Type) -> crate::parser::types::TypeId;
+        fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId;
         fn process_type(
             &mut self,
             ty: &syn::Type,
-        ) -> (
-            crate::parser::types::TypeKind,
-            Vec<crate::parser::types::TypeId>,
-        );
+        ) -> (TypeKind, Vec<TypeId>);
     }
 
     pub trait AttributeOperations {
@@ -200,10 +59,99 @@ pub mod processor {
         ) -> Vec<crate::parser::types::GenericParamNode>;
     }
 }
+pub mod utils;
+
+// Blanket implementations for CodeProcessor
+impl<T: CodeProcessor> StateManagement for T 
+where 
+    T::State: StateManagement 
+{
+    fn next_node_id(&mut self) -> NodeId {
+        self.state_mut().next_node_id()
+    }
+    
+    fn next_type_id(&mut self) -> TypeId {
+        self.state_mut().next_type_id()
+    }
+}
+
+impl<T: CodeProcessor> TypeOperations for T 
+where 
+    T::State: TypeOperations 
+{
+    fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
+        self.state_mut().get_or_create_type(ty)
+    }
+    
+    fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>) {
+        self.state_mut().process_type(ty)
+    }
+}
+
+impl<T: CodeProcessor> AttributeOperations for T 
+where 
+    T::State: AttributeOperations 
+{
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
+        self.state_mut().extract_attributes(attrs)
+    }
+}
+
+impl<T: CodeProcessor> DocOperations for T 
+where 
+    T::State: DocOperations 
+{
+    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
+        self.state_mut().extract_docstring(attrs)
+    }
+}
+
+impl<T: CodeProcessor> GenericsOperations for T 
+where 
+    T::State: GenericsOperations 
+{
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        self.state_mut().process_generics(generics)
+    }
+}
+
+// Re-export operation traits from processor module
+pub use processor::{
+    AttributeOperations,
+    CodeProcessor, 
+    DocOperations,
+    GenericsOperations,
+    StateManagement,
+    TypeOperations
+};
+
+use self::utils::{attributes, docs, generics};
+pub use self::{
+    functions::FunctionVisitor,
+    modules::ModuleVisitor,
+    structures::StructVisitor,
+    traits_impls::{ImplVisitor, TraitVisitor},
+};
+
+use quote::ToTokens;
+use std::collections::HashMap;
+use std::path::Path;
+use syn::{
+    visit::Visit, FnArg, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType,
+    Visibility,
+};
+
+impl<'a> CodeProcessor for CodeVisitor<'a> {
+    type State = VisitorState;
+
+    fn state_mut(&mut self) -> &mut Self::State {
+        &mut self.state
+    }
+}
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
-    let mut visitor_state = VisitorState::new();
+    let mut visitor_state = state::VisitorState::new();
 
     // Create the root module first
     let root_module_id = visitor_state.next_node_id();
@@ -236,113 +184,13 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     Ok(visitor_state.code_graph)
 }
 
-// State for the visitor
-struct VisitorState {
-    code_graph: CodeGraph,
-    next_node_id: NodeId,
-    next_type_id: TypeId,
-    // Maps existing types to their IDs to avoid duplication
-    type_map: HashMap<String, TypeId>,
-}
-
-impl VisitorState {
-    fn new() -> Self {
-        Self {
-            code_graph: CodeGraph {
-                functions: Vec::new(),
-                defined_types: Vec::new(),
-                type_graph: Vec::new(),
-                impls: Vec::new(),
-                traits: Vec::new(),
-                private_traits: Vec::new(),
-                relations: Vec::new(),
-                modules: Vec::new(),
-                values: Vec::new(),
-                macros: Vec::new(),
-            },
-            next_node_id: 0,
-            next_type_id: 0,
-            type_map: HashMap::new(),
-        }
-    }
-
-    fn next_node_id(&mut self) -> NodeId {
-        let id = self.next_node_id;
-        self.next_node_id += 1;
-        id
-    }
-
-    fn next_type_id(&mut self) -> TypeId {
-        let id = self.next_type_id;
-        self.next_type_id += 1;
-        id
-    }
-
-    // Process a function parameter
-    // Decide if this needs to be moved for our refactoring of the visitor module AI
-    fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
-        match arg {
-            FnArg::Typed(PatType { pat, ty, .. }) => {
-                let type_id = self.get_or_create_type(ty);
-
-                // Extract parameter name and mutability
-                let (name, is_mutable) = match &**pat {
-                    Pat::Ident(PatIdent {
-                        ident, mutability, ..
-                    }) => (Some(ident.to_string()), mutability.is_some()),
-                    _ => (None, false),
-                };
-
-                Some(ParameterNode {
-                    id: self.next_node_id(),
-                    name,
-                    type_id,
-                    is_mutable,
-                    is_self: false,
-                })
-            }
-            FnArg::Receiver(receiver) => {
-                // Create a special self type
-                let self_type_id = self.next_type_id();
-                let mut related_types = Vec::new();
-
-                // If we have an explicit type for self, include it
-                // if let Some(ty_box) = receiver.ty {
-                let ty_ref: &syn::Type = &receiver.ty; // Dereference the Box to get &syn::Type
-                let inner_type_id = self.get_or_create_type(ty_ref);
-                related_types.push(inner_type_id);
-                // }
-
-                self.code_graph.type_graph.push(TypeNode {
-                    id: self_type_id,
-                    kind: TypeKind::Named {
-                        path: vec!["Self".to_string()],
-                        is_fully_qualified: false,
-                    },
-                    related_types,
-                });
-
-                Some(ParameterNode {
-                    id: self.next_node_id(),
-                    name: Some("self".to_string()),
-                    type_id: self_type_id,
-                    is_mutable: receiver.mutability.is_some(),
-                    is_self: true,
-                })
-            }
-        }
-    }
-
-    // Processing now handled in utils modules
-}
-
 // Visitor implementation
-struct CodeVisitor<'a> {
-    state: &'a mut VisitorState,
+pub struct CodeVisitor<'a> {
+    state: &'a mut state::VisitorState,
 }
 
 impl<'a> CodeVisitor<'a> {
-    fn new(state: &'a mut VisitorState) -> Self {
+    fn new(state: &'a mut state::VisitorState) -> Self {
         Self { state }
     }
 
@@ -374,62 +222,52 @@ impl<'a> CodeVisitor<'a> {
 
 impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a>
 where
-    Self: TypeOperations + DocProcessor + AttributeProcessor + GenericsProcessor,
+    Self: TypeOperations + DocOperations + AttributeOperations + GenericsOperations,
 {
-    fn visit_item_fn(&mut self, func: &'ast ItemFn)
-    where
-        Self: TypeOperations + DocProcessor + AttributeProcessor + GenericsProcessor,
-    {
-        // Fix lifetime issues AI!
+    fn visit_item_fn(&mut self, func: &'ast ItemFn) {
         <Self as FunctionVisitor>::process_function(self, func);
-        visit::visit_item_fn(self, func);
+        syn::visit::visit_item_fn(self, func);
     }
 
     fn visit_item_struct(&mut self, s: &'ast ItemStruct) {
         <Self as StructVisitor>::process_struct(self, s);
-        visit::visit_item_struct(self, s);
+        syn::visit::visit_item_struct(self, s);
     }
 
     fn visit_item_impl(&mut self, i: &'ast ItemImpl) {
         <Self as ImplVisitor>::process_impl(self, i);
-        visit::visit_item_impl(self, i);
+        syn::visit::visit_item_impl(self, i);
     }
 
     fn visit_item_trait(&mut self, t: &'ast ItemTrait) {
         <Self as TraitVisitor>::process_trait(self, t);
-        visit::visit_item_trait(self, t);
+        syn::visit::visit_item_trait(self, t);
     }
 
     fn visit_item_enum(&mut self, e: &'ast ItemEnum) {
         <Self as StructVisitor>::process_enum(self, e);
-        visit::visit_item_enum(self, e);
+        syn::visit::visit_item_enum(self, e);
     }
 
     fn visit_item_union(&mut self, u: &'ast syn::ItemUnion) {
         <Self as StructVisitor>::process_union(self, u);
-        visit::visit_item_union(self, u);
+        syn::visit::visit_item_union(self, u);
     }
-
-    // Visit struct definitions
-    // fn visit_item_struct(&mut self, item_struct: &'ast ItemStruct) {
-    // ...
-    // }
-    // moved to src/parser/visitor/structures.rs
 
     // Visit type alias definitions
     fn visit_item_type(&mut self, item_type: &'ast syn::ItemType) {
-        let type_alias_id = self.state.next_node_id();
+        let type_alias_id = self.next_node_id();
         let type_alias_name = item_type.ident.to_string();
 
         // Process the aliased type
-        let type_id = self.state.get_or_create_type(&item_type.ty);
+        let type_id = self.get_or_create_type(&item_type.ty);
 
         // Process generic parameters
-        let generic_params = self.state.process_generics(&item_type.generics);
+        let generic_params = self.process_generics(&item_type.generics);
 
         // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_type.attrs);
-        let attributes = self.state.extract_attributes(&item_type.attrs);
+        let docstring = self.extract_docstring(&item_type.attrs);
+        let attributes = self.extract_attributes(&item_type.attrs);
 
         // Store type alias info only if public
         if matches!(item_type.vis, Visibility::Public(_)) {
@@ -439,48 +277,39 @@ where
                 .push(TypeDefNode::TypeAlias(TypeAliasNode {
                     id: type_alias_id,
                     name: type_alias_name,
-                    visibility: self.state.convert_visibility(&item_type.vis),
+                    visibility: self.convert_visibility(&item_type.vis),
                     type_id,
                     generic_params,
                     attributes,
                     docstring,
                 }));
 
-            visit::visit_item_type(self, item_type);
+            syn::visit::visit_item_type(self, item_type);
         }
     }
 
-    // Visit union definitions
-    // fn visit_item_union(&mut self, item_union: &'ast syn::ItemUnion) {
-    // ...
-    // }
-    // moved to src/parser/visitor/structures.rs
-
     // Visit constant items
-    // This needs to be moved to another module most likely.
-    // Decide where this should go (if it fits into our current files)
-    // or create a new file and trait for it. AI
     fn visit_item_const(&mut self, item_const: &'ast syn::ItemConst) {
         // Check if the constant is public
         if matches!(item_const.vis, Visibility::Public(_)) {
-            let const_id = self.state.next_node_id();
+            let const_id = self.next_node_id();
             let const_name = item_const.ident.to_string();
 
             // Process the type
-            let type_id = self.state.get_or_create_type(&item_const.ty);
+            let type_id = self.get_or_create_type(&item_const.ty);
 
             // Extract the value expression as a string
             let value = Some(item_const.expr.to_token_stream().to_string());
 
             // Extract doc comments and other attributes
-            let docstring = self.state.extract_docstring(&item_const.attrs);
-            let attributes = self.state.extract_attributes(&item_const.attrs);
+            let docstring = self.extract_docstring(&item_const.attrs);
+            let attributes = self.extract_attributes(&item_const.attrs);
 
             // Create the constant node
             let const_node = ValueNode {
                 id: const_id,
                 name: const_name,
-                visibility: self.state.convert_visibility(&item_const.vis),
+                visibility: self.convert_visibility(&item_const.vis),
                 type_id,
                 kind: ValueKind::Constant,
                 value,
@@ -500,34 +329,31 @@ where
         }
 
         // Continue visiting
-        visit::visit_item_const(self, item_const);
+        syn::visit::visit_item_const(self, item_const);
     }
 
     // Visit static items
-    // This needs to be moved to another module most likely.
-    // Decide where this should go (if it fits into our current files)
-    // or create a new file and trait for it. AI
     fn visit_item_static(&mut self, item_static: &'ast syn::ItemStatic) {
         // Check if the static variable is public
         if matches!(item_static.vis, Visibility::Public(_)) {
-            let static_id = self.state.next_node_id();
+            let static_id = self.next_node_id();
             let static_name = item_static.ident.to_string();
 
             // Process the type
-            let type_id = self.state.get_or_create_type(&item_static.ty);
+            let type_id = self.get_or_create_type(&item_static.ty);
 
             // Extract the value expression as a string
             let value = Some(item_static.expr.to_token_stream().to_string());
 
             // Extract doc comments and other attributes
-            let docstring = self.state.extract_docstring(&item_static.attrs);
-            let attributes = self.state.extract_attributes(&item_static.attrs);
+            let docstring = self.extract_docstring(&item_static.attrs);
+            let attributes = self.extract_attributes(&item_static.attrs);
 
             // Create the static node
             let static_node = ValueNode {
                 id: static_id,
                 name: static_name,
-                visibility: self.state.convert_visibility(&item_static.vis),
+                visibility: self.convert_visibility(&item_static.vis),
                 type_id,
                 kind: ValueKind::Static {
                     is_mutable: matches!(item_static.mutability, syn::StaticMutability::Mut(_)),
@@ -549,13 +375,10 @@ where
         }
 
         // Continue visiting
-        visit::visit_item_static(self, item_static);
+        syn::visit::visit_item_static(self, item_static);
     }
 
     // Visit macro definitions (macro_rules!)
-    // This needs to be moved to another module most likely.
-    // Decide where this should go (if it fits into our current files)
-    // or create a new file and trait for it. AI
     fn visit_item_macro(&mut self, item_macro: &'ast syn::ItemMacro) {
         // Only process macros with #[macro_export]
         if !item_macro
@@ -566,7 +389,7 @@ where
             return;
         }
 
-        let macro_id = self.state.next_node_id();
+        let macro_id = self.next_node_id();
 
         // Get the macro name
         let macro_name = item_macro
@@ -579,8 +402,8 @@ where
         let body = Some(item_macro.mac.tokens.to_string());
 
         // Extract doc comments and other attributes
-        let docstring = self.state.extract_docstring(&item_macro.attrs);
-        let attributes = self.state.extract_attributes(&item_macro.attrs);
+        let docstring = self.extract_docstring(&item_macro.attrs);
+        let attributes = self.extract_attributes(&item_macro.attrs);
 
         // Parse macro rules (simplified approach)
         let mut rules = Vec::new();
@@ -599,7 +422,7 @@ where
                 let expansion = rule[(idx + 2)..].trim().to_string();
 
                 rules.push(MacroRuleNode {
-                    id: self.state.next_node_id(),
+                    id: self.next_node_id(),
                     pattern,
                     expansion,
                 });
@@ -625,12 +448,9 @@ where
     }
 
     // Visit macro invocations
-    // This needs to be moved to another module most likely.
-    // Decide where this should go (if it fits into our current files)
-    // or create a new file and trait for it. AI
     fn visit_macro(&mut self, mac: &'ast syn::Macro) {
         // Create a node ID for this macro invocation
-        let invocation_id = self.state.next_node_id();
+        let invocation_id = self.next_node_id();
 
         // Get the macro name
         let macro_path = mac.path.to_token_stream().to_string();
@@ -653,6 +473,25 @@ where
         }
 
         // Continue visiting
-        visit::visit_macro(self, mac);
+        syn::visit::visit_macro(self, mac);
+    }
+}
+
+// Add convert_visibility as a method on CodeVisitor
+impl<'a> CodeVisitor<'a> {
+    fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+        match vis {
+            Visibility::Public(_) => VisibilityKind::Public,
+            Visibility::Restricted(restricted) => {
+                let path = restricted
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect();
+                VisibilityKind::Restricted(path)
+            }
+            _ => VisibilityKind::Inherited,
+        }
     }
 }
