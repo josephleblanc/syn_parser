@@ -82,21 +82,6 @@ use syn::{
     Visibility,
 };
 
-        match vis {
-            Visibility::Public(_) => VisibilityKind::Public,
-            Visibility::Restricted(restricted) => {
-                let path = restricted
-                    .path
-                    .segments
-                    .iter()
-                    .map(|seg| seg.ident.to_string())
-                    .collect();
-                VisibilityKind::Restricted(path)
-            }
-            _ => VisibilityKind::Inherited,
-        }
-    }
-
     fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
         match arg {
             FnArg::Typed(pat_type) => {
