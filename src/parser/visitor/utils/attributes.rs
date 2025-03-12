@@ -2,15 +2,22 @@ use quote::ToTokens;
 use serde::{Deserialize, Serialize};
 use syn::parse::Parser;
 
-pub trait AttributeProcessor {
-    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute>;
-}
+use super::processor::AttributeOperations;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ParsedAttribute {
     pub name: String,
     pub args: Vec<String>,
     pub value: Option<String>,
+}
+
+impl<T> AttributeOperations for T
+where
+    T: super::CodeProcessor,
+{
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
+        extract_attributes(attrs)
+    }
 }
 
 pub fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
