@@ -147,16 +147,26 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     visitor.visit_file(&file);
 
     // Process top-level modules after visiting
-    let root_module = visitor_state.code_graph.modules.first_mut().unwrap();
-    for item in &file.items {
-        if let syn::Item::Mod(item_mod) = item {
-            if let Some(module) = visitor_state.code_graph.modules.iter().find(|m| m.name == item_mod.ident.to_string()) {
-                root_module.submodules.push(module.id);
-                visitor_state.code_graph.relations.push(Relation {
-                    source: root_module_id,
-                    target: module.id,
-                    kind: RelationKind::Contains,
-                });
+    // First collect module names and IDs
+    let module_entries: Vec<(String, NodeId)> = visitor_state.code_graph.modules
+        .iter()
+        .map(|m| (m.name.clone(), m.id))
+        .collect();
+    
+    // Then update root module relationships
+    if let Some(root_module) = visitor_state.code_graph.modules.first_mut() {
+        for item in &file.items {
+            if let syn::Item::Mod(item_mod) = item {
+                if let Some((_, module_id)) = module_entries.iter()
+                    .find(|(name, _)| name == &item_mod.ident.to_string()) 
+                {
+                    root_module.submodules.push(*module_id);
+                    visitor_state.code_graph.relations.push(Relation {
+                        source: root_module_id,
+                        target: *module_id,
+                        kind: RelationKind::Contains,
+                    });
+                }
             }
         }
     }
