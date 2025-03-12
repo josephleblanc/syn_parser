@@ -6,7 +6,9 @@ use crate::parser::relations::*;
 use crate::parser::types::GenericParamNode;
 use crate::parser::types::TypeId;
 use crate::parser::types::*;
-use processor::TypeOperations;
+use self::processor::*;
+use super::nodes::*;
+use super::types::*;
 use syn::Attribute;
 
 pub mod functions;
@@ -46,13 +48,48 @@ use utils::attributes::AttributeProcessor;
 use utils::docs::DocProcessor;
 use utils::generics::GenericsProcessor;
 
-// Blanket implementation for processors with TypeOperations state
-impl<T> TypeProcessor for T 
-where
-    T: CodeProcessor + processor::TypeOperations,
-    T::State: processor::TypeOperations,
-{}
+// Implement remaining processor traits for VisitorState
+impl processor::TypeOperations for VisitorState {
+    fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
+        let type_str = ty.to_token_stream().to_string();
+        if let Some(&id) = self.type_map.get(&type_str) {
+            return id;
+        }
 
+        let (type_kind, related_types) = self.process_type(ty);
+        let id = self.next_type_id();
+        self.type_map.insert(type_str, id);
+        self.code_graph.type_graph.push(TypeNode {
+            id,
+            kind: type_kind,
+            related_types,
+        });
+        id
+    }
+
+    fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>) {
+        // Delegate to existing process_type implementation
+        self.process_type(ty)
+    }
+}
+
+impl processor::AttributeOperations for VisitorState {
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
+        attributes::extract_attributes(attrs)
+    }
+}
+
+impl processor::DocOperations for VisitorState {
+    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
+        docs::extract_docstring(attrs)
+    }
+}
+
+impl processor::GenericsOperations for VisitorState {
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        generics::process_generics(self, generics)
+    }
+}
 impl<T: CodeProcessor + TypeOperations> GenericsProcessor for T {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         generics::process_generics(self.state_mut(), generics)
@@ -151,33 +188,6 @@ pub mod processor {
     }
 }
 
-pub trait CodeProcessor: 
-    processor::StateManagement +
-    processor::TypeOperations +
-    processor::AttributeOperations +
-    processor::DocOperations +
-    processor::GenericsOperations 
-{
-    type State;
-    
-    fn state_mut(&mut self) -> &mut Self::State;
-
-    fn convert_visibility(&mut self, vis: &Visibility) -> VisibilityKind {
-        match vis {
-            Visibility::Public(_) => VisibilityKind::Public,
-            Visibility::Restricted(restricted) => {
-                let path = restricted
-                    .path
-                    .segments
-                    .iter()
-                    .map(|seg| seg.ident.to_string())
-                    .collect();
-                VisibilityKind::Restricted(path)
-            }
-            _ => VisibilityKind::Inherited,
-        }
-    }
-}
 
 // Blanket implementation for processors with TypeOperations state
 impl<T> TypeProcessor for T 
