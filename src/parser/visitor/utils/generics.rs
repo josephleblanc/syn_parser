@@ -1,6 +1,5 @@
 use crate::parser::types::{GenericParamNode, TypeId, TypeNode, TypeKind};
-use crate::parser::visitor::processor::StateManagement;
-use crate::parser::visitor::processor::TypeOperations;
+use crate::parser::visitor::processor;
 use crate::parser::visitor::state::VisitorState;
 use crate::parser::visitor::GenericParamKind;
 use quote::ToTokens;
@@ -19,11 +18,11 @@ pub trait GenericsProcessor {
 
 impl<T> GenericsProcessor for T
 where
-    T: CodeProcessor + processor::TypeOperations + processor::StateManagement
+    T: crate::parser::visitor::CodeProcessor + processor::TypeOperations + processor::StateManagement
 {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         let state = self.state_mut();
-        generics::process_generics(state, generics)
+        process_generics(state, generics)
     }
     
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
