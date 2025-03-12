@@ -18,7 +18,7 @@ pub mod type_processing;
 
 /// Core processor trait with state management
 pub mod processor {
-    use crate::parser::nodes::NodeId;
+    use crate::parser::nodes::{CodeGraph, FunctionNode, NodeId, Relation};
     use crate::parser::types::{GenericParamNode, TypeId, TypeKind};
     use crate::parser::visitor::utils::attributes::ParsedAttribute;
 

@@ -23,12 +23,12 @@ pub trait FunctionVisitor: TypeProcessor {
 
         // Process function parameters
         // This method is giving an error. AI!
-        let parameters = FunctionVisitor::process_parameters(self, func.sig.inputs.iter());
+        let parameters = FunctionVisitor::process_parameters(self, func.sig.inputs.iter().collect::<Vec<_>>().as_slice());
 
         // Process return type
         let return_type = match &func.sig.output {
             ReturnType::Default => None,
-            ReturnType::Type(_, ref ty) => Some(self.state_mut().get_or_create_type(ty)),
+            ReturnType::Type(_, ref ty) => Some(TypeOperations::get_or_create_type(self.state_mut(), ty)),
         };
 
         // Process generic parameters if any
