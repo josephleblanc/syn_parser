@@ -106,7 +106,6 @@ use syn::{
             _ => None,
         }
     }
-}
 
 impl<'a> CodeProcessor for CodeVisitor<'a> {
     type State = VisitorState;

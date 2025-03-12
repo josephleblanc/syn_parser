@@ -229,4 +229,3 @@ where
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
         bound.ident.to_string()
     }
-}
