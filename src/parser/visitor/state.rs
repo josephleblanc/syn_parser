@@ -59,7 +59,7 @@ impl VisitorState {
                     _ => (None, false),
                 };
 
-                let type_id = self.state_mut().get_or_create_type(&pat_type.ty);
+                let type_id = <dyn TypeOperations>::get_or_create_type(self.state_mut(), &pat_type.ty);
 
                 Some(ParameterNode {
                     id: param_id,
@@ -70,7 +70,7 @@ impl VisitorState {
                 })
             }
             FnArg::Receiver(receiver) => {
-                let type_id = self.state_mut().get_or_create_type(&receiver.ty);
+                let type_id = <dyn TypeOperations>::get_or_create_type(self.state_mut(), &receiver.ty);
 
                 Some(ParameterNode {
                     id: self.next_node_id(),
@@ -169,7 +169,7 @@ impl TypeOperations for VisitorState {
                     if let syn::PathArguments::AngleBracketed(args) = &seg.arguments {
                         for arg in &args.args {
                             if let syn::GenericArgument::Type(arg_type) = arg {
-                                related_types.push(self.state_mut().get_or_create_type(arg_type));
+                                related_types.push(<dyn TypeOperations>::get_or_create_type(self.state_mut(), arg_type));
                             }
                         }
                     }
@@ -184,7 +184,7 @@ impl TypeOperations for VisitorState {
                 )
             }
             Type::Reference(type_ref) => {
-                let inner_type_id = self.state_mut().get_or_create_type(&type_ref.elem);
+                let inner_type_id = <dyn TypeOperations>::get_or_create_type(self.state_mut(), &type_ref.elem);
                 let lifetime = type_ref.lifetime.as_ref().map(|l| l.ident.to_string());
 
                 (
