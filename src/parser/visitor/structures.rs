@@ -1,5 +1,7 @@
 // structures.rs
 use crate::parser::visitor::state::VisitorState;
+use crate::parser::visitor::utils::docs::DocProcessor;
+use crate::parser::visitor::utils::extract_docstring;
 use crate::parser::visitor::CodeVisitor;
 use crate::parser::visitor::TypeProcessor;
 use crate::parser::visitor::{
@@ -49,6 +51,7 @@ impl<'ast> StructVisitor<'ast> for CodeVisitor<'_> {
 
         // Extract doc comments and other attributes
         let docstring = self.state.extract_docstring(&item_struct.attrs);
+        let docstring = extract_docstring(&item_struct.attrs);
         let attributes = self.state.extract_attributes(&item_struct.attrs);
 
         // Store struct info only if public
