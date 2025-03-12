@@ -2,33 +2,62 @@
 
 **Goal:** Validate visitor module refactor by passing existing active test suite
 
-## Test Categories
+## Current Test Status (2025-03-12)
+**27 passed | 9 failed**
 
-### Core Parsing Functionality
-- [ ] Basic struct/enum parsing
-- [ ] Trait and impl block recognition
-- [ ] Module hierarchy resolution
-- [ ] Type relationship mapping
+## Problem Categories
 
-### Visibility Handling
-- [ ] Public/crate visibility
-- [ ] Restricted (pub(super)) visibility
-- [ ] Inherited visibility
+### 1. Module Hierarchy Resolution
+- [ ] Root module submodule detection
+- [ ] Nested module item tracking
 
-### Edge Case Handling
-- [ ] Complex generics
-- [ ] Associated types
-- [ ] Macro-expanded code
+### 2. Documentation Parsing
+- [ ] Function docstring capture
+- [ ] Struct docstring capture
 
-### Serialization
-- [ ] RON serialization roundtrips
-- [ ] JSON serialization sanity checks
+### 3. Lifetime Handling
+- [ ] Lifetime parameter tracking
+- [ ] Reference type lifetime associations
+
+### 4. Implementation Resolution
+- [ ] Trait impl discovery
+- [ ] Generic type impl matching
+- [ ] Impl-for-struct relationships
 
 ## Known Issues
-<!-- Add specific failing test cases here as we identify them -->
+```rust
+// Tests currently failing:
+1. parser::functions_tests::test_lifetime_function_parsing
+2. parser::functions_tests::test_documented_function_parsing  
+3. parser::modules_tests::test_module_parsing
+4. parser::structs_tests::test_struct_with_docstring
+5. parser::impls_tests::test_find_impl_by_name
+6. parser::impls_tests::test_generic_impl_for_trait
+7. parser::impls_tests::test_impl_for_struct
+8. parser::impls_tests::test_impl_for_trait  
+9. parser::impls_tests::test_generic_impl_for_struct
+```
+
+## Resolution Strategy
+1. **Critical Path First** - Fix module system first (foundation)
+2. **Incremental Validation** - Fix one category at a time
+3. **Test-Driven Approach** - Use failing tests as requirements
+4. **Parallel Refinement** - Clean up warnings while fixing
 
 ## Next Steps
-- [ ] Run full test suite (`cargo test --all`)
-- [ ] Triage failing tests
-- [ ] Prioritize critical path failures
-- [ ] Establish baseline passing percentage
+- [x] Run full test suite ✔️
+- [x] Triage failing tests ✔️
+- [ ] Fix module hierarchy resolution (current focus)
+- [ ] Address documentation parsing
+- [ ] Resolve lifetime handling
+- [ ] Repair implementation resolution
+- [ ] Clean up compiler warnings
+
+## Workflow Rules
+1. Make small, focused changes
+2. Validate after each fix
+3. Keep this document updated with:
+   - New patterns discovered
+   - Regression risks
+   - Fixed test cases
+4. Maintain version control discipline
