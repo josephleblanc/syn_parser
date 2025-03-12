@@ -22,14 +22,13 @@ pub struct VisitorState {
 }
 
 // In src/parser/visitor/state.rs
-impl StateManagement for VisitorState {
-    // visibility qualifiers not permitted here AI!
+impl processor::StateManagement for VisitorState {
     fn next_node_id(&mut self) -> NodeId {
         let id = self.next_node_id;
         self.next_node_id += 1;
         id
     }
-    // visibility qualifiers not permitted here AI!
+    
     fn next_type_id(&mut self) -> TypeId {
         let id = self.next_type_id;
         self.next_type_id += 1;
@@ -37,30 +36,8 @@ impl StateManagement for VisitorState {
     }
 }
 
-impl crate::parser::visitor::processor::DocOperations for VisitorState {
-    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
-        docs::extract_docstring(attrs)
-    }
-}
-
-impl crate::parser::visitor::processor::AttributeOperations for VisitorState {
-    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
-        attributes::extract_attributes(attrs)
-    }
-}
-
-impl crate::parser::visitor::processor::GenericsOperations for VisitorState {
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        generics::process_generics(self, generics)
-    }
-
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
-        generics::process_lifetime_bound(bound)
-    }
-}
-
-impl TypeOperations for VisitorState {
-    fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
+impl processor::TypeOperations for VisitorState {
+    fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
         let type_str = ty.to_token_stream().to_string();
         if let Some(&id) = self.type_map.get(&type_str) {
             return id;

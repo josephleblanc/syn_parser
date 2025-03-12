@@ -117,22 +117,18 @@ impl<'a> CodeProcessor for CodeVisitor<'a> {
 }
 
 pub mod processor {
-    use syn::Type;
-
-    use crate::parser::{nodes::NodeId, TypeId};
-    use super::utils::{attributes::ParsedAttribute, docs::DocProcessor};
-
     pub trait StateManagement {
-        fn next_node_id(&mut self) -> NodeId;
-        fn next_type_id(&mut self) -> TypeId;
+        fn next_node_id(&mut self) -> crate::parser::nodes::NodeId;
+        fn next_type_id(&mut self) -> crate::parser::types::TypeId;
     }
 
     pub trait TypeOperations {
-        fn get_or_create_type(&mut self, ty: &Type) -> TypeId;
+        fn get_or_create_type(&mut self, ty: &syn::Type) -> crate::parser::types::TypeId;
+        fn process_type(&mut self, ty: &syn::Type) -> (crate::parser::types::TypeKind, Vec<crate::parser::types::TypeId>);
     }
 
     pub trait AttributeOperations {
-        fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute>;
+        fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<crate::parser::nodes::ParsedAttribute>;
     }
 
     pub trait DocOperations {
@@ -140,8 +136,28 @@ pub mod processor {
     }
 
     pub trait GenericsOperations {
-        fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
-        fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
+        fn process_generics(&mut self, generics: &syn::Generics) -> Vec<crate::parser::types::GenericParamNode>;
+    }
+}
+
+pub trait CodeProcessor: 
+    processor::StateManagement +
+    processor::TypeOperations +
+    processor::AttributeOperations +
+    processor::DocOperations +
+    processor::GenericsOperations 
+{
+    fn convert_visibility(&mut self, vis: &syn::Visibility) -> crate::parser::types::VisibilityKind {
+        match vis {
+            syn::Visibility::Public(_) => crate::parser::types::VisibilityKind::Public,
+            syn::Visibility::Restricted(restricted) => {
+                let path = restricted.path.segments.iter()
+                    .map(|seg| seg.ident.to_string())
+                    .collect();
+                crate::parser::types::VisibilityKind::Restricted(path)
+            }
+            _ => crate::parser::types::VisibilityKind::Inherited,
+        }
     }
 }
 

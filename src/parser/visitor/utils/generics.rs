@@ -11,12 +11,14 @@ use syn::{Type, TypeParamBound};
 
 use super::CodeProcessor;
 
-pub trait GenericsProcessor: TypeOperations + CodeProcessor {
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
-    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
-        bound.ident.to_string()
-    }
+pub trait GenericsProcessor: CodeProcessor {
+    fn process_generic_param(&mut self, param: &syn::GenericParam) -> crate::parser::types::GenericParamNode;
+}
+
+pub fn process_generics<P: GenericsProcessor>(processor: &mut P, generics: &syn::Generics) -> Vec<crate::parser::types::GenericParamNode> {
+    generics.params.iter()
+        .map(|param| processor.process_generic_param(param))
+        .collect()
 }
 
 pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<GenericParamNode> {
