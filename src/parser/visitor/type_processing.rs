@@ -11,12 +11,16 @@ use super::processor::TypeOperations;
 use super::CodeProcessor;
 
 // In src/parser/visitor/type_processing.rs
-// Blanket implementation for processors with TypeOperations
+pub trait TypeProcessor: CodeProcessor + processor::TypeOperations {
+    // Inherit default implementations
+}
+
 impl<T> TypeProcessor for T 
 where
     T: CodeProcessor + processor::TypeOperations,
-    T::State: processor::TypeOperations,
-{}
+{
+    // Blanket implementation for any CodeProcessor with TypeOperations
+}
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
         let mut related_types = Vec::new();
 

@@ -12,13 +12,101 @@ use syn::{Type, TypeParamBound};
 use super::CodeProcessor;
 
 pub trait GenericsProcessor: CodeProcessor {
-    fn process_generic_param(&mut self, param: &syn::GenericParam) -> crate::parser::types::GenericParamNode;
+    fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode;
+    
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
+    
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
 }
 
-pub fn process_generics<P: GenericsProcessor>(processor: &mut P, generics: &syn::Generics) -> Vec<crate::parser::types::GenericParamNode> {
-    generics.params.iter()
-        .map(|param| processor.process_generic_param(param))
-        .collect()
+impl GenericsProcessor for VisitorState {
+    fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode {
+        match param {
+            syn::GenericParam::Type(TypeParam {
+                ident,
+                bounds,
+                default,
+                ..
+            }) => {
+                let bounds: Vec<_> = bounds
+                    .iter()
+                    .map(|bound| self.process_type_bound(bound))
+                    .collect();
+
+                let default_type = default.as_ref().map(|expr| {
+                    let path = expr.to_token_stream().to_string();
+                    self.type_map.get(&path).cloned().unwrap_or_else(|| {
+                        let id = self.next_type_id();
+                        self.get_or_create_type(expr);
+                        id
+                    })
+                });
+
+                GenericParamNode {
+                    id: self.next_node_id(),
+                    kind: GenericParamKind::Type {
+                        name: ident.to_string(),
+                        bounds,
+                        default: default_type,
+                    },
+                }
+            }
+            syn::GenericParam::Lifetime(lifetime_def) => {
+                let bounds: Vec<String> = lifetime_def
+                    .bounds
+                    .iter()
+                    .map(|bound| self.process_lifetime_bound(bound))
+                    .collect();
+
+                GenericParamNode {
+                    id: self.next_node_id(),
+                    kind: GenericParamKind::Lifetime {
+                        name: lifetime_def.lifetime.ident.to_string(),
+                        bounds,
+                    },
+                }
+            }
+            syn::GenericParam::Const(const_param) => {
+                let type_id = self.get_or_create_type(&const_param.ty);
+                GenericParamNode {
+                    id: self.next_node_id(),
+                    kind: GenericParamKind::Const {
+                        name: const_param.ident.to_string(),
+                        type_id,
+                    },
+                }
+            }
+        }
+    }
+    
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
+        match bound {
+            syn::TypeParamBound::Trait(trait_bound) => {
+                let ty = Type::Path(TypePath {
+                    qself: None,
+                    path: trait_bound.path.clone(),
+                });
+                self.get_or_create_type(&ty)
+            }
+            syn::TypeParamBound::Lifetime(_) => {
+                let type_id = self.next_type_id();
+                self.code_graph.type_graph.push(TypeNode {
+                    id: type_id,
+                    kind: TypeKind::Named {
+                        path: vec!["lifetime".to_string()],
+                        is_fully_qualified: false,
+                    },
+                    related_types: Vec::new(),
+                });
+                type_id
+            }
+            _ => self.next_type_id(),
+        }
+    }
+    
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        bound.ident.to_string()
+    }
 }
 
 pub fn process_generics(state: &mut VisitorState, generics: &Generics) -> Vec<GenericParamNode> {
