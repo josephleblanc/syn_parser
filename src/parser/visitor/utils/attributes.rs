@@ -11,15 +11,15 @@ pub struct ParsedAttribute {
     pub value: Option<String>,
 }
 
-impl<T> AttributeOperations for T
-where
-    T: CodeProcessor,
-    T::State: AttributeOperations
-{
-    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
-        self.state_mut().extract_attributes(attrs)
-    }
-}
+// impl<T> AttribteOperations for T
+// where
+//     T: CodeProcessor,
+//     T::State: AttributeOperations
+// {
+//     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
+//         self.state_mut().extract_attributes(attrs)
+//     }
+// }
 
 pub fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
     attrs

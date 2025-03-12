@@ -258,7 +258,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         // Extract doc comments and other attributes
         let docstring = self.state.extract_docstring(&item_type.attrs);
-        let attributes = self.extract_attributes(&item_type.attrs);
+        let attributes = self.state.extract_attributes(&item_type.attrs);
 
         // Store type alias info only if public
         if matches!(item_type.vis, Visibility::Public(_)) {
@@ -294,7 +294,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
             // Extract doc comments and other attributes
             let docstring = self.state.extract_docstring(&item_const.attrs);
-            let attributes = self.extract_attributes(&item_const.attrs);
+            let attributes = self.state.extract_attributes(&item_const.attrs);
 
             // Create the constant node
             let const_node = ValueNode {
@@ -338,7 +338,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
             // Extract doc comments and other attributes
             let docstring = self.state.extract_docstring(&item_static.attrs);
-            let attributes = self.extract_attributes(&item_static.attrs);
+            let attributes = self.state.extract_attributes(&item_static.attrs);
 
             // Create the static node
             let static_node = ValueNode {
@@ -394,7 +394,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
         // Extract doc comments and other attributes
         let docstring = self.state.extract_docstring(&item_macro.attrs);
-        let attributes = self.extract_attributes(&item_macro.attrs);
+        let attributes = self.state.extract_attributes(&item_macro.attrs);
 
         // Parse macro rules (simplified approach)
         let mut rules = Vec::new();
