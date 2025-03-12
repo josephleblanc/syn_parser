@@ -89,7 +89,7 @@ pub trait TraitVisitor: FunctionVisitor {
         let method_name = method.sig.ident.to_string();
 
         // Process method parameters
-        let parameters = self.process_parameters(&method.sig.inputs);
+        let parameters = self.process_parameters(method.sig.inputs.as_ref());
 
         // Process return type
         let return_type = match &method.sig.output {
@@ -124,22 +124,6 @@ pub trait TraitVisitor: FunctionVisitor {
         }
     }
 
-    //// Convert visibility modifier to our internal representation
-    // fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
-    //     match vis {
-    //         Visibility::Public(_) => VisibilityKind::Public,
-    //         Visibility::Restricted(restricted) => {
-    //             let path = restricted
-    //                 .path
-    //                 .segments
-    //                 .iter()
-    //                 .map(|seg| seg.ident.to_string())
-    //                 .collect();
-    //             VisibilityKind::Restricted(path)
-    //         }
-    //         _ => VisibilityKind::Inherited,
-    //     }
-    // }
 }
 
 /// Trait for processing impl blocks
@@ -224,7 +208,7 @@ pub trait ImplVisitor: FunctionVisitor {
         let method_name = method.sig.ident.to_string();
 
         // Process method parameters
-        let parameters = self.process_parameters(&method.sig.inputs);
+        let parameters = self.process_parameters(method.sig.inputs.as_ref());
 
         // Process return type
         let return_type = match &method.sig.output {
@@ -256,22 +240,6 @@ pub trait ImplVisitor: FunctionVisitor {
         }
     }
 
-    //// Convert visibility modifier to our internal representation
-    // fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
-    //     match vis {
-    //         Visibility::Public(_) => VisibilityKind::Public,
-    //         Visibility::Restricted(restricted) => {
-    //             let path = restricted
-    //                 .path
-    //                 .segments
-    //                 .iter()
-    //                 .map(|seg| seg.ident.to_string())
-    //                 .collect();
-    //             VisibilityKind::Restricted(path)
-    //         }
-    //         _ => VisibilityKind::Inherited,
-    //     }
-    // }
 }
 
 // Blanket implementations
