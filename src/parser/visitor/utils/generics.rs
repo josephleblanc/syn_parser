@@ -18,7 +18,9 @@ pub trait GenericsProcessor {
 
 impl<T> GenericsProcessor for T
 where
-    T: crate::parser::visitor::CodeProcessor + processor::TypeOperations + processor::StateManagement
+    T: crate::parser::visitor::CodeProcessor + 
+       crate::parser::visitor::processor::TypeOperations + 
+       crate::parser::visitor::processor::StateManagement
 {
     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
         let state = self.state_mut();
