@@ -1,6 +1,7 @@
 use crate::parser::graph::CodeGraph;
 use crate::parser::nodes::NodeId;
 use crate::parser::nodes::*;
+use crate::parser::visitor::utils::attributes::ParsedAttribute;
 use crate::parser::relations::*;
 use crate::parser::types::GenericParamNode;
 use crate::parser::types::TypeId;
@@ -118,6 +119,30 @@ impl<'a> CodeProcessor for CodeVisitor<'a> {
 
     fn state_mut(&mut self) -> &mut Self::State {
         self.state
+    }
+
+    fn next_node_id(&mut self) -> NodeId {
+        self.state.next_node_id()
+    }
+
+    fn next_type_id(&mut self) -> TypeId {
+        self.state.next_type_id()
+    }
+
+    fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
+        self.state.get_or_create_type(ty)
+    }
+
+    fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
+        self.state.extract_attributes(attrs)
+    }
+
+    fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
+        self.state.extract_docstring(attrs)
+    }
+
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
+        self.state.process_generics(generics)
     }
 }
 

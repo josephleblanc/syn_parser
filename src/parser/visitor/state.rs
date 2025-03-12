@@ -10,6 +10,7 @@ use std::path::Path;
 use syn::Type;
 use syn::{FnArg, Visibility};
 
+use super::processor;
 use super::processor::{StateManagement, TypeOperations};
 use super::utils::{attributes, docs, generics};
 use super::TypeProcessor;
@@ -57,11 +58,6 @@ impl processor::TypeOperations for VisitorState {
     }
 }
 
-impl generics::GenericsProcessor for VisitorState {
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        generics::process_generics(self, generics)
-    }
-}
 
 impl docs::DocProcessor for VisitorState {
     fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {

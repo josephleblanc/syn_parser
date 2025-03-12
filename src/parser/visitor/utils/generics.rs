@@ -1,5 +1,4 @@
-use crate::parser::types::GenericParamNode;
-use crate::parser::types::TypeId;
+use crate::parser::types::{GenericParamNode, TypeId, TypeNode, TypeKind};
 use crate::parser::visitor::processor::StateManagement;
 use crate::parser::visitor::processor::TypeOperations;
 use crate::parser::visitor::state::VisitorState;
@@ -12,10 +11,9 @@ use syn::{Type, TypeParamBound};
 use super::CodeProcessor;
 
 pub trait GenericsProcessor: CodeProcessor {
+    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode>;
     fn process_generic_param(&mut self, param: &syn::GenericParam) -> GenericParamNode;
-    
     fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId;
-    
     fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String;
 }
 

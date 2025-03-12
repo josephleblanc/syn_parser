@@ -7,6 +7,7 @@ use syn::{
     TypeParamBound, TypePath, TypeReference,
 };
 
+use super::processor;
 use super::processor::TypeOperations;
 use super::CodeProcessor;
 
@@ -19,7 +20,7 @@ impl<T> TypeProcessor for T
 where
     T: CodeProcessor + processor::TypeOperations,
 {
-    // Blanket implementation for any CodeProcessor with TypeOperations
+    // Inherit default implementations
 }
     fn process_type(&mut self, ty: &Type) -> (TypeKind, Vec<TypeId>) {
         let mut related_types = Vec::new();

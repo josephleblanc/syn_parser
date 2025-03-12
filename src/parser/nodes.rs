@@ -3,12 +3,6 @@ use crate::parser::visitor::utils::attributes::ParsedAttribute;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ParsedAttribute {
-    pub name: String,
-    pub args: Vec<String>,
-    pub value: Option<String>,
-}
 
 // Unique ID for a node in the graph
 pub type NodeId = usize;
