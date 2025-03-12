@@ -65,18 +65,6 @@ impl<T: CodeProcessor + TypeOperations> GenericsProcessor for T {
         self.state_mut().process_lifetime_bound(bound)
     }
 }
-    fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-        generics::process_generics(self.state_mut(), generics)
-    }
-
-    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
-        self.state_mut().process_type_bound(bound)
-    }
-
-    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
-        self.state_mut().process_lifetime_bound(bound)
-    }
-}
 
 use self::utils::{attributes, docs, generics};
 pub use self::{
