@@ -5,12 +5,34 @@ PHASE 1: FOUNDATIONAL TYPE SAFETY
 1. **Implement Core ID Types** (`nodes.rs`, `types.rs`)
 ```rust
 // New: src/parser/nodes.rs
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub struct NodeId(usize);
 
-// New: src/parser/types.rs 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+impl NodeId {
+    pub fn as_usize(&self) -> usize { self.0 }
+    pub fn increment(&mut self) { self.0 += 1; }
+}
+
+// New: src/parser/types.rs
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub struct TypeId(usize);
+
+impl TypeId {
+    pub fn as_node_id(&self) -> Option<NodeId> {
+        Some(NodeId(self.0))
+    }
+    
+    pub fn as_usize(&self) -> usize { self.0 }
+}
+
+// Add core trait implementations
+impl From<usize> for NodeId {
+    fn from(value: usize) -> Self { NodeId(value) }
+}
+
+impl From<NodeId> for usize {
+    fn from(value: NodeId) -> Self { value.0 }
+}
 
 // Keep existing TypeId usage temporarily
 pub type LegacyTypeId = usize;
@@ -21,23 +43,53 @@ pub type LegacyTypeId = usize;
 // In VisitorState
 fn next_node_id(&mut self) -> NodeId {
     let id = NodeId(self.next_node_id);
-    self.next_node_id += 1;
+    self.next_node_id.increment();
     id
 }
 
 fn next_type_id(&mut self) -> TypeId {
     let id = TypeId(self.next_type_id);
-    self.next_type_id += 1;
+    self.next_type_id.increment();
     id
+}
+
+// Add increment trait for ergonomic ID generation
+pub trait Increment {
+    fn increment(&mut self);
+}
+
+impl Increment for usize {
+    fn increment(&mut self) { *self += 1; }
 }
 ```
 
 3. **Safe Conversion Helpers** (`types.rs`)
 ```rust
-impl TypeId {
-    pub fn as_node_id(self) -> Option<NodeId> {
-        // Temporary bridge for initial refactor
-        Some(NodeId(self.0))
+pub trait Identifier: Copy + Into<usize> + TryFrom<usize> {
+    fn new(value: usize) -> Option<Self>;
+    fn as_usize(&self) -> usize;
+}
+
+impl Identifier for NodeId {
+    fn new(value: usize) -> Option<Self> { Some(NodeId(value)) }
+    fn as_usize(&self) -> usize { self.0 }
+}
+
+impl Identifier for TypeId {
+    fn new(value: usize) -> Option<Self> { Some(TypeId(value)) }
+    fn as_usize(&self) -> usize { self.0 }
+}
+
+// Add display implementations for debugging
+impl std::fmt::Display for NodeId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "NodeId({})", self.0)
+    }
+}
+
+impl std::fmt::Display for TypeId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TypeId({})", self.0)
     }
 }
 ```
