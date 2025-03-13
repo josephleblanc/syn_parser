@@ -17,6 +17,7 @@
 
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️
+   - Updated next_node_id/next_type_id to return newtype IDs
    - CodeGraph storage fields
    - Type system operations ✔️
    - Type conversions ✔️

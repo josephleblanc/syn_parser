@@ -155,7 +155,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                                 _ => false,
                             })
                             .map(|def| match def {
-                                TypeDefNode::Struct(s) => s.id,
+                                TypeDefNode::Struct(s) => s.id.as_usize(),
                                 _ => 0, // Should never happen
                             })
                     }

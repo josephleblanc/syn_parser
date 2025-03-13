@@ -220,7 +220,7 @@ pub trait ImplVisitor: FunctionVisitor {
                 .code_graph()
                 .relations
                 .iter()
-                .find(|r| r.kind == RelationKind::TypeDefinition && r.target == type_id)
+                .find(|r| r.kind == RelationKind::TypeDefinition && r.target == type_id.as_usize())
                 .map(|r| r.source)
             {
                 self.state_mut().add_relation(Relation {
