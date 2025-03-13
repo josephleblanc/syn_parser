@@ -11,10 +11,10 @@
    - Implemented From/Into traits ✔️
 
 2. `src/parser/relations.rs` ✔️
-   - Relation struct fields ✔️
-   - RelationKind variants handling ✔️
-   - Temporary conversion support ✔️
-   - Type imports ✔️
+   - Relation struct fields updated with RelationSource/RelationTarget ✔️
+   - RelationKind variants handling updated ✔️
+   - Removed temporary conversion support ✔️
+   - Type imports updated with TraitId ✔️
 
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️

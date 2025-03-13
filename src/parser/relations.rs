@@ -6,17 +6,21 @@ use serde::{Deserialize, Serialize};
 // Represents a relation between nodes
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Relation {
-    pub source: NodeId,
-    pub target: NodeId, // Temporary alias during transition
+    pub source: RelationSource,
+    pub target: RelationTarget,
     pub kind: RelationKind,
 }
 
-impl Relation {
-    /// Temporary conversion method for TypeId targets
-    pub fn with_type_target(mut self, target: TypeId) -> Self {
-        self.target = target.into();
-        self
-    }
+#[derive(Debug, Serialize, Deserialize)]
+pub enum RelationSource {
+    Node(NodeId),
+    Trait(TraitId),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum RelationTarget {
+    Type(TypeId),
+    Trait(TraitId),
 }
 
 // ANCHOR: Uses
@@ -28,7 +32,7 @@ pub enum RelationKind {
     StructField,
     EnumVariant,
     ImplementsFor,
-    ImplementsTrait,
+    ImplementsTrait(TraitId),
     Inherits,
     References,
     Contains,
