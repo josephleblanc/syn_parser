@@ -17,10 +17,34 @@ pub enum RelationSource {
     Trait(TraitId),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+impl From<NodeId> for RelationSource {
+    fn from(id: NodeId) -> Self {
+        RelationSource::Node(id)
+    }
+}
+
+impl From<TraitId> for RelationSource {
+    fn from(id: TraitId) -> Self {
+        RelationSource::Trait(id)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum RelationTarget {
     Type(TypeId),
     Trait(TraitId),
+}
+
+impl From<TypeId> for RelationTarget {
+    fn from(id: TypeId) -> Self {
+        RelationTarget::Type(id)
+    }
+}
+
+impl From<TraitId> for RelationTarget {
+    fn from(id: TraitId) -> Self {
+        RelationTarget::Trait(id)
+    }
 }
 
 // ANCHOR: Uses

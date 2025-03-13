@@ -16,6 +16,8 @@
    - RelationKind variants handling updated ✔️
    - Removed temporary conversion support ✔️
    - Type imports updated with TraitId ✔️
+   - Added From implementations for ID types ✔️
+   - Implemented PartialEq for RelationTarget ✔️
 
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️
