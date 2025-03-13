@@ -19,9 +19,19 @@ use super::utils::{attributes, docs};
 
 pub struct VisitorState {
     pub code_graph: CodeGraph,
-    pub next_node_id: NodeId,
-    pub next_type_id: TypeId,
+    pub next_node_id: usize,
+    pub next_type_id: usize,
     pub type_map: HashMap<String, TypeId>,
+}
+
+pub trait Increment {
+    fn increment(&mut self);
+}
+
+impl Increment for usize {
+    fn increment(&mut self) {
+        *self += 1;
+    }
 }
 
 impl VisitorState {
@@ -39,8 +49,8 @@ impl VisitorState {
                 macros: Vec::new(),
                 relations: Vec::new(),
             },
-            next_node_id: NodeId(0),
-            next_type_id: TypeId(0),
+            next_node_id: 0,
+            next_type_id: 0,
             type_map: HashMap::new(),
         }
     }
@@ -116,14 +126,14 @@ impl StateManagement for VisitorState {
         id
     }
     fn next_node_id(&mut self) -> NodeId {
-        let id = NodeId(self.next_node_id.0);
-        self.next_node_id.0 += 1;
+        let id = NodeId(self.next_node_id);
+        self.next_node_id.increment();
         id
     }
 
     fn next_type_id(&mut self) -> TypeId {
-        let id = TypeId(self.next_type_id.0);
-        self.next_type_id.0 += 1;
+        let id = TypeId(self.next_type_id);
+        self.next_type_id.increment();
         id
     }
 }
