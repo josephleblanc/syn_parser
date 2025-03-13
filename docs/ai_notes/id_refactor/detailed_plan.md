@@ -195,7 +195,7 @@ let ron = save_to_ron(&graph);
 std::fs::write("debug_graph.ron", ron);
 ```
 
-REFACTOR TIMELINE (EST. 3-4 HOURS)
+REFACTOR TIMELINE (EST. 5-6 HOURS)
 -----------------------------------
 ```mermaid
 gantt
@@ -211,9 +211,17 @@ gantt
     Relation Conversion : 02-15, 30min
     Test Updates        : 02-45, 45min
     
+    section Phase 2.5
+    Graph ID System     : 03-30, 60min
+    Dual Storage        : 04-30, 30min
+    
     section Validation
-    Serialization Check : 03-30, 20min
-    Full Test Run       : 03-50, 20min
+    Serialization Check : 05-00, 20min
+    Full Test Run       : 05-20, 20min
+    
+    section Phase 5
+    ID Unification      : 05-40, 60min
+    Final Cleanup       : 06-40, 20min
 ```
 
 CRITICAL WATCH POINTS
@@ -229,5 +237,14 @@ CRITICAL WATCH POINTS
 
 4. **Visibility Handling**  
    Maintain restricted visibility path tracking during ID changes
+
+5. **Transitional ID Storage**  
+   Monitor dual-storage memory impact
+
+6. **Graph Schema Changes**  
+   Track adapter layer performance characteristics
+
+7. **Unification Readiness**  
+   Verify all subsystems use GraphNodeId before Phase 5
 
 Let's start with Phase 1, file by file. Would you like me to generate the first concrete code changes for the NodeId/TypeId newtype implementation?

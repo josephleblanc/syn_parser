@@ -67,6 +67,8 @@ graph TD
 3. **Modify Relation Handling**
 4. **Adjust Test Assertions Last**
 5. **Use Compiler Errors as Guide**
+6. **Transitional Graph ID System** (Phase 2.5)
+7. **Final Unification** (Phase 5)
 
 ## Preserving Functionality
 
