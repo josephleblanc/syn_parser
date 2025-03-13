@@ -17,7 +17,7 @@ use syn::{ImplItem, ImplItemFn, ItemImpl, ItemTrait, TraitItem, TraitItemFn};
 pub trait TraitVisitor: FunctionVisitor {
     /// Process a trait definition
     fn process_trait(&mut self, t: &ItemTrait) {
-        let trait_id = self.state_mut().next_node_id();
+        let trait_id = self.state_mut().next_trait_id();
         let trait_name = t.ident.to_string();
         let visibility = self.convert_visibility(&t.vis);
 
@@ -25,7 +25,7 @@ pub trait TraitVisitor: FunctionVisitor {
         let generic_params = self.state_mut().process_generics(&t.generics);
 
         // Process super traits (bounds)
-        let super_traits: Vec<TypeId> = t
+        let super_traits: Vec<TraitId> = t
             .supertraits
             .iter()
             .map(|bound| self.process_type_bound(bound))
@@ -59,7 +59,7 @@ pub trait TraitVisitor: FunctionVisitor {
 
         // Create relation between trait and its type
         self.state_mut().add_relation(Relation {
-            source: RelationSource::Node(trait_id),
+            source: RelationSource::Trait(trait_id),
             target: RelationTarget::Type(type_id),
             kind: RelationKind::TypeDefinition,
             graph_source: trait_id.into(),
@@ -79,11 +79,11 @@ pub trait TraitVisitor: FunctionVisitor {
         // Create relations for super traits
         for super_trait_id in super_traits.iter() {
             self.state_mut().add_relation(Relation {
-                source: RelationSource::Trait(TraitId(trait_id.0)),
-                target: RelationTarget::Type(*super_trait_id),
+                source: RelationSource::Trait(trait_id),
+                target: RelationTarget::Trait(*super_trait_id),
                 kind: RelationKind::Inherits,
-                graph_source: trait_id,
-                graph_target: super_trait_id.as_usize().into(),
+                graph_source: trait_id.into(),
+                graph_target: (*super_trait_id).into(),
             });
         }
     }
@@ -164,12 +164,13 @@ pub trait ImplVisitor: FunctionVisitor {
 
         // Process the trait being implemented (if any)
         let trait_type = if let Some((_, path, _)) = &i.trait_ {
-            // Convert the path directly to a TypePath
-            let ty = Some(syn::Type::Path(syn::TypePath {
-                qself: None,
-                path: path.clone(),
-            }));
-            ty.map(|t| self.state_mut().get_or_create_type(&t))
+            // Look up trait ID by name
+            self.state_mut()
+                .code_graph
+                .traits
+                .iter()
+                .find(|t| t.name == path.segments.last().unwrap().ident.to_string())
+                .map(|t| t.id)
         } else {
             None
         };
@@ -229,7 +230,7 @@ pub trait ImplVisitor: FunctionVisitor {
                     source: RelationSource::Node(impl_id),
                     target: RelationTarget::Trait(trait_node_id),
                     kind: RelationKind::ImplementsTrait(trait_node_id),
-                    graph_source: impl_id,
+                    graph_source: impl_id.into(),
                     graph_target: trait_node_id.into(),
                 });
             }
