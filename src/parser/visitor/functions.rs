@@ -1,15 +1,14 @@
-use std::ops::Deref;
-
-use crate::parser::nodes::{FunctionNode, NodeId, ParameterNode};
-use crate::parser::relations::{Relation, RelationKind};
-use crate::parser::types::TypeId;
-use crate::parser::types::VisibilityKind;
-use crate::parser::visitor::processor::{CodeProcessor, StateManagement, TypeOperations};
-use crate::parser::visitor::type_processing::TypeProcessor;
-use quote::ToTokens;
-use syn::{FnArg, ItemFn, PatType, ReturnType, Signature, Type, Visibility};
+use crate::parser::{
+    nodes::{FunctionNode, NodeId, ParameterNode},
+    relations::{Relation, RelationKind},
+    types::{TypeId, VisibilityKind},
+    visitor::{processor::StateManagement, type_processing::TypeProcessor},
+};
 
 use super::{AttributeOperations, DocOperations, GenericsOperations};
+
+use quote::ToTokens;
+use syn::{FnArg, ItemFn, ReturnType, Visibility};
 
 /// Trait for processing function-related AST nodes
 ///

@@ -1,17 +1,15 @@
-use crate::parser::nodes::{FunctionNode, ImplNode, NodeId, TraitNode};
-use crate::parser::relations::{Relation, RelationKind};
-use crate::parser::types::VisibilityKind;
-// use crate::parser::state::Visitor;
-use crate::parser::types::TypeId;
-use crate::parser::visitor::functions::FunctionVisitor;
-use crate::parser::visitor::processor::{
-    CodeProcessor, GenericsOperations, StateManagement, TypeOperations,
+use crate::parser::{
+    nodes::{FunctionNode, ImplNode, NodeId, TraitNode},
+    relations::{Relation, RelationKind},
+    types::{TypeId, VisibilityKind},
+    visitor::{
+        functions::FunctionVisitor,
+        processor::{AttributeOperations, DocOperations, GenericsOperations, StateManagement},
+        RelationSource, RelationTarget, TraitId,
+    },
 };
-use crate::parser::visitor::type_processing::TypeProcessor;
-use quote::ToTokens;
-use syn::{ImplItem, ImplItemFn, Item, ItemImpl, ItemTrait, TraitItem, TraitItemFn, Visibility};
 
-use super::{AttributeOperations, DocOperations};
+use syn::{ImplItem, ImplItemFn, ItemImpl, ItemTrait, TraitItem, TraitItemFn};
 
 /// Trait for processing trait definitions
 ///

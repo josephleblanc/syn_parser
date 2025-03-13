@@ -3,11 +3,12 @@ use crate::parser::nodes::NodeId;
 use crate::parser::nodes::*;
 use crate::parser::relations::Relation;
 use crate::parser::relations::*;
-use crate::parser::types::GenericParamNode;
-use crate::parser::types::TypeId;
 pub use crate::parser::types::TypeKind;
 use crate::parser::types::*;
-use crate::parser::visitor::utils::attributes::ParsedAttribute;
+
+use quote::ToTokens;
+use std::path::Path;
+use syn::{visit::Visit, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Visibility};
 
 pub mod functions;
 pub mod modules;
@@ -108,20 +109,11 @@ pub use processor::{
 
 // Re-export types used in processor traits
 
-use self::utils::{attributes, docs, generics};
 pub use self::{
     functions::FunctionVisitor,
     modules::ModuleVisitor,
     structures::StructVisitor,
     traits_impls::{ImplVisitor, TraitVisitor},
-};
-
-use quote::ToTokens;
-use std::collections::HashMap;
-use std::path::Path;
-use syn::{
-    visit::Visit, FnArg, ItemEnum, ItemFn, ItemImpl, ItemStruct, ItemTrait, Pat, PatIdent, PatType,
-    Visibility,
 };
 
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
@@ -148,17 +140,20 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
 
     // Process top-level modules after visiting
     // First collect module names and IDs
-    let module_entries: Vec<(String, NodeId)> = visitor_state.code_graph.modules
+    let module_entries: Vec<(String, NodeId)> = visitor_state
+        .code_graph
+        .modules
         .iter()
         .map(|m| (m.name.clone(), m.id))
         .collect();
-    
+
     // Then update root module relationships
     if let Some(root_module) = visitor_state.code_graph.modules.first_mut() {
         for item in &file.items {
             if let syn::Item::Mod(item_mod) = item {
-                if let Some((_, module_id)) = module_entries.iter()
-                    .find(|(name, _)| name == &item_mod.ident.to_string()) 
+                if let Some((_, module_id)) = module_entries
+                    .iter()
+                    .find(|(name, _)| name == &item_mod.ident.to_string())
                 {
                     root_module.submodules.push(*module_id);
                     visitor_state.code_graph.relations.push(Relation {
@@ -394,7 +389,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
     fn visit_item_mod(&mut self, m: &'ast syn::ItemMod) {
         let module_id = self.state.next_node_id();
         let module_name = m.ident.to_string();
-        
+
         // Create and store the module node
         let module = ModuleNode {
             id: module_id,

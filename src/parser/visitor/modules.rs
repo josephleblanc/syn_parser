@@ -1,15 +1,14 @@
 use crate::parser::visitor::TypeDefNode;
 use crate::parser::visitor::VisibilityKind;
 use crate::parser::{
-    nodes::{ImportNode, MacroKind, MacroNode, ModuleNode, ValueKind, ValueNode},
+    nodes::{ModuleNode, ValueKind},
     relations::{Relation, RelationKind},
-    types::{TypeId, TypeKind, TypeNode},
-    visitor::{state::VisitorState, CodeVisitor},
+    types::{TypeKind, TypeNode},
+    visitor::CodeVisitor,
 };
 use syn::visit::Visit;
 use syn::{visit, ItemExternCrate, ItemMod, ItemUse, Visibility};
 
-use super::processor::CodeProcessor;
 use super::AttributeOperations;
 use super::DocOperations;
 use super::FunctionVisitor;
@@ -63,14 +62,18 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                     syn::Item::Struct(strct) => {
                         self.visit_item_struct(strct);
                         // Get the last added struct ID
-                        if let Some(TypeDefNode::Struct(struct_node)) = self.state.code_graph.defined_types.last() {
+                        if let Some(TypeDefNode::Struct(struct_node)) =
+                            self.state.code_graph.defined_types.last()
+                        {
                             items.push(struct_node.id);
                         }
                     }
                     syn::Item::Enum(enm) => {
                         self.visit_item_enum(enm);
                         // Get the last added enum ID
-                        if let Some(TypeDefNode::Enum(enum_node)) = self.state.code_graph.defined_types.last() {
+                        if let Some(TypeDefNode::Enum(enum_node)) =
+                            self.state.code_graph.defined_types.last()
+                        {
                             items.push(enum_node.id);
                         }
                     }

@@ -2,24 +2,12 @@ use quote::ToTokens;
 use serde::{Deserialize, Serialize};
 use syn::parse::Parser;
 
-use crate::parser::visitor::processor::{AttributeOperations, CodeProcessor};
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ParsedAttribute {
     pub name: String,
     pub args: Vec<String>,
     pub value: Option<String>,
 }
-
-// impl<T> AttribteOperations for T
-// where
-//     T: CodeProcessor,
-//     T::State: AttributeOperations
-// {
-//     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
-//         self.state_mut().extract_attributes(attrs)
-//     }
-// }
 
 pub fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
     attrs

@@ -3,15 +3,9 @@ use crate::parser::nodes::{
 };
 use crate::parser::relations::{Relation, RelationKind};
 use crate::parser::types::VisibilityKind;
-use crate::parser::visitor::processor::{
-    CodeProcessor, GenericsOperations, StateManagement, TypeOperations,
-};
+use crate::parser::visitor::processor::{GenericsOperations, StateManagement};
 use crate::parser::visitor::type_processing::TypeProcessor;
-use quote::ToTokens;
-use syn::{
-    Fields, FieldsNamed, FieldsUnnamed, Generics, Ident, Item, ItemEnum, ItemStruct, ItemUnion,
-    Visibility,
-};
+use syn::{Fields, FieldsNamed, FieldsUnnamed, ItemEnum, ItemStruct, ItemUnion, Visibility};
 
 use super::{AttributeOperations, DocOperations};
 

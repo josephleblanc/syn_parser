@@ -1,23 +1,21 @@
-use crate::parser::graph::CodeGraph;
-use crate::parser::nodes::FunctionNode;
-use crate::parser::nodes::{NodeId, ParameterNode};
-use crate::parser::relations::Relation;
-use crate::parser::types::VisibilityKind;
-use crate::parser::types::{GenericParamNode, TypeId};
-use crate::parser::types::{TypeKind, TypeNode};
-use crate::parser::visitor::utils::attributes::ParsedAttribute;
-use quote::ToTokens;
-use std::collections::HashMap;
-use std::path::Path;
-use syn::Type;
-use syn::{FnArg, Visibility};
-
-use super::processor;
 use super::processor::{
     AttributeOperations, CodeProcessor, DocOperations, GenericsOperations, StateManagement,
     TypeOperations,
 };
-use super::utils::{attributes, docs, generics};
+use crate::parser::{
+    graph::CodeGraph,
+    nodes::{FunctionNode, NodeId, ParameterNode},
+    relations::Relation,
+    types::{GenericParamNode, TypeId, TypeKind},
+    visitor::utils::attributes::ParsedAttribute,
+};
+
+use quote::ToTokens;
+use std::collections::HashMap;
+use syn::FnArg;
+use syn::Type;
+
+use super::utils::{attributes, docs};
 
 pub struct VisitorState {
     pub code_graph: CodeGraph,

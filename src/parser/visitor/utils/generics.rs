@@ -1,11 +1,11 @@
-use crate::parser::types::{GenericParamNode, TypeId, TypeKind, TypeNode};
-use crate::parser::visitor::state::VisitorState;
-use crate::parser::visitor::{processor, GenericsOperations, TypeOperations};
-use crate::parser::visitor::{GenericParamKind, StateManagement};
+use crate::parser::{
+    types::{GenericParamNode, TypeId, TypeKind, TypeNode},
+    visitor::{
+        processor, state::VisitorState, GenericParamKind, GenericsOperations, StateManagement,
+    },
+};
 use quote::ToTokens;
-use syn::TypePath;
-use syn::{GenericParam, Generics, Lifetime, TypeParam};
-use syn::{Type, TypeParamBound};
+use syn::{Generics, Type, TypeParam, TypePath};
 
 use crate::parser::visitor::CodeProcessor;
 
