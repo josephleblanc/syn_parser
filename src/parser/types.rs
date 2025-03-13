@@ -12,9 +12,9 @@ impl From<TypeId> for NodeId {
     }
 }
 
-impl From<TypeId> for usize {
+impl From<TypeId> for NodeId {
     fn from(id: TypeId) -> Self {
-        id.0
+        NodeId(id.0)
     }
 }
 

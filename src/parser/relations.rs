@@ -1,4 +1,5 @@
 use crate::parser::nodes::NodeId;
+use crate::parser::types::TypeId;
 use serde::{Deserialize, Serialize};
 
 // ANCHOR: Relation

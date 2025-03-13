@@ -41,8 +41,8 @@ impl VisitorState {
                 macros: Vec::new(),
                 relations: Vec::new(),
             },
-            next_node_id: 0,
-            next_type_id: TypeId(0), // Now valid due to pub usize in TypeId
+            next_node_id: NodeId(0),
+            next_type_id: TypeId(0),
             type_map: HashMap::new(),
         }
     }

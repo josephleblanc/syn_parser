@@ -7,11 +7,13 @@
    - TraitNode/ImplNode struct fields
    - Serialization derives
    - Type conversions ✔️
+   - Core ID initialization ✔️
 
 2. `src/parser/relations.rs` ✔️
-   - Relation struct fields
-   - RelationKind variants handling
+   - Relation struct fields ✔️
+   - RelationKind variants handling ✔️
    - Temporary conversion support ✔️
+   - Type imports ✔️
 
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️
