@@ -19,30 +19,29 @@ pub struct Relation {
 }
 //ANCHOR_END: Relation
 
-#[derive(Debug, thiserror::Error)]                                                 
- pub enum RelationError {                                                           
-     #[error("Invalid source type for {kind:?}. Expected {expected}, found {found}")] 
-     InvalidSourceType {                                                            
-         kind: RelationKind,                                                        
-         expected: &'static str,                                                    
-         found: &'static str,                                                       
-     },                                                                             
-                                                                                    
-     #[error("Invalid target type for {kind:?}. Expected {expected}, found {found}")]
-     InvalidTargetType {                                                            
-         kind: RelationKind,                                                        
-         expected: &'static str,                                                    
-         found: &'static str,                                                       
-     },                                                                             
-                                                                                    
-     #[error("Circular dependency detected in {kind:?} relation")]                  
-     CircularDependency {                                                           
-         kind: RelationKind,                                                        
-     },                                                                             
-                                                                                    
-     #[error("Missing required trait ID for {kind:?} relation")]                    
-     MissingTraitId { kind: RelationKind },                                                                
- }                        
+#[derive(Debug, thiserror::Error)]
+pub enum RelationError {
+    #[error("Invalid source type for {kind:?}. Expected {expected}, found {found}")]
+    InvalidSourceType {
+        kind: RelationKind,
+        expected: &'static str,
+        found: &'static str,
+    },
+
+    #[error("Invalid target type for {kind:?}. Expected {expected}, found {found}")]
+    InvalidTargetType {
+        kind: RelationKind,
+        expected: &'static str,
+        found: &'static str,
+    },
+
+    #[error("Circular dependency detected in {kind:?} relation")]
+    CircularDependency { kind: RelationKind },
+
+    #[error("Missing required trait ID for {kind:?} relation")]
+    MissingTraitId { kind: RelationKind },
+    // Finish implementing this error type AI!
+}
 impl Relation {
     pub fn new(
         source: impl Into<RelationSource> + Clone + Copy,
@@ -67,25 +66,136 @@ impl Relation {
                     return Err(RelationError::InvalidImplementation);
                 }
             }
-            RelationKind::FunctionParameter => todo!(),
-            RelationKind::FunctionReturn => todo!(),
-            RelationKind::StructField => todo!(),
-            RelationKind::EnumVariant => todo!(),
-            RelationKind::ImplementsFor => todo!(),
-            RelationKind::Inherits => todo!(),
-            RelationKind::References => todo!(),
-            RelationKind::Contains => todo!(),
-            RelationKind::TypeDefinition => todo!(),
-            RelationKind::Uses => ${10:todo!()},
-            RelationKind::ValueType => ${11:todo!()},
-            RelationKind::MacroUse => ${12:todo!()},
-            RelationKind::MacroExpansion => ${13:todo!()},
-            RelationKind::MacroDefinition => ${14:todo!()},
-            RelationKind::MacroInvocation => ${15:todo!()},
-            RelationKind::GenericParameter => ${16:todo!()},
-            RelationKind::Returns => ${17:todo!()},
-            RelationKind::HasType => ${18:todo!()},
-            // Other validation rules
+            RelationKind::ImplementsTrait(trait_id) => {
+                // Validate trait ID exists
+                if trait_id.0 == 0 {
+                    return Err(RelationError::MissingTraitId {
+                        kind: self.kind.clone(),
+                    });
+                }
+
+                // Validate type -> trait relationship
+                self.validate_types(
+                    "Type",
+                    "Trait",
+                    RelationSource::Type(_),
+                    RelationTarget::Trait(_),
+                )?
+            }
+            RelationKind::FunctionParameter => self.validate_types(
+                "Function",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::FunctionReturn => self.validate_types(
+                "Function",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::StructField => self.validate_types(
+                "Struct",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::EnumVariant => self.validate_types(
+                "Enum",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::ImplementsFor => self.validate_types(
+                "Trait",
+                "Type",
+                RelationSource::Trait(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::Inherits => {
+                self.validate_types(
+                    "Type",
+                    "Type",
+                    RelationSource::Type(_),
+                    RelationTarget::Type(_),
+                )?;
+                self.check_circular_dependency()?
+            }
+            RelationKind::References => self.validate_types(
+                "Node",
+                "Node",
+                RelationSource::Node(_),
+                RelationTarget::Node(_),
+            )?,
+            RelationKind::Contains => {
+                self.validate_types(
+                    "Container",
+                    "Contained",
+                    RelationSource::Node(_),
+                    RelationTarget::Node(_),
+                )?;
+                self.check_circular_dependency()?
+            }
+            RelationKind::TypeDefinition => self.validate_types(
+                "Node",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::Uses => self.validate_types(
+                "Node",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::ValueType => self.validate_types(
+                "Node",
+                "Primitive",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::MacroUse => self.validate_types(
+                "Invocation",
+                "Definition",
+                RelationSource::Node(_),
+                RelationTarget::Node(_),
+            )?,
+            RelationKind::MacroExpansion => self.validate_types(
+                "Macro",
+                "Expanded",
+                RelationSource::Node(_),
+                RelationTarget::Node(_),
+            )?,
+            RelationKind::MacroDefinition => self.validate_types(
+                "Macro",
+                "Signature",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::MacroInvocation => self.validate_types(
+                "Caller",
+                "Macro",
+                RelationSource::Node(_),
+                RelationTarget::Node(_),
+            )?,
+            RelationKind::GenericParameter => self.validate_types(
+                "Generic",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::Returns => self.validate_types(
+                "Function",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
+            RelationKind::HasType => self.validate_types(
+                "Node",
+                "Type",
+                RelationSource::Node(_),
+                RelationTarget::Type(_),
+            )?,
         }
         Ok(())
     }
