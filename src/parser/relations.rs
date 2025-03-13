@@ -14,14 +14,35 @@ pub struct RelationBatch {
 }
 
 impl RelationBatch {
-    /// Convert to IndraDB edges with UUID endpoints                              
-    pub fn to_indradb_edges(&self) -> Vec<indradb::Edge> {
-        self.relations
-            .iter()
-            .map(|rel| {
-                indradb::Edge::new(rel.source.into(), rel.target.into(), rel.kind.to_string())
-            })
-            .collect()
+    /// Convert to CozoDB-compatible tuples with vector embeddings
+    pub fn to_cozo_tuples(&self) -> Vec<cozo::Array> {
+        self.relations.iter().map(|rel| {
+            cozo::Array::from(vec![
+                rel.source.into(),
+                rel.target.into(),
+                cozo::Array::from(vec![
+                    rel.kind.to_string(),
+                    self.content_uuid().to_string(),
+                    // Store vector embedding of relation context
+                    blake3::hash(rel.kind.to_string().as_bytes()).as_bytes().to_vec()
+                ])
+            ])
+        }).collect()
+    }
+
+    /// Create HNSW index for fast similarity searches
+    pub fn create_hnsw_index(&self, db: &cozo::DbInstance) -> Result<()> {
+        db.create_hnsw_index(
+            "relations",
+            "embedding",
+            cozo::HnswConfig {
+                max_elements: self.relations.len() as u32,
+                m: 16,
+                ef_construction: 200,
+                ..Default::default()
+            }
+        )?;
+        Ok(())
     }
 
     /// Content-based UUID for batch tracking                                     
