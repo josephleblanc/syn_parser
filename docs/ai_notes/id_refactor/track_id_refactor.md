@@ -39,6 +39,7 @@
    - Type ID vs Trait ID comparisons ✔️
    - Relation initialization fixes ✔️
    - TraitNode ID conversion ✔️
+   - Graph ID fields added ✔️
 
 4. `src/parser/visitor/state.rs`
    - ID generation methods
