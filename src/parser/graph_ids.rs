@@ -14,6 +14,15 @@ pub enum NodeType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+// causing an error here in relation.rs, which I've copied below:
+// #[error("Invalid implementation relationship between {source} and {target}")]
+// InvalidImplementation {
+//     source: GraphNodeId,
+//     target: GraphNodeId,
+//     kind: RelationKind,
+// },
+// └╴  doesn't satisfy `graph_ids::GraphNodeId: AsDynError<'_>` or `graph_ids::GraphNodeId: StdError` rustc (E0599) [17, 1]
+// Fix AI!
 pub struct GraphNodeId {
     pub type_prefix: NodeType,
     pub unique_id: usize,
