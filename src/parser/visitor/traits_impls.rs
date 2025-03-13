@@ -62,8 +62,8 @@ pub trait TraitVisitor: FunctionVisitor {
             source: RelationSource::Node(trait_id),
             target: RelationTarget::Type(type_id),
             kind: RelationKind::TypeDefinition,
-            graph_source: trait_id,
-            graph_target: type_id.as_usize().into(),
+            graph_source: trait_id.into(),
+            graph_target: type_id.into(),
         });
 
         // Add to code graph - public or private collection based on visibility

@@ -160,6 +160,8 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
                         source: root_module_id,
                         target: *module_id,
                         kind: RelationKind::Contains,
+                        graph_source: root_module_id.into(),
+                        graph_target: (*module_id).into(),
                     });
                 }
             }
