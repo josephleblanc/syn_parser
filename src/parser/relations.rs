@@ -1,7 +1,7 @@
+use crate::parser::graph_ids::GraphNodeId;
 use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::types::TypeId;
 use serde::{Deserialize, Serialize};
-use crate::parser::graph_ids::GraphNodeId;
 
 // ANCHOR: Relation
 // Represents a relation between nodes
@@ -59,7 +59,7 @@ pub enum RelationKind {
     StructField,
     EnumVariant,
     ImplementsFor,
-    ImplementsTrait(TraitId),  // Now properly typed
+    ImplementsTrait(TraitId), // Now properly typed
     Inherits,
     References,
     Contains,
