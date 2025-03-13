@@ -1,5 +1,7 @@
 use crate::parser::graph::CodeGraph;
-use crate::parser::nodes::NodeId;
+use crate::parser::graph_ids::GraphNodeId;
+use crate::parser::nodes::{NodeId, TraitId};
+use crate::parser::types::TypeId;
 use crate::parser::nodes::*;
 use crate::parser::relations::Relation;
 use crate::parser::relations::*;

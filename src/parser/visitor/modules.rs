@@ -261,13 +261,11 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                 };
 
                 if let Some(id) = item_id {
-                    self.state.code_graph.relations.push(Relation {
-                        source: module_id.into(),
-                        target: id.into(),
-                        kind: RelationKind::Contains,
-                        graph_source: module_id.into(),
-                        graph_target: id.into(),
-                    });
+                    self.state.code_graph.relations.push(Relation::new(
+                        module_id,
+                        id,
+                        RelationKind::Contains,
+                    ));
                 }
             }
         }

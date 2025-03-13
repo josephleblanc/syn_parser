@@ -50,20 +50,20 @@ impl From<TraitId> for RelationSource {
     }
 }
 
-impl From<RelationSource> for NodeId {
+impl From<RelationSource> for GraphNodeId {
     fn from(source: RelationSource) -> Self {
         match source {
-            RelationSource::Node(id) => id,
-            RelationSource::Trait(id) => NodeId(id.0),
+            RelationSource::Node(id) => GraphNodeId::from(id),
+            RelationSource::Trait(id) => GraphNodeId::from(id),
         }
     }
 }
 
-impl From<RelationTarget> for NodeId {
+impl From<RelationTarget> for GraphNodeId {
     fn from(target: RelationTarget) -> Self {
         match target {
-            RelationTarget::Type(id) => NodeId(id.0),
-            RelationTarget::Trait(id) => NodeId(id.0),
+            RelationTarget::Type(id) => GraphNodeId::from(id),
+            RelationTarget::Trait(id) => GraphNodeId::from(id),
         }
     }
 }
