@@ -149,9 +149,11 @@ pub trait ImplVisitor: FunctionVisitor {
 
         // Process the trait being implemented (if any)
         let trait_type = if let Some((_, path, _)) = &i.trait_ {
-            // Convert the path to a Type and process it
-            let path_str = format!("{}", quote::quote!(#path));
-            let ty = syn::parse_str::<syn::Type>(&path_str).ok();
+            // Convert the path directly to a TypePath
+            let ty = Some(syn::Type::Path(syn::TypePath {
+                qself: None,
+                path: path.clone()
+            }));
             ty.map(|t| self.state_mut().get_or_create_type(&t))
         } else {
             None
