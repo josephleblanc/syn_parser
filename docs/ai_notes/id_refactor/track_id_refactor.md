@@ -4,6 +4,7 @@
 
 1. `src/parser/nodes.rs` ✔️
    - Node ID type definitions ✔️
+   - TraitNode/ImplNode struct fields (partial ⚠️)
    - TraitNode/ImplNode struct fields
    - Serialization derives
    - Type conversions ✔️
@@ -17,6 +18,7 @@
 
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️
+   - CodeGraph storage fields (partial ⚠️)
    - Updated next_node_id/next_type_id to return newtype IDs
    - Fixed return type conversions
    - CodeGraph storage fields
