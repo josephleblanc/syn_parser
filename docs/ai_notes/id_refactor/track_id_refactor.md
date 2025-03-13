@@ -38,6 +38,7 @@
    - Trait-impl relationship handling ✔️
    - Type ID vs Trait ID comparisons ✔️
    - Relation initialization fixes ✔️
+   - Graph ID fields added ✔️
    - TraitNode ID conversion ✔️
    - Graph ID fields added ✔️
 
