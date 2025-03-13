@@ -22,19 +22,17 @@ impl Relation {
     ) -> Self {
         let source_val = source.into();
         let target_val = target.into();
-        let source_clone = source_val.clone();
-        let target_clone = target_val.clone();
         Self {
-            graph_source: GraphNodeId::from(source_val),
-            graph_target: GraphNodeId::from(target_val),
             source: source_val,
             target: target_val,
+            graph_source: source_val.into(),
+            graph_target: target_val.into(),
             kind,
         }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum RelationSource {
     Node(NodeId),
     Trait(TraitId),
@@ -70,7 +68,7 @@ impl From<RelationTarget> for GraphNodeId {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum RelationTarget {
     Type(TypeId),
     Trait(TraitId),
