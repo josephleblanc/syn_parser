@@ -9,6 +9,21 @@ use serde::{Deserialize, Serialize};
 )]
 pub struct NodeId(pub usize);
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct TraitId(pub usize);
+
+impl From<usize> for TraitId {
+    fn from(value: usize) -> Self {
+        TraitId(value)
+    }
+}
+
+impl From<TraitId> for usize {
+    fn from(value: TraitId) -> Self {
+        value.0
+    }
+}
+
 impl From<usize> for NodeId {
     fn from(value: usize) -> Self {
         NodeId(value)

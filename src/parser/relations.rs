@@ -1,4 +1,4 @@
-use crate::parser::nodes::NodeId;
+use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::types::TypeId;
 use serde::{Deserialize, Serialize};
 
@@ -32,7 +32,7 @@ pub enum RelationKind {
     StructField,
     EnumVariant,
     ImplementsFor,
-    ImplementsTrait(TraitId),
+    ImplementsTrait(TraitId),  // Now properly typed
     Inherits,
     References,
     Contains,

@@ -4,6 +4,7 @@
 
 1. `src/parser/nodes.rs` ✔️
    - Node ID type definitions ✔️
+   - Trait ID type definitions ✔️
    - Type conversions ✔️  
    - Core ID initialization ✔️
    - Serialization derives ✔️
