@@ -153,7 +153,7 @@ pub struct ImplNode {
     // than in the ImplNode itself.
     // pub visibility: VisibilityKind,
     pub self_type: TypeId,
-    pub trait_type: Option<TypeId>,
+    pub trait_type: Option<TraitId>,
     pub methods: Vec<FunctionNode>,
     pub generic_params: Vec<GenericParamNode>,
 }
@@ -163,12 +163,12 @@ pub struct ImplNode {
 // Represents a trait definition
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TraitNode {
-    pub id: NodeId,
+    pub id: TraitId,
     pub name: String,
     pub visibility: VisibilityKind,
     pub methods: Vec<FunctionNode>,
     pub generic_params: Vec<GenericParamNode>,
-    pub super_traits: Vec<TypeId>,
+    pub super_traits: Vec<TraitId>,
     pub attributes: Vec<ParsedAttribute>,
     pub docstring: Option<String>,
 }

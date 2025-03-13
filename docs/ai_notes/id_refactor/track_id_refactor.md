@@ -8,7 +8,8 @@
    - Type conversions ✔️  
    - Core ID initialization ✔️
    - Serialization derives ✔️
-   - TraitNode/ImplNode struct fields (Phase 2)
+   - TraitNode struct fields updated ✔️
+   - ImplNode struct fields updated ✔️
    - Implemented From/Into traits ✔️
 
 2. `src/parser/relations.rs` ✔️
