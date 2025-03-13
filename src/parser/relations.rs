@@ -14,6 +14,24 @@ pub struct Relation {
     pub kind: RelationKind,
 }
 
+impl Relation {
+    pub fn new(
+        source: impl Into<RelationSource> + Clone + Copy,
+        target: impl Into<RelationTarget> + Clone + Copy,
+        kind: RelationKind,
+    ) -> Self {
+        let source_val = source.into();
+        let target_val = target.into();
+        Self {
+            graph_source: GraphNodeId::from(source_val),
+            graph_target: GraphNodeId::from(target_val),
+            source: source_val,
+            target: target_val,
+            kind,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum RelationSource {
     Node(NodeId),
