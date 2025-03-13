@@ -176,7 +176,7 @@ pub trait ImplVisitor: FunctionVisitor {
 
         // Add to code graph with proper mutable access
         let state = self.state_mut();
-        state.code_graph.impls.push(impl_node);
+        state.code_graph().impls.push(impl_node);
 
         // Create relations
         // Self type relation
