@@ -159,7 +159,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                                 _ => false,
                             })
                             .map(|def| match def {
-                                TypeDefNode::Struct(s) => s.id.into::<NodeId>(),
+                                TypeDefNode::Struct(s) => s.id.into(),
                                 _ => 0, // Should never happen
                             })
                     }
@@ -339,8 +339,10 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
 
         // Add a Uses relation
         self.state.code_graph.relations.push(Relation {
-            source: import_id,
-            target: type_id,
+            source: RelationSource::Node(import_id),
+            target: RelationTarget::Type(type_id),
+            graph_source: import_id.into(),
+            graph_target: type_id.into(),
             kind: RelationKind::Uses,
         });
 
