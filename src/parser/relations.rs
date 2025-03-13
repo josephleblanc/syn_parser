@@ -11,7 +11,7 @@ pub struct RelationBatch {
 
 // ANCHOR: Relation
 // Represents a relation between nodes
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 pub struct Relation {
     pub source: RelationSource,
     pub target: RelationTarget,
@@ -35,12 +35,39 @@ pub enum RelationError {
         found: &'static str,
     },
 
-    #[error("Circular dependency detected in {kind:?} relation")]
-    CircularDependency { kind: RelationKind },
-
     #[error("Missing required trait ID for {kind:?} relation")]
     MissingTraitId { kind: RelationKind },
-    // Finish implementing this error type AI!
+
+    #[error("Invalid node reference {node_id:?} in {kind:?} relation")]
+    InvalidNodeReference { kind: RelationKind, node_id: NodeId },
+
+    #[error("Missing required ID for {kind:?} relation")]
+    MissingId {
+        kind: RelationKind,
+        id_type: &'static str,
+    },
+
+    #[error(
+        "Circular dependency detected between {source_id:?} and {target_id:?} 
+ in {kind:?} relation"
+    )]
+    CircularDependency {
+        kind: RelationKind,
+        source_id: GraphNodeId,
+        target_id: GraphNodeId,
+    },
+
+    #[error("Generic constraint violation in {kind:?} relation: {message}")]
+    GenericConstraintViolation { kind: RelationKind, message: String },
+
+    #[error("Invalid implementation relationship between {source:?} and {target:?}")]
+    InvalidImplementation {
+        // We are still getting an error for the `source` field below: E0599
+        // Fix AI!
+        source: GraphNodeId,
+        target: GraphNodeId,
+        kind: RelationKind,
+    },
 }
 impl Relation {
     pub fn new(
@@ -199,12 +226,51 @@ impl Relation {
         }
         Ok(())
     }
+
+    fn validate_types(
+        &self,
+        expected_source: &'static str,
+        expected_target: &'static str,
+        source_matcher: RelationSource,
+        target_matcher: RelationTarget,
+    ) -> Result<(), RelationError> {
+        if !matches!(self.source, source_matcher) {
+            return Err(RelationError::InvalidSourceType {
+                kind: self.kind.clone(),
+                expected: expected_source,
+                found: self.source.type_name(),
+            });
+        }
+
+        if !matches!(self.target, target_matcher) {
+            return Err(RelationError::InvalidTargetType {
+                kind: self.kind.clone(),
+                expected: expected_target,
+                found: self.target.type_name(),
+            });
+        }
+
+        Ok(())
+    }
+
+    fn check_circular_dependency(&self) -> Result<(), RelationError> {
+        if self.source.id() == self.target.id() {
+            Err(RelationError::CircularDependency {
+                kind: self.kind.clone(),
+                source_id: self.source.into(),
+                target_id: self.target.into(),
+            })
+        } else {
+            Ok(())
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum RelationSource {
     Node(NodeId),
     Trait(TraitId),
+    Type(TypeId),
 }
 
 impl From<NodeId> for RelationSource {
@@ -218,12 +284,22 @@ impl From<TraitId> for RelationSource {
         RelationSource::Trait(id)
     }
 }
+impl RelationSource {
+    pub fn type_name(&self) -> &'static str {
+        match self {
+            RelationSource::Node(_) => "Node",
+            RelationSource::Trait(_) => "Trait",
+            RelationSource::Type(_) => "Type",
+        }
+    }
+}
 
 impl From<RelationSource> for GraphNodeId {
     fn from(source: RelationSource) -> Self {
         match source {
             RelationSource::Node(id) => GraphNodeId::from(id),
             RelationSource::Trait(id) => GraphNodeId::from(id),
+            RelationSource::Type(type_id) => GraphNodeId::from(type_id),
         }
     }
 }
@@ -255,15 +331,18 @@ impl From<TraitId> for RelationTarget {
     }
 }
 
-impl From<NodeId> for RelationTarget {
-    fn from(id: NodeId) -> Self {
-        RelationTarget::Node(id)
+impl RelationTarget {
+    pub fn type_name(&self) -> &'static str {
+        match self {
+            RelationTarget::Type(_) => "Type",
+            RelationTarget::Trait(_) => "Trait",
+        }
     }
 }
 
 // ANCHOR: Uses
 // Different kinds of relations
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Copy, Clone)]
 pub enum RelationKind {
     FunctionParameter,
     FunctionReturn,
@@ -288,4 +367,3 @@ pub enum RelationKind {
     HasType,
 }
 //ANCHOR_END: Uses
-//ANCHOR_END: Relation
