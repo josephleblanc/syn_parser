@@ -51,10 +51,13 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
         let mod_id = self.state.next_node_id();
 
         if let Some((_, mod_items)) = &module.content {
-            for item in mod_items {
+            use rayon::prelude::*;
+            
+            mod_items.par_iter().for_each(|item| {
                 match item {
                     syn::Item::Fn(func) => {
-                        self.visit_item_fn(func);
+                        let mut guard = self.state.lock().unwrap();
+                        guard.visit_item_fn(func);
                         // Get the last added function ID
                         if let Some(func_node) = self.state.code_graph.functions.last() {
                             items.push(func_node.id);
