@@ -22,24 +22,16 @@ pub enum NodeType {
 //     kind: RelationKind,
 // },
 // └╴  doesn't satisfy `graph_ids::GraphNodeId: AsDynError<'_>` or `graph_ids::GraphNodeId: StdError` rustc (E0599) [17, 1]
-// Fix AI!
 pub struct GraphNodeId {
     pub type_prefix: NodeType,
     pub unique_id: usize,
 }
 
+impl std::error::Error for GraphNodeId {}
+
 impl fmt::Display for GraphNodeId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}#{}", self.type_prefix, self.unique_id)
-    }
-}
-
-impl From<NodeId> for GraphNodeId {
-    fn from(id: NodeId) -> Self {
-        Self {
-            type_prefix: NodeType::Node,
-            unique_id: id.0,
-        }
     }
 }
 
