@@ -8,7 +8,7 @@ pub struct TypeId(usize);
 
 impl TypeId {
     pub fn as_node_id(&self) -> Option<NodeId> {
-        Some(NodeId(self.0))
+        Some(NodeId::from(self.0))
     }
     
     pub fn as_usize(&self) -> usize { self.0 }
@@ -16,6 +16,12 @@ impl TypeId {
 
 // Temporary alias for gradual migration
 pub type LegacyTypeId = usize;
+
+impl std::ops::AddAssign<usize> for TypeId {
+    fn add_assign(&mut self, rhs: usize) {
+        self.0 += rhs;
+    }
+}
 
 // ANCHOR: TypeNode
 // Represents a type reference with full metadata

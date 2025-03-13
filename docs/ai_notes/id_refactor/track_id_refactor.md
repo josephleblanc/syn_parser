@@ -2,14 +2,19 @@
 
 ## Files Requiring Changes
 
-1. `src/parser/nodes.rs`
-   - Node ID type definitions
+1. `src/parser/nodes.rs` ✔️
+   - Node ID type definitions ✔️
    - TraitNode/ImplNode struct fields
    - Serialization derives
 
 2. `src/parser/relations.rs`
    - Relation struct fields
    - RelationKind variants handling
+
+3. `src/parser/visitor/state.rs` ✔️
+   - ID generation methods ✔️
+   - CodeGraph storage fields
+   - Type system operations
 
 3. `src/parser/visitor/traits_impls.rs`
    - Trait-impl relationship handling
