@@ -1,6 +1,7 @@
 use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::types::TypeId;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum NodeType {
@@ -16,6 +17,12 @@ pub enum NodeType {
 pub struct GraphNodeId {
     pub type_prefix: NodeType,
     pub unique_id: usize,
+}
+
+impl fmt::Display for GraphNodeId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}#{}", self.type_prefix, self.unique_id)
+    }
 }
 
 impl From<NodeId> for GraphNodeId {

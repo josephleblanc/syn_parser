@@ -60,10 +60,8 @@ pub enum RelationError {
     #[error("Generic constraint violation in {kind:?} relation: {message}")]
     GenericConstraintViolation { kind: RelationKind, message: String },
 
-    #[error("Invalid implementation relationship between {source:?} and {target:?}")]
+    #[error("Invalid implementation relationship between {source} and {target}")]
     InvalidImplementation {
-        // We are still getting an error for the `source` field below: E0599
-        // Fix AI!
         source: GraphNodeId,
         target: GraphNodeId,
         kind: RelationKind,
