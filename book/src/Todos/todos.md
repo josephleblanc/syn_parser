@@ -21,3 +21,11 @@ functions to more completely parse the `syn` syntax tree.
 - [x] Decide if/how to handle verbatim tokens.
   - Decided not to handle them for now. If it becomes an obstacle later I will
   revisit.
+
+### Improve type for NodeId
+
+Currently there is a `NodeId` type which is a wrapper around an identifying `id` (currently a usize, should probably change to `uuid` at some point). The `NodeId` is in juxtaposition to other types like `TraitId` and `ImplId`, which represent fundamentally different kinds of data structures.
+
+However, `NodeId` currently can hold `Struct`, `Enum`, and others. While there is some similarity around these data structures, it might be better to simply create another struct that holds a `type_prefix` and `unique_id`. See the [Naming Nodes] document for further details on implementation.
+
+[Naming Nodes]:../Project_Structure/Naming_Nodes.md
