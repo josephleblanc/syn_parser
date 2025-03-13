@@ -200,12 +200,18 @@ pub trait ImplVisitor: FunctionVisitor {
         });
 
         // Trait relation if present
-        if let Some(trait_id) = trait_type {
-            self.state_mut().add_relation(Relation {
-                source: impl_id,
-                target: trait_id,
-                kind: RelationKind::ImplementsTrait,
-            });
+        if let Some(type_id) = trait_type {
+            // Find the actual trait node ID via TypeDefinition relation
+            if let Some(trait_node_id) = state.code_graph.relations.iter()
+                .find(|r| r.kind == RelationKind::TypeDefinition && r.target == type_id)
+                .map(|r| r.source)
+            {
+                self.state_mut().add_relation(Relation {
+                    source: impl_id,
+                    target: trait_node_id,
+                    kind: RelationKind::ImplementsTrait,
+                });
+            }
         }
     }
 
