@@ -42,7 +42,7 @@ impl VisitorState {
                 relations: Vec::new(),
             },
             next_node_id: 0,
-            next_type_id: TypeId(0),
+            next_type_id: TypeId(0), // Now valid due to pub usize in TypeId
             type_map: HashMap::new(),
         }
     }

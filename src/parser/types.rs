@@ -4,7 +4,19 @@ use serde::{Deserialize, Serialize};
 
 /// Unique identifier for type references
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
-pub struct TypeId(usize);
+pub struct TypeId(pub usize);
+
+impl From<TypeId> for NodeId {
+    fn from(id: TypeId) -> Self {
+        NodeId(id.0)
+    }
+}
+
+impl From<TypeId> for usize {
+    fn from(id: TypeId) -> Self {
+        id.0
+    }
+}
 
 impl TypeId {
     pub fn as_node_id(&self) -> Option<NodeId> {

@@ -6,15 +6,18 @@
    - Node ID type definitions ✔️
    - TraitNode/ImplNode struct fields
    - Serialization derives
+   - Type conversions ✔️
 
-2. `src/parser/relations.rs`
+2. `src/parser/relations.rs` ✔️
    - Relation struct fields
    - RelationKind variants handling
+   - Temporary conversion support ✔️
 
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️
    - CodeGraph storage fields
-   - Type system operations
+   - Type system operations ✔️
+   - Type conversions ✔️
 
 3. `src/parser/visitor/traits_impls.rs`
    - Trait-impl relationship handling

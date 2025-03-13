@@ -6,8 +6,16 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Relation {
     pub source: NodeId,
-    pub target: NodeId,
+    pub target: NodeId, // Temporary alias during transition
     pub kind: RelationKind,
+}
+
+impl Relation {
+    /// Temporary conversion method for TypeId targets
+    pub fn with_type_target(mut self, target: TypeId) -> Self {
+        self.target = target.into();
+        self
+    }
 }
 
 // ANCHOR: Uses
