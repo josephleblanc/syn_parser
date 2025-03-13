@@ -1,4 +1,5 @@
 use crate::parser::visitor::TypeDefNode;
+use crate::parser::nodes::NodeId;
 use crate::parser::visitor::VisibilityKind;
 use crate::parser::{
     nodes::{ModuleNode, ValueKind},

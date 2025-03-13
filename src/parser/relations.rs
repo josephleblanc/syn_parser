@@ -22,6 +22,8 @@ impl Relation {
     ) -> Self {
         let source_val = source.into();
         let target_val = target.into();
+        let source_clone = source_val.clone();
+        let target_clone = target_val.clone();
         Self {
             graph_source: GraphNodeId::from(source_val),
             graph_target: GraphNodeId::from(target_val),

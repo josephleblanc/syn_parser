@@ -40,6 +40,7 @@ pub mod processor {
     pub trait StateManagement {
         fn next_node_id(&mut self) -> NodeId;
         fn next_type_id(&mut self) -> TypeId;
+        fn next_trait_id(&mut self) -> TraitId;
         fn code_graph(&mut self) -> &mut CodeGraph;
         fn add_function(&mut self, function: FunctionNode);
         fn add_relation(&mut self, relation: Relation);

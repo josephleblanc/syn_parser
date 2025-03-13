@@ -17,6 +17,8 @@
    - Relation struct fields updated with RelationSource/RelationTarget ✔️
    - RelationKind variants handling updated ✔️
    - Removed temporary conversion support ✔️
+   - Fixed Relation initialization with graph_source/target ✔️
+   - Added TraitId conversions in trait processing ✔️
    - Type imports updated with TraitId ✔️
    - Added From implementations for ID types ✔️
    - Implemented PartialEq for RelationTarget ✔️
