@@ -5,6 +5,7 @@
 1. `src/parser/nodes.rs` ✔️
    - Node ID type definitions ✔️
    - Trait ID type definitions ✔️
+   - Added TraitId conversion methods ✔️
    - Type conversions ✔️  
    - Core ID initialization ✔️
    - Serialization derives ✔️
@@ -121,11 +122,14 @@ PHASE 2.5: UNIFIED GRAPH ID SYSTEM
  }                                                                                                
                                                                                                   
  // Implement conversions for existing IDs                                                        
- impl From<TraitId> for GraphNodeId {                                                             
-     fn from(id: TraitId) -> Self {                                                               
-         Self { type_prefix: NodeType::Trait, unique_id: id.0 }                                   
-     }                                                                                            
- }                                                                                                
+ impl From<TraitId> for GraphNodeId {
+     fn from(id: TraitId) -> Self {
+         Self {
+             type_prefix: NodeType::Trait,
+             unique_id: id.as_usize(),
+         }
+     }
+ }
                                                                                                   
  // But keep existing ID types active
  ```

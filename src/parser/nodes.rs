@@ -18,6 +18,12 @@ impl From<usize> for TraitId {
     }
 }
 
+impl TraitId {
+    pub fn as_usize(&self) -> usize {
+        self.0
+    }
+}
+
 impl From<TraitId> for usize {
     fn from(value: TraitId) -> Self {
         value.0
