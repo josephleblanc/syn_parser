@@ -17,11 +17,6 @@ ahash = "0.8"
 thiserror = "2.0"
 uuid = { version = "1.7", features = ["v5"] }
 blake3 = "1.5"
-indradb = { version = "0.14", features = ["rocksdb-datastore"] }
-# indradb-lib = { version = "*", features = ["rocksdb-datastore"] }
-# This is not installing correctly, and I am getting errors related to rocksb,
-# so for now we will move ahead with in-memory storage from indradb and figure
-# out the errors for rocksdb later.
-indradb-lib = "*"
+indradb = { version = "0.14", features = ["rocksdb"] }
 
 [dev-dependencies]
