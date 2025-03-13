@@ -11,20 +11,38 @@ pub struct RelationBatch {
 
 // ANCHOR: Relation
 // Represents a relation between nodes
-// So we currently have RelationSource and RelationTarget, but these seem redundant. The only place
-// it seems like they are ever used are as fields for Relation anyway, so why wouldn't we just make
-// them GraphNodeId types instead? That way we can have a unified node type for everything. Is
-// there a good reason not to do that? AI?
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Relation {
     pub source: RelationSource,
     pub target: RelationTarget,
-    pub graph_source: GraphNodeId,
-    pub graph_target: GraphNodeId,
     pub kind: RelationKind,
 }
 //ANCHOR_END: Relation
 
+#[derive(Debug, thiserror::Error)]                                                 
+ pub enum RelationError {                                                           
+     #[error("Invalid source type for {kind:?}. Expected {expected}, found {found}")] 
+     InvalidSourceType {                                                            
+         kind: RelationKind,                                                        
+         expected: &'static str,                                                    
+         found: &'static str,                                                       
+     },                                                                             
+                                                                                    
+     #[error("Invalid target type for {kind:?}. Expected {expected}, found {found}")]
+     InvalidTargetType {                                                            
+         kind: RelationKind,                                                        
+         expected: &'static str,                                                    
+         found: &'static str,                                                       
+     },                                                                             
+                                                                                    
+     #[error("Circular dependency detected in {kind:?} relation")]                  
+     CircularDependency {                                                           
+         kind: RelationKind,                                                        
+     },                                                                             
+                                                                                    
+     #[error("Missing required trait ID for {kind:?} relation")]                    
+     MissingTraitId,                                                                
+ }                        
 impl Relation {
     pub fn new(
         source: impl Into<RelationSource> + Clone + Copy,
@@ -36,10 +54,40 @@ impl Relation {
         Self {
             source: source_val,
             target: target_val,
-            graph_source: source_val.into(),
-            graph_target: target_val.into(),
             kind,
         }
+    }
+    pub fn validate(&self) -> Result<(), RelationError> {
+        match self.kind {
+            RelationKind::ImplementsTrait(_) => {
+                if !matches!(
+                    (self.source, self.target),
+                    (RelationSource::Type(_), RelationTarget::Trait(_))
+                ) {
+                    return Err(RelationError::InvalidImplementation);
+                }
+            }
+            RelationKind::FunctionParameter => todo!(),
+            RelationKind::FunctionReturn => todo!(),
+            RelationKind::StructField => todo!(),
+            RelationKind::EnumVariant => todo!(),
+            RelationKind::ImplementsFor => todo!(),
+            RelationKind::Inherits => todo!(),
+            RelationKind::References => todo!(),
+            RelationKind::Contains => todo!(),
+            RelationKind::TypeDefinition => todo!(),
+            RelationKind::Uses => ${10:todo!()},
+            RelationKind::ValueType => ${11:todo!()},
+            RelationKind::MacroUse => ${12:todo!()},
+            RelationKind::MacroExpansion => ${13:todo!()},
+            RelationKind::MacroDefinition => ${14:todo!()},
+            RelationKind::MacroInvocation => ${15:todo!()},
+            RelationKind::GenericParameter => ${16:todo!()},
+            RelationKind::Returns => ${17:todo!()},
+            RelationKind::HasType => ${18:todo!()},
+            // Other validation rules
+        }
+        Ok(())
     }
 }
 
