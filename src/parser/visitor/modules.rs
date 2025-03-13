@@ -158,7 +158,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                                 _ => false,
                             })
                             .map(|def| match def {
-                                TypeDefNode::Struct(s) => s.id.into(),
+                                TypeDefNode::Struct(s) => s.id.into::<NodeId>(),
                                 _ => 0, // Should never happen
                             })
                     }
@@ -173,7 +173,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                                 _ => false,
                             })
                             .map(|def| match def {
-                                TypeDefNode::Enum(e) => e.id,
+                                TypeDefNode::Enum(e) => e.id.into(),
                                 _ => 0, // Should never happen
                             })
                     }
@@ -190,7 +190,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                                 _ => false,
                             })
                             .map(|def| match def {
-                                TypeDefNode::TypeAlias(ta) => ta.id,
+                                TypeDefNode::TypeAlias(ta) => ta.id.into(),
                                 _ => 0, // Should never happen
                             })
                     }
@@ -205,7 +205,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                                 _ => false,
                             })
                             .map(|def| match def {
-                                TypeDefNode::Union(u) => u.id,
+                                TypeDefNode::Union(u) => u.id.into(),
                                 _ => 0, // Should never happen
                             })
                     }

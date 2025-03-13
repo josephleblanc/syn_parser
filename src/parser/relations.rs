@@ -32,6 +32,24 @@ impl From<TraitId> for RelationSource {
     }
 }
 
+impl From<RelationSource> for NodeId {
+    fn from(source: RelationSource) -> Self {
+        match source {
+            RelationSource::Node(id) => id,
+            RelationSource::Trait(id) => NodeId(id.0),
+        }
+    }
+}
+
+impl From<RelationTarget> for NodeId {
+    fn from(target: RelationTarget) -> Self {
+        match target {
+            RelationTarget::Type(id) => NodeId(id.0),
+            RelationTarget::Trait(id) => NodeId(id.0),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum RelationTarget {
     Type(TypeId),
