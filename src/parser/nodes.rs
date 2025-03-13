@@ -9,6 +9,28 @@ use serde::{Deserialize, Serialize};
 )]
 pub struct NodeId(pub usize);
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum NodeType {
+    Trait,
+    Type,
+    Function,
+    Impl,
+    Module,
+    Other,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct GraphNodeId {
+    pub type_prefix: NodeType,
+    pub unique_id: usize,
+}
+
+impl GraphNodeId {
+    pub fn new(type_prefix: NodeType, unique_id: usize) -> Self {
+        Self { type_prefix, unique_id }
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub struct TraitId(pub usize);
 
