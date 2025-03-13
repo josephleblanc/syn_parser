@@ -6,7 +6,21 @@ Looking at the code, there is indeed a potential ID type confusion issue. Here's
 
 1. **Current Type Definitions** (from `src/parser/nodes.rs`):
 ```rust
-pub type NodeId = usize;
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default)]
+pub struct NodeId(usize);
+
+impl NodeId {
+    pub fn as_usize(&self) -> usize { self.0 }
+    pub fn increment(&mut self) { self.0 += 1; }
+}
+
+impl From<usize> for NodeId {
+    fn from(value: usize) -> Self { NodeId(value) }
+}
+
+impl From<NodeId> for usize {
+    fn from(value: NodeId) -> Self { value.0 }
+}
 pub type TypeId = usize;  // Both IDs are aliases for usize
 ```
 

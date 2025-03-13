@@ -3,7 +3,19 @@ use crate::parser::nodes::NodeId;
 use serde::{Deserialize, Serialize};
 
 /// Unique identifier for type references
-pub type TypeId = usize;
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+pub struct TypeId(usize);
+
+impl TypeId {
+    pub fn as_node_id(&self) -> Option<NodeId> {
+        Some(NodeId(self.0))
+    }
+    
+    pub fn as_usize(&self) -> usize { self.0 }
+}
+
+// Temporary alias for gradual migration
+pub type LegacyTypeId = usize;
 
 // ANCHOR: TypeNode
 // Represents a type reference with full metadata
