@@ -124,8 +124,8 @@ impl StateManagement for VisitorState {
     }
 
     fn next_type_id(&mut self) -> TypeId {
-        let id = self.next_type_id;
-        self.next_type_id += 1;
+        let id = TypeId(self.next_type_id.0);
+        self.next_type_id.0 += 1;
         id
     }
 }

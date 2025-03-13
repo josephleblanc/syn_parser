@@ -18,12 +18,9 @@
 
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️
-   - CodeGraph storage fields (partial ⚠️)
-   - Updated next_node_id/next_type_id to return newtype IDs
-   - Fixed return type conversions
-   - CodeGraph storage fields
    - Type system operations ✔️
    - Type conversions ✔️
+   - CodeGraph storage fields (Phase 3)
 
 3. `src/parser/visitor/traits_impls.rs`
    - Trait-impl relationship handling
