@@ -43,6 +43,8 @@
    - TraitNode ID conversion ✔️
    - Graph ID fields added ✔️
    - Added GraphNodeId conversions ✔️
+   - Fixed trait inheritance relations ✔️
+   - Updated trait type resolution ✔️
 
 4. `src/parser/visitor/state.rs`
    - ID generation methods
