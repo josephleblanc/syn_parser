@@ -342,6 +342,7 @@ impl RelationTarget {
 // Different kinds of relations
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Copy, Clone)]
 pub enum RelationKind {
+    // Implement fmt::Display for this enum AI!
     FunctionParameter,
     FunctionReturn,
     StructField,
