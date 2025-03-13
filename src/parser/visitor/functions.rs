@@ -130,6 +130,8 @@ pub trait FunctionVisitor: TypeProcessor {
                 source: fn_id.into(),
                 target: param.type_id.into(),
                 kind: RelationKind::Uses,
+                graph_source: fn_id.into(),
+                graph_target: param.type_id.into(),
             });
         }
 
@@ -139,6 +141,8 @@ pub trait FunctionVisitor: TypeProcessor {
                 source: fn_id.into(),
                 target: type_id.into(),
                 kind: RelationKind::Returns,
+                graph_source: fn_id.into(),
+                graph_target: type_id.into(),
             });
         }
     }

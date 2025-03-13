@@ -265,6 +265,8 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                         source: module_id.into(),
                         target: id.into(),
                         kind: RelationKind::Contains,
+                        graph_source: module_id.into(),
+                        graph_target: id.into(),
                     });
                 }
             }

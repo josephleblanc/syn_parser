@@ -20,6 +20,14 @@
    - Added From implementations for ID types ✔️
    - Implemented PartialEq for RelationTarget ✔️
 
+3. `src/parser/visitor/functions.rs` ✔️
+   - Parameter/return type relations updated ✔️
+   - Graph ID fields added ✔️
+
+4. `src/parser/visitor/modules.rs` ✔️
+   - Module containment relations updated ✔️
+   - Graph ID fields added ✔️
+
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️
    - Type system operations ✔️
