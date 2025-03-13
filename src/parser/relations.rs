@@ -1,6 +1,7 @@
 use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::types::TypeId;
 use serde::{Deserialize, Serialize};
+use crate::parser::graph_ids::GraphNodeId;
 
 // ANCHOR: Relation
 // Represents a relation between nodes
@@ -8,6 +9,8 @@ use serde::{Deserialize, Serialize};
 pub struct Relation {
     pub source: RelationSource,
     pub target: RelationTarget,
+    pub graph_source: GraphNodeId,
+    pub graph_target: GraphNodeId,
     pub kind: RelationKind,
 }
 
