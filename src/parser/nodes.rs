@@ -118,6 +118,10 @@ pub struct UnionNode {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ImplNode {
     pub id: NodeId,
+    // removed visiblity below.
+    // The visibility should be tracked by the type and methods being implemented on rather
+    // than in the ImplNode itself.
+    // pub visibility: VisibilityKind,
     pub self_type: TypeId,
     pub trait_type: Option<TypeId>,
     pub methods: Vec<FunctionNode>,

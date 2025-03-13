@@ -16,11 +16,14 @@ pub struct CodeGraph {
     // All observed types, including nested and generic types
     pub type_graph: Vec<TypeNode>,
     // Implementation blocks
-    pub public_impls: Vec<ImplNode>,
-    pub private_impls: Vec<ImplNode>,
+    // // Changing how visibility is handled. It should not be tracked by the impl nodes but
+    // in the methods and types the impl nodes implement.
+    // pub public_impls: Vec<ImplNode>,
+    // pub private_impls: Vec<ImplNode>,
+    pub impls: Vec<ImplNode>,
     // Public traits defined in the code
     pub traits: Vec<TraitNode>,
-    // Private traits defined in the code 
+    // Private traits defined in the code
     pub private_traits: Vec<TraitNode>,
     // Relations between nodes
     pub relations: Vec<Relation>,

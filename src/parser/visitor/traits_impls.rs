@@ -165,7 +165,7 @@ pub trait ImplVisitor: FunctionVisitor {
             // Convert the path directly to a TypePath
             let ty = Some(syn::Type::Path(syn::TypePath {
                 qself: None,
-                path: path.clone()
+                path: path.clone(),
             }));
             ty.map(|t| self.state_mut().get_or_create_type(&t))
         } else {
@@ -185,17 +185,25 @@ pub trait ImplVisitor: FunctionVisitor {
             trait_type,
             methods,
             generic_params,
-            visibility: self.convert_visibility(&i.vis),
+            // removed visiblity below.
+            // The visibility should be tracked by the type and methods being implemented on rather
+            // than in the ImplNode itself.
+            // See also:
+            //  - src/parser/nodes.rs
+            //  - src/parser/graph.rs
+            // visibility: self.convert_visibility(&i.vis),
         };
 
         // Add to code graph with visibility-based storage
-        let state = self.state_mut();
-        if matches!(impl_node.visibility, VisibilityKind::Public) {
-            state.code_graph().public_impls.push(impl_node);
-        } else {
-            state.code_graph().private_impls.push(impl_node);
-        }
+        // let state = self.state_mut();
+        // if matches!(impl_node.visibility, VisibilityKind::Public) {
+        //     state.code_graph().public_impls.push(impl_node);
+        // } else {
+        //     state.code_graph().private_impls.push(impl_node);
+        // }
 
+        let state = self.state_mut();
+        state.code_graph().impls.push(impl_node);
         // Create relations
         // Self type relation
         self.state_mut().add_relation(Relation {
@@ -207,7 +215,11 @@ pub trait ImplVisitor: FunctionVisitor {
         // Trait relation if present
         if let Some(type_id) = trait_type {
             // Find the actual trait node ID via TypeDefinition relation
-            if let Some(trait_node_id) = self.state_mut().code_graph().relations.iter()
+            if let Some(trait_node_id) = self
+                .state_mut()
+                .code_graph()
+                .relations
+                .iter()
                 .find(|r| r.kind == RelationKind::TypeDefinition && r.target == type_id)
                 .map(|r| r.source)
             {
