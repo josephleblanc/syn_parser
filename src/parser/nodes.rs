@@ -4,7 +4,22 @@ use crate::parser::visitor::utils::ParsedAttribute;
 use serde::{Deserialize, Serialize};
 
 // Unique ID for a node in the graph
-pub type NodeId = usize;
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default,
+)]
+pub struct NodeId(pub usize);
+
+impl From<usize> for NodeId {
+    fn from(value: usize) -> Self {
+        NodeId(value)
+    }
+}
+
+impl From<NodeId> for usize {
+    fn from(value: NodeId) -> Self {
+        value.0
+    }
+}
 
 // ANCHOR: ItemFn
 // Represents a function definition
