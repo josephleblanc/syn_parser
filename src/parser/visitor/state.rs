@@ -20,6 +20,7 @@ use super::utils::{attributes, docs};
 pub struct VisitorState {
     pub code_graph: CodeGraph,
     pub next_node_id: usize,
+    pub next_trait_id: usize,
     pub next_type_id: usize,
     pub type_map: HashMap<String, TypeId>,
 }
@@ -50,6 +51,7 @@ impl VisitorState {
                 relations: Vec::new(),
             },
             next_node_id: 0,
+            next_trait_id: 0,
             next_type_id: 0,
             type_map: HashMap::new(),
         }
