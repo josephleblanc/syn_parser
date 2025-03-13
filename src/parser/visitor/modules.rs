@@ -259,8 +259,8 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
 
                 if let Some(id) = item_id {
                     self.state.code_graph.relations.push(Relation {
-                        source: module_id,
-                        target: id,
+                        source: module_id.into(),
+                        target: id.into(),
                         kind: RelationKind::Contains,
                     });
                 }

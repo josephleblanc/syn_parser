@@ -224,8 +224,8 @@ pub trait ImplVisitor: FunctionVisitor {
                 .map(|r| r.source)
             {
                 self.state_mut().add_relation(Relation {
-                    source: impl_id,
-                    target: trait_node_id,
+                    source: impl_id.into(),
+                    target: trait_node_id.into(),
                     kind: RelationKind::ImplementsTrait,
                 });
             }

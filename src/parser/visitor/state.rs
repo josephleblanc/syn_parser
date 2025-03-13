@@ -118,8 +118,8 @@ impl StateManagement for VisitorState {
         id
     }
     fn next_node_id(&mut self) -> NodeId {
-        let id = self.next_node_id;
-        self.next_node_id += 1;
+        let id = NodeId(self.next_node_id.0);
+        self.next_node_id.0 += 1;
         id
     }
 
