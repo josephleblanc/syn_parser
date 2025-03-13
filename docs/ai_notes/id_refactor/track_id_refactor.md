@@ -26,9 +26,11 @@
    - Type conversions ✔️
    - CodeGraph storage fields (Phase 3)
 
-3. `src/parser/visitor/traits_impls.rs`
-   - Trait-impl relationship handling
-   - Type ID vs Trait ID comparisons
+3. `src/parser/visitor/traits_impls.rs` ✔️
+   - Trait-impl relationship handling ✔️
+   - Type ID vs Trait ID comparisons ✔️
+   - Relation initialization fixes ✔️
+   - TraitNode ID conversion ✔️
 
 4. `src/parser/visitor/state.rs`
    - ID generation methods

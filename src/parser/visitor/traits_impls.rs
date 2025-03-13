@@ -49,7 +49,7 @@ pub trait TraitVisitor: FunctionVisitor {
 
         // Create trait node
         let trait_node = TraitNode {
-            id: trait_id,
+            id: TraitId(trait_id.0),
             name: trait_name,
             visibility: visibility.clone(),
             methods,
@@ -61,9 +61,11 @@ pub trait TraitVisitor: FunctionVisitor {
 
         // Create relation between trait and its type
         self.state_mut().add_relation(Relation {
-            source: trait_id,
-            target: type_id,
+            source: RelationSource::Node(trait_id),
+            target: RelationTarget::Type(type_id),
             kind: RelationKind::TypeDefinition,
+            graph_source: trait_id.into(),
+            graph_target: type_id.into(),
         });
 
         // Add to code graph - public or private collection based on visibility
@@ -79,9 +81,11 @@ pub trait TraitVisitor: FunctionVisitor {
         // Create relations for super traits
         for super_trait_id in super_traits.iter() {
             self.state_mut().add_relation(Relation {
-                source: trait_id,
-                target: super_trait_id.clone(),
+                source: RelationSource::Trait(TraitId(trait_id.0)),
+                target: RelationTarget::Type(super_trait_id.clone()),
                 kind: RelationKind::Inherits,
+                graph_source: trait_id.into(),
+                graph_target: super_trait_id.clone().into(),
             });
         }
     }

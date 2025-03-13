@@ -128,6 +128,8 @@ pub struct Relation {
     pub source: RelationSource,
     pub target: RelationTarget,
     pub kind: RelationKind,
+    pub graph_source: NodeId,
+    pub graph_target: NodeId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
