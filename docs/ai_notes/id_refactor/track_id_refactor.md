@@ -8,6 +8,7 @@
    - Core ID initialization ✔️
    - Serialization derives ✔️
    - TraitNode/ImplNode struct fields (Phase 2)
+   - Implemented From/Into traits ✔️
 
 2. `src/parser/relations.rs` ✔️
    - Relation struct fields ✔️
