@@ -12,12 +12,6 @@ impl From<TypeId> for NodeId {
     }
 }
 
-impl From<TypeId> for NodeId {
-    fn from(id: TypeId) -> Self {
-        NodeId(id.0)
-    }
-}
-
 impl TypeId {
     pub fn as_node_id(&self) -> Option<NodeId> {
         Some(NodeId::from(self.0))
