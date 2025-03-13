@@ -29,6 +29,7 @@ pub trait TraitVisitor: FunctionVisitor {
             .supertraits
             .iter()
             .map(|bound| self.process_type_bound(bound))
+            .map(|t| t.into())
             .collect();
 
         // Process trait methods
