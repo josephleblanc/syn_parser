@@ -7,7 +7,7 @@
   - [Edges](./Introduction/edges.md)
 
 - [Documentation](./Project_Structure/Visitor_Documentation.md)
-  - [Project Structure](./Project_Structure/CodeVisitor_VisitorState.md)
+  - [CodeVisitor and VisitorState](./Project_Structure/CodeVisitor_VisitorState.md)
     - [Naming Nodes](./Project_Structure/Naming_Nodes.md)
 
 - [Todos](./Todos/todos.md)
