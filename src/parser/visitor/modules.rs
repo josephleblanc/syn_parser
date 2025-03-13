@@ -1,5 +1,7 @@
-use crate::parser::visitor::TypeDefNode;
 use crate::parser::nodes::NodeId;
+use crate::parser::visitor::RelationSource;
+use crate::parser::visitor::RelationTarget;
+use crate::parser::visitor::TypeDefNode;
 use crate::parser::visitor::VisibilityKind;
 use crate::parser::{
     nodes::{ModuleNode, ValueKind},
@@ -7,6 +9,7 @@ use crate::parser::{
     types::{TypeKind, TypeNode},
     visitor::CodeVisitor,
 };
+use std::sync::atomic::{AtomicUsize, Ordering};
 use syn::visit::Visit;
 use syn::{visit, ItemExternCrate, ItemMod, ItemUse, Visibility};
 
@@ -52,7 +55,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
 
         if let Some((_, mod_items)) = &module.content {
             use rayon::prelude::*;
-            
+
             mod_items.par_iter().for_each(|item| {
                 match item {
                     syn::Item::Fn(func) => {
@@ -64,7 +67,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                         }
                     }
                     syn::Item::Struct(strct) => {
-                        self.visit_item_struct(strct);
+                        self.visit_item_struct(&strct);
                         // Get the last added struct ID
                         if let Some(TypeDefNode::Struct(struct_node)) =
                             self.state.code_graph.defined_types.last()
@@ -119,7 +122,7 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
                     // Add other item types as needed
                     _ => {}
                 }
-            }
+            })
         }
 
         let attributes = self.state.extract_attributes(&module.attrs);

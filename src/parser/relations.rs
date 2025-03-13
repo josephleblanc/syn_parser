@@ -3,15 +3,19 @@ use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::types::TypeId;
 use serde::{Deserialize, Serialize};
 
-// ANCHOR: Relation
-// Represents a relation between nodes
-#[derive(Debug, Serialize, Deserialize)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RelationBatch {
     pub relations: Vec<Relation>,
     pub estimated_size: usize,
 }
 
+// ANCHOR: Relation
+// Represents a relation between nodes
+// So we currently have RelationSource and RelationTarget, but these seem redundant. The only place
+// it seems like they are ever used are as fields for Relation anyway, so why wouldn't we just make
+// them GraphNodeId types instead? That way we can have a unified node type for everything. Is
+// there a good reason not to do that? AI?
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Relation {
     pub source: RelationSource,
     pub target: RelationTarget,
@@ -19,6 +23,7 @@ pub struct Relation {
     pub graph_target: GraphNodeId,
     pub kind: RelationKind,
 }
+//ANCHOR_END: Relation
 
 impl Relation {
     pub fn new(
@@ -38,7 +43,7 @@ impl Relation {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum RelationSource {
     Node(NodeId),
     Trait(TraitId),
@@ -74,7 +79,7 @@ impl From<RelationTarget> for GraphNodeId {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub enum RelationTarget {
     Type(TypeId),
     Trait(TraitId),
@@ -89,6 +94,12 @@ impl From<TypeId> for RelationTarget {
 impl From<TraitId> for RelationTarget {
     fn from(id: TraitId) -> Self {
         RelationTarget::Trait(id)
+    }
+}
+
+impl From<NodeId> for RelationTarget {
+    fn from(id: NodeId) -> Self {
+        RelationTarget::Node(id)
     }
 }
 

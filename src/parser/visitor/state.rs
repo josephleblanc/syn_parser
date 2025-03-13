@@ -4,14 +4,14 @@ use super::processor::{
 };
 use crate::parser::{
     graph::CodeGraph,
-    nodes::{FunctionNode, NodeId, ParameterNode},
+    nodes::{FunctionNode, NodeId, ParameterNode, TraitId},
     relations::Relation,
     types::{GenericParamNode, TypeId, TypeKind},
     visitor::utils::attributes::ParsedAttribute,
 };
 
+use dashmap::DashMap;
 use quote::ToTokens;
-use std::collections::HashMap;
 use syn::FnArg;
 use syn::Type;
 
@@ -60,7 +60,7 @@ impl VisitorState {
             next_node_id: 0,
             next_trait_id: 0,
             next_type_id: 0,
-            type_map: HashMap::new(),
+            type_map: DashMap::new(),
         }
     }
 
@@ -126,8 +126,8 @@ impl StateManagement for VisitorState {
 
     fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
         let type_str = ty.to_token_stream().to_string();
-        if let Some(&id) = self.type_map.get(&type_str) {
-            return id;
+        if let Some(id) = self.type_map.get(&type_str) {
+            return *id;
         }
 
         let id = self.next_type_id();

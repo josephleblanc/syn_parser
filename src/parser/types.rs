@@ -1,3 +1,5 @@
+use std::sync::{atomic::AtomicUsize, Arc};
+
 use crate::parser::nodes::NodeId;
 
 use serde::{Deserialize, Serialize};
@@ -16,8 +18,10 @@ impl TypeId {
     pub fn as_node_id(&self) -> Option<NodeId> {
         Some(NodeId::from(self.0))
     }
-    
-    pub fn as_usize(&self) -> usize { self.0 }
+
+    pub fn as_usize(&self) -> usize {
+        self.0
+    }
 }
 
 // Temporary alias for gradual migration
@@ -32,11 +36,12 @@ impl std::ops::AddAssign<usize> for TypeId {
 // ANCHOR: TypeNode
 // Represents a type reference with full metadata
 #[derive(Debug, Serialize, Deserialize)]
-#[derive(Debug, Serialize, Deserialize)]
 pub struct ArcTypeNode {
     inner: Arc<TypeNode>,
     ref_count: AtomicUsize,
 }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TypeNode {
     pub id: TypeId,
     pub kind: TypeKind,
     // Reference to related types (e.g., generic arguments)

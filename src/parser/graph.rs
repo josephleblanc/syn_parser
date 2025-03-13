@@ -1,8 +1,10 @@
+use crate::parser::nodes::NodeId;
 use crate::parser::{
     nodes::{FunctionNode, ImplNode, MacroNode, ModuleNode, TraitNode, TypeDefNode, ValueNode},
     relations::Relation,
     types::TypeNode,
 };
+use indexmap::IndexMap;
 
 use serde::{Deserialize, Serialize};
 

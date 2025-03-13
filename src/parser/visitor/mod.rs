@@ -1,10 +1,10 @@
 use crate::parser::graph::CodeGraph;
 use crate::parser::graph_ids::GraphNodeId;
-use crate::parser::nodes::{NodeId, TraitId};
-use crate::parser::types::TypeId;
 use crate::parser::nodes::*;
+use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::relations::Relation;
-use crate::parser::relations::*;
+use crate::parser::relations::{RelationSource, RelationTarget};
+use crate::parser::types::TypeId;
 pub use crate::parser::types::TypeKind;
 use crate::parser::types::*;
 
@@ -21,7 +21,7 @@ pub mod type_processing;
 
 /// Core processor trait with state management
 pub mod processor {
-    use crate::parser::nodes::{FunctionNode, NodeId};
+    use crate::parser::nodes::{FunctionNode, NodeId, TraitId};
     use crate::parser::types::{GenericParamNode, TypeId, TypeKind};
     use crate::parser::visitor::utils::attributes::ParsedAttribute;
     use crate::parser::visitor::Relation;
@@ -119,6 +119,8 @@ pub use self::{
     traits_impls::{ImplVisitor, TraitVisitor},
 };
 
+use super::relations::RelationKind;
+
 pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
     let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
     let mut visitor_state = state::VisitorState::new();
@@ -160,8 +162,8 @@ pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
                 {
                     root_module.submodules.push(*module_id);
                     visitor_state.code_graph.relations.push(Relation {
-                        source: root_module_id,
-                        target: *module_id,
+                        source: root_module_id.into(),
+                        target: module_id,
                         kind: RelationKind::Contains,
                         graph_source: root_module_id.into(),
                         graph_target: (*module_id).into(),
@@ -334,9 +336,11 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
             // Add relation between constant and its type
             self.state.code_graph.relations.push(Relation {
-                source: const_id,
-                target: type_id,
+                source: RelationSource::Node(const_id),
+                target: RelationTarget::Type(type_id),
                 kind: RelationKind::ValueType,
+                graph_source: const_id,
+                graph_target: type_id,
             });
         }
 
@@ -383,6 +387,8 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 source: static_id,
                 target: type_id,
                 kind: RelationKind::ValueType,
+                graph_source: id,
+                graph_target: todo!(),
             });
         }
 
@@ -507,6 +513,8 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
                 source: invocation_id,
                 target: defined_macro.id,
                 kind: RelationKind::MacroUse,
+                graph_source: invocation_id,
+                graph_target: defined_macro,
             });
         }
 

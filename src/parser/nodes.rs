@@ -27,7 +27,10 @@ pub struct GraphNodeId {
 
 impl GraphNodeId {
     pub fn new(type_prefix: NodeType, unique_id: usize) -> Self {
-        Self { type_prefix, unique_id }
+        Self {
+            type_prefix,
+            unique_id,
+        }
     }
 }
 

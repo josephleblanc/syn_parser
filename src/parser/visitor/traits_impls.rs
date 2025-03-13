@@ -25,11 +25,16 @@ pub trait TraitVisitor: FunctionVisitor {
         let generic_params = self.state_mut().process_generics(&t.generics);
 
         // Process super traits (bounds)
+        // Fix the super_traits processing:
         let super_traits: Vec<TraitId> = t
             .supertraits
             .iter()
-            .map(|bound| self.process_type_bound(bound))
-            .map(|t| t.into())
+            .filter_map(|bound| {
+                self.state_mut() // Use state_mut instead of state
+                    .code_graph() // Add parentheses
+                    .find_trait_by_name(&self.process_type_bound(bound))
+            })
+            .map(|t| t.id)
             .collect();
 
         // Process trait methods
@@ -211,8 +216,10 @@ pub trait ImplVisitor: FunctionVisitor {
         // Create relations
         // Self type relation
         self.state_mut().add_relation(Relation {
-            source: impl_id,
-            target: self_type,
+            source: RelationSource::Node(impl_id),
+            target: RelationTarget::Type(self_type),
+            graph_source: impl_id.into(),
+            graph_target: self_type.into(),
             kind: RelationKind::ImplementsFor,
         });
 
