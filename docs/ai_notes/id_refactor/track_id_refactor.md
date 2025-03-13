@@ -30,9 +30,10 @@
 
 3. `src/parser/visitor/state.rs` ✔️
    - ID generation methods ✔️
+   - Added TraitId generation with separate counter ✔️
    - Type system operations ✔️
    - Type conversions ✔️
-   - CodeGraph storage fields (Phase 3)
+   - CodeGraph storage fields ✔️
 
 3. `src/parser/visitor/traits_impls.rs` ✔️
    - Trait-impl relationship handling ✔️

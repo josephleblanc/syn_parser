@@ -138,6 +138,12 @@ impl StateManagement for VisitorState {
         self.next_type_id.increment();
         id
     }
+
+    fn next_trait_id(&mut self) -> TraitId {
+        let id = TraitId(self.next_trait_id);
+        self.next_trait_id += 1;
+        id
+    }
 }
 
 // TypeOperations implementation
