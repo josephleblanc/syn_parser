@@ -46,7 +46,7 @@ pub trait FunctionVisitor: TypeProcessor {
         self.create_function_relations(fn_id, &parameters, return_type);
         // Create function node
         let function_node = FunctionNode {
-            id: fn_id,
+            id: fn_id.into(),
             name: fn_name,
             visibility,
             parameters,
