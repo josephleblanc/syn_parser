@@ -178,18 +178,23 @@ pub trait ImplVisitor: FunctionVisitor {
         // Process impl methods
         let methods = self.process_impl_methods(i, impl_id, self_type);
 
-        // Create impl node
+        // Create impl node with visibility
         let impl_node = ImplNode {
             id: impl_id,
             self_type,
             trait_type,
             methods,
             generic_params,
+            visibility: self.convert_visibility(&i.vis),
         };
 
-        // Add to code graph with proper mutable access
+        // Add to code graph with visibility-based storage
         let state = self.state_mut();
-        state.code_graph().impls.push(impl_node);
+        if matches!(impl_node.visibility, VisibilityKind::Public) {
+            state.code_graph().public_impls.push(impl_node);
+        } else {
+            state.code_graph().private_impls.push(impl_node);
+        }
 
         // Create relations
         // Self type relation
