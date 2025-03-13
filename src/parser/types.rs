@@ -32,7 +32,11 @@ impl std::ops::AddAssign<usize> for TypeId {
 // ANCHOR: TypeNode
 // Represents a type reference with full metadata
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TypeNode {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ArcTypeNode {
+    inner: Arc<TypeNode>,
+    ref_count: AtomicUsize,
+}
     pub id: TypeId,
     pub kind: TypeKind,
     // Reference to related types (e.g., generic arguments)

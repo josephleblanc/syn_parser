@@ -6,6 +6,12 @@ use serde::{Deserialize, Serialize};
 // ANCHOR: Relation
 // Represents a relation between nodes
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RelationBatch {
+    pub relations: Vec<Relation>,
+    pub estimated_size: usize,
+}
+
 pub struct Relation {
     pub source: RelationSource,
     pub target: RelationTarget,

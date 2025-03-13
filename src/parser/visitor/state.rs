@@ -22,7 +22,7 @@ pub struct VisitorState {
     pub next_node_id: usize,
     pub next_trait_id: usize,
     pub next_type_id: usize,
-    pub type_map: HashMap<String, TypeId>,
+    pub type_map: DashMap<String, TypeId>,
 }
 
 pub trait Increment {
@@ -33,6 +33,13 @@ impl Increment for usize {
     fn increment(&mut self) {
         *self += 1;
     }
+}
+
+#[derive(Debug, Clone, Copy, serde::Serialize)]
+pub struct ParseMetrics {
+    pub id_generation_ns: u64,
+    pub type_cache_hits: usize,
+    pub relation_batch_size: usize,
 }
 
 impl VisitorState {

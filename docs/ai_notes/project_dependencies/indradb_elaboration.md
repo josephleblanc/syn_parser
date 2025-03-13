@@ -28,7 +28,10 @@ impl GraphDB {
         Ok(Self { conn: Arc::new(Mutex::new(db)) })
     }
 
-    pub fn store_codegraph(&self, graph: CodeGraph) -> Result<()> {
+    pub async fn store_codegraph(&self, graph: CodeGraph) -> Result<()> {
+        let batch = self.prepare_batch(graph).await?;
+        self.conn.send(batch).await?
+    }
         let mut batch = Transaction::new();
         
         // Convert nodes to IndraDB vertices

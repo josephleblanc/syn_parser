@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CodeGraph {
     // Functions defined in the code
-    pub functions: Vec<FunctionNode>,
+    pub functions: IndexMap<NodeId, FunctionNode, ahash::RandomState>,
     // Types (structs, enums) defined in the code
     pub defined_types: Vec<TypeDefNode>,
     // All observed types, including nested and generic types
