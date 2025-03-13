@@ -1,4 +1,5 @@
-# Test Status at Start of Refactor:
+# Test Status at Start of Refactor
+
 The following is the output of `cargo test` with all the compiler warnings
 removed. This should serve as a grounding point to help determine the progress
 of the ID refactor.
@@ -10,7 +11,7 @@ the ID types. However, we must be careful when altering the tests that they are
 not trivially passing, so maintaining or improving the logic in the test will
 be important.
 
-Output of `cargo test` with compiler warnings removed: Dated commit
+Output of `cargo test` with compiler warnings removed: Dated commit \[refactor_type_system 5270f3f\] adding notes at start of refactor
 --
 
      Finished `test` profile [unoptimized + debuginfo] target(s) in 0.37s
@@ -115,7 +116,6 @@ Impl for SampleStruct not found
 
 thread 'parser::impls_tests::test_impl_for_trait' panicked at tests/parser/impls_tests.rs:67:10:
 Impl of SampleTrait for SampleStruct not found
-
 
 failures:
     parser::functions_tests::test_documented_function_parsing
