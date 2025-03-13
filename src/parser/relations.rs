@@ -21,14 +21,14 @@ pub struct Relation {
 
 #[derive(Debug, thiserror::Error)]
 pub enum RelationError {
-    #[error("Invalid source type for {kind:?}. Expected {expected}, found {found}")]
+    #[error("Invalid source type for {kind}. Expected {expected}, found {found}")]
     InvalidSourceType {
         kind: RelationKind,
         expected: &'static str,
         found: &'static str,
     },
 
-    #[error("Invalid target type for {kind:?}. Expected {expected}, found {found}")]
+    #[error("Invalid target type for {kind}. Expected {expected}, found {found}")]
     InvalidTargetType {
         kind: RelationKind,
         expected: &'static str,
@@ -342,7 +342,6 @@ impl RelationTarget {
 // Different kinds of relations
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Copy, Clone)]
 pub enum RelationKind {
-    // Implement fmt::Display for this enum AI!
     FunctionParameter,
     FunctionReturn,
     StructField,
@@ -364,5 +363,31 @@ pub enum RelationKind {
     // TODO: Consider removing `HasType` later.
     // I don't think it's really useful but am wrestling with bugs rn.
     HasType,
+}
+
+impl fmt::Display for RelationKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RelationKind::FunctionParameter => write!(f, "FunctionParameter"),
+            RelationKind::FunctionReturn => write!(f, "FunctionReturn"),
+            RelationKind::StructField => write!(f, "StructField"),
+            RelationKind::EnumVariant => write!(f, "EnumVariant"),
+            RelationKind::ImplementsFor => write!(f, "ImplementsFor"),
+            RelationKind::ImplementsTrait(t) => write!(f, "ImplementsTrait({:?})", t),
+            RelationKind::Inherits => write!(f, "Inherits"),
+            RelationKind::References => write!(f, "References"),
+            RelationKind::Contains => write!(f, "Contains"),
+            RelationKind::TypeDefinition => write!(f, "TypeDefinition"),
+            RelationKind::Uses => write!(f, "Uses"),
+            RelationKind::ValueType => write!(f, "ValueType"),
+            RelationKind::MacroUse => write!(f, "MacroUse"),
+            RelationKind::MacroExpansion => write!(f, "MacroExpansion"),
+            RelationKind::MacroDefinition => write!(f, "MacroDefinition"),
+            RelationKind::MacroInvocation => write!(f, "MacroInvocation"),
+            RelationKind::GenericParameter => write!(f, "GenericParameter"),
+            RelationKind::Returns => write!(f, "Returns"),
+            RelationKind::HasType => write!(f, "HasType"),
+        }
+    }
 }
 //ANCHOR_END: Uses
