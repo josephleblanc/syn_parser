@@ -59,7 +59,7 @@ pub enum RelationKind {
     StructField,
     EnumVariant,
     ImplementsFor,
-    ImplementsTrait(TraitId), // Now properly typed
+    ImplementsTrait(TraitId), // TraitId type parameter added
     Inherits,
     References,
     Contains,

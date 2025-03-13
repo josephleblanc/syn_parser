@@ -303,9 +303,11 @@ impl<'a, 'ast> ModuleVisitor<'ast> for CodeVisitor<'a> {
 
             // Add a Uses relation
             self.state.code_graph.relations.push(Relation {
-                source: import_id,
-                target: type_id,
+                source: import_id.into(),
+                target: type_id.into(),
                 kind: RelationKind::Uses,
+                graph_source: import_id.into(),
+                graph_target: type_id.into(),
             });
         }
 

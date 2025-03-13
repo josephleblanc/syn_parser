@@ -137,9 +137,11 @@ pub trait StructVisitor: TypeProcessor {
 
                 // Create a relation between the field and its type
                 self.state_mut().add_relation(Relation {
-                    source: field_id,
-                    target: type_id,
+                    source: field_id.into(),
+                    target: type_id.into(),
                     kind: RelationKind::HasType,
+                    graph_source: field_id.into(),
+                    graph_target: type_id.into(),
                 });
 
                 // Extract attributes
@@ -172,9 +174,11 @@ pub trait StructVisitor: TypeProcessor {
 
                 // Create a relation between the field and its type
                 self.state_mut().add_relation(Relation {
-                    source: field_id,
-                    target: type_id,
+                    source: field_id.into(),
+                    target: type_id.into(),
                     kind: RelationKind::HasType,
+                    graph_source: field_id.into(),
+                    graph_target: type_id.into(),
                 });
 
                 // Extract attributes
