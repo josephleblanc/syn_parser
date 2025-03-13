@@ -40,6 +40,13 @@ pub trait TraitVisitor: FunctionVisitor {
         let docstring = self.state_mut().extract_docstring(&t.attrs);
         let attributes = self.state_mut().extract_attributes(&t.attrs);
 
+        // Register the trait's type
+        let trait_type = syn::Type::Path(syn::TypePath {
+            qself: None,
+            path: syn::Path::from(t.ident.clone()),
+        });
+        let type_id = self.state_mut().get_or_create_type(&trait_type);
+
         // Create trait node
         let trait_node = TraitNode {
             id: trait_id,
@@ -47,11 +54,17 @@ pub trait TraitVisitor: FunctionVisitor {
             visibility: visibility.clone(),
             methods,
             generic_params,
-            // TODO: See if this clone is really needed.
             super_traits: super_traits.clone(),
             attributes,
             docstring,
         };
+
+        // Create relation between trait and its type
+        self.state_mut().add_relation(Relation {
+            source: trait_id,
+            target: type_id,
+            kind: RelationKind::TypeDefinition,
+        });
 
         // Add to code graph - public or private collection based on visibility
         if matches!(visibility, VisibilityKind::Public) {
