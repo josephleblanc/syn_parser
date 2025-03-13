@@ -14,18 +14,24 @@ pub struct RelationBatch {
 }
 
 impl RelationBatch {
-    /// Convert to CozoDB-compatible tuples with vector embeddings
-    pub fn to_cozo_tuples(&self) -> Vec<cozo::Array> {
+    /// Serialize relations to JSON for external storage
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(&self.relations).expect("JSON serialization failed")
+    }
+
+    /// Convert to Cozo-compatible tuples (for future integration)
+    pub fn to_cozo_tuples(&self) -> Vec<serde_json::Value> {
         self.relations.iter().map(|rel| {
             cozo::Array::from(vec![
                 rel.source.into(),
                 rel.target.into(),
-                cozo::Array::from(vec![
-                    rel.kind.to_string(),
-                    self.content_uuid().to_string(),
-                    // Store vector embedding of relation context
-                    blake3::hash(rel.kind.to_string().as_bytes()).as_bytes().to_vec()
-                ])
+                serde_json::json!({
+                    "source": rel.source,
+                    "target": rel.target,
+                    "kind": rel.kind.to_string(),
+                    "uuid": self.content_uuid().to_string(),
+                    "embedding": blake3::hash(rel.kind.to_string().as_bytes()).as_bytes()
+                })
             ])
         }).collect()
     }
