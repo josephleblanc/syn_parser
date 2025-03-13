@@ -69,6 +69,10 @@ graph TD
     Relation -->|links| TraitID
     CodeGraph -->|stores| TraitNode
     CodeGraph -->|stores| ImplNode
+    GraphNodeId -->|unifies| NodeID
+    GraphNodeId -->|unifies| TraitID
+    GraphNodeId -->|unifies| TypeID
+    Relation -->|uses| GraphNodeId
 ```
 
 ## Critical Methods to Update

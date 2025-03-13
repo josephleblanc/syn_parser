@@ -36,6 +36,25 @@ impl From<usize> for NodeId {
     }
 }
 
+// Transitional conversions to GraphNodeId
+impl From<NodeId> for GraphNodeId {
+    fn from(id: NodeId) -> Self {
+        GraphNodeId::new(NodeType::Other, id.0)
+    }
+}
+
+impl From<TraitId> for GraphNodeId {
+    fn from(id: TraitId) -> Self {
+        GraphNodeId::new(NodeType::Trait, id.0)
+    }
+}
+
+impl From<TypeId> for GraphNodeId {
+    fn from(id: TypeId) -> Self {
+        GraphNodeId::new(NodeType::Type, id.0)
+    }
+}
+
 impl From<NodeId> for usize {
     fn from(value: NodeId) -> Self {
         value.0
