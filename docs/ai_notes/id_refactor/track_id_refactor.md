@@ -4,11 +4,10 @@
 
 1. `src/parser/nodes.rs` ✔️
    - Node ID type definitions ✔️
-   - TraitNode/ImplNode struct fields (partial ⚠️)
-   - TraitNode/ImplNode struct fields
-   - Serialization derives
-   - Type conversions ✔️
+   - Type conversions ✔️  
    - Core ID initialization ✔️
+   - Serialization derives ✔️
+   - TraitNode/ImplNode struct fields (Phase 2)
 
 2. `src/parser/relations.rs` ✔️
    - Relation struct fields ✔️

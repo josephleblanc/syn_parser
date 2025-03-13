@@ -152,7 +152,7 @@ pub trait StructVisitor: TypeProcessor {
                 let attributes = self.state_mut().extract_attributes(&field.attrs);
 
                 FieldNode {
-                    id: field_id.into(),
+                    id: field_id,
                     name: field_name,
                     type_id,
                     visibility: self.convert_visibility(&field.vis),

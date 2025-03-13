@@ -128,8 +128,8 @@ pub trait FunctionVisitor: TypeProcessor {
         // Add relations for parameter types
         for param in parameters {
             self.state_mut().add_relation(Relation {
-                source: fn_id,
-                target: param.type_id,
+                source: fn_id.into(),
+                target: param.type_id.into(),
                 kind: RelationKind::Uses,
             });
         }
@@ -137,8 +137,8 @@ pub trait FunctionVisitor: TypeProcessor {
         // Add relation for return type
         if let Some(type_id) = return_type {
             self.state_mut().code_graph().relations.push(Relation {
-                source: fn_id,
-                target: type_id,
+                source: fn_id.into(),
+                target: type_id.into(),
                 kind: RelationKind::Returns,
             });
         }
