@@ -27,6 +27,25 @@ pub struct GraphNodeId {
     pub unique_id: usize,
 }
 
+impl GraphNodeId {
+    /// Convert to IndraDB compatible UUID v5 (name-based)
+    pub fn to_uuid(&self) -> uuid::Uuid {
+        let namespace = match self.type_prefix {
+            NodeType::Node => uuid::Uuid::from_bytes([0x8A; 16]), // Placeholder namespace UUIDs
+            NodeType::Trait => uuid::Uuid::from_bytes([0x8B; 16]),
+            NodeType::Type => uuid::Uuid::from_bytes([0x8C; 16]),
+            NodeType::Module => uuid::Uuid::from_bytes([0x8D; 16]),
+            NodeType::Function => uuid::Uuid::from_bytes([0x8E; 16]),
+            NodeType::Impl => uuid::Uuid::from_bytes([0x8F; 16]),
+        };
+        
+        uuid::Uuid::new_v5(
+            &namespace,
+            &self.unique_id.to_le_bytes()
+        )
+    }
+}
+
 impl std::error::Error for GraphNodeId {}
 
 impl fmt::Display for GraphNodeId {
