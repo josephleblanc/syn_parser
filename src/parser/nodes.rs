@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 )]
 pub struct NodeId(pub usize);
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub struct TraitId(pub usize);
 
 impl From<usize> for TraitId {

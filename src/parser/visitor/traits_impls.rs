@@ -64,8 +64,8 @@ pub trait TraitVisitor: FunctionVisitor {
             source: RelationSource::Node(trait_id),
             target: RelationTarget::Type(type_id),
             kind: RelationKind::TypeDefinition,
-            graph_source: trait_id.into(),
-            graph_target: type_id.into(),
+            graph_source: trait_id,
+            graph_target: type_id.as_usize().into(),
         });
 
         // Add to code graph - public or private collection based on visibility
@@ -82,10 +82,10 @@ pub trait TraitVisitor: FunctionVisitor {
         for super_trait_id in super_traits.iter() {
             self.state_mut().add_relation(Relation {
                 source: RelationSource::Trait(TraitId(trait_id.0)),
-                target: RelationTarget::Type(super_trait_id.clone()),
+                target: RelationTarget::Type(*super_trait_id),
                 kind: RelationKind::Inherits,
-                graph_source: trait_id.into(),
-                graph_target: super_trait_id.clone().into(),
+                graph_source: trait_id,
+                graph_target: super_trait_id.as_usize().into(),
             });
         }
     }
@@ -228,9 +228,11 @@ pub trait ImplVisitor: FunctionVisitor {
                 .map(|r| r.source)
             {
                 self.state_mut().add_relation(Relation {
-                    source: impl_id.into(),
-                    target: trait_node_id.into(),
+                    source: RelationSource::Node(impl_id),
+                    target: RelationTarget::Trait(trait_node_id),
                     kind: RelationKind::ImplementsTrait(trait_node_id),
+                    graph_source: impl_id,
+                    graph_target: trait_node_id.into(),
                 });
             }
         }
