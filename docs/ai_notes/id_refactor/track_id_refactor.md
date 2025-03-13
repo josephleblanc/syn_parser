@@ -41,6 +41,7 @@
    - Graph ID fields added ✔️
    - TraitNode ID conversion ✔️
    - Graph ID fields added ✔️
+   - Added GraphNodeId conversions ✔️
 
 4. `src/parser/visitor/state.rs`
    - ID generation methods
