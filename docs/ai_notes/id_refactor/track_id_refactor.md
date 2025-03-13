@@ -55,7 +55,7 @@ graph TD
 ## Critical Methods to Update
 
 1. `VisitorState::next_node_id()`
-2. `VisitorState::next_type_id()` 
+2. `VisitorState::next_type_id()`
 3. `TypeOperations::get_or_create_type()`
 4. `ImplVisitor::process_impl()`
 5. `TraitVisitor::process_trait()`
@@ -87,6 +87,36 @@ graph TD
 ## Relevant Instructions from refactor_test_progress.md
 
 - "Make small, focused changes"
-- "Validate after each fix" 
+- "Validate after each fix"
 - "Check for compiler errors with `cargo check 2>&1 | rg -A 8 E0`"
 - "Use failing tests as specification"
+
+# Details on various phases
+
+PHASE 2.5: UNIFIED GRAPH ID SYSTEM
+ ----------------------------------
+
+ 1. Add transitional type (preserve current work):
+
+ ```rust
+ pub struct GraphNodeId {                                                                         
+     type_prefix: NodeType,                                                                       
+     unique_id: usize,                                                                            
+ }                                                                                                
+                                                                                                  
+ // Implement conversions for existing IDs                                                        
+ impl From<TraitId> for GraphNodeId {                                                             
+     fn from(id: TraitId) -> Self {                                                               
+         Self { type_prefix: NodeType::Trait, unique_id: id.0 }                                   
+     }                                                                                            
+ }                                                                                                
+                                                                                                  
+ // But keep existing ID types active
+ ```
+
+PHASE 5: FINAL UNIFICATION
+ --------------------------
+
+- Remove raw ID types
+- Update all visitors to use GraphNodeId
+- Remove conversion traits
