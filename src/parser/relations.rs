@@ -41,7 +41,7 @@ pub struct Relation {
      },                                                                             
                                                                                     
      #[error("Missing required trait ID for {kind:?} relation")]                    
-     MissingTraitId,                                                                
+     MissingTraitId { kind: RelationKind },                                                                
  }                        
 impl Relation {
     pub fn new(
