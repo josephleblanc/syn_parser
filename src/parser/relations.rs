@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::parser::graph_ids::GraphNodeId;
 use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::types::TypeId;
@@ -5,8 +7,32 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RelationBatch {
+    pub version: u32, // Schema version for evolution
     pub relations: Vec<Relation>,
     pub estimated_size: usize,
+    pub source_hash: [u8; 32], // Blake3 hash of source code
+}
+
+impl RelationBatch {
+    /// Convert to IndraDB edges with UUID endpoints                              
+    pub fn to_indradb_edges(&self) -> Vec<indradb::Edge> {
+        self.relations
+            .iter()
+            .map(|rel| {
+                indradb::Edge::new(rel.source.into(), rel.target.into(), rel.kind.to_string())
+            })
+            .collect()
+    }
+
+    /// Content-based UUID for batch tracking                                     
+    pub fn content_uuid(&self) -> uuid::Uuid {
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(&self.source_hash);
+        hasher.update(&self.estimated_size.to_le_bytes());
+        let hash = hasher.finalize();
+
+        uuid::Uuid::from_slice(hash.as_bytes()).unwrap()
+    }
 }
 
 // ANCHOR: Relation
@@ -263,7 +289,7 @@ impl Relation {
         }
     }
 }
-
+// AI
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum RelationSource {
     Node(NodeId),
@@ -337,6 +363,8 @@ impl RelationTarget {
         }
     }
 }
+// How many of these From implemenations should we be using here? Are they merited? Why or why not?
+// AI?
 
 // ANCHOR: Uses
 // Different kinds of relations
