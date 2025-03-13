@@ -23,6 +23,7 @@ pub enum RelationKind {
     Inherits,
     References,
     Contains,
+    TypeDefinition,
     Uses,
     ValueType,
     MacroUse,
