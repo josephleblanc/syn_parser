@@ -152,36 +152,15 @@
 
 ## Configuration Module
 **Path:** `src/config/mod.rs`  
-**Purpose:** Placeholder for future configuration management system
+**Purpose:** (Currently unused) Placeholder module
 
-### Current State
-- Empty module file (0 exports)
-- Adjacent `options.rs` contains no implementation
-- Not yet integrated with other components
-
-### Configuration Options (Planned)
-**Path:** `src/config/options.rs`  
-**Purpose:** Intended to define configuration structures
-
-#### Planned Structure
-```rust
-// Expected to contain:
-pub struct ParserConfig {
-    pub preserve_comments: bool,
-    pub detect_macros: bool,
-}
-
-pub struct SerializationConfig {
-    pub format: OutputFormat, // enum { Json, Ron }
-    pub pretty_print: bool,
-}
-```
-
-#### Required Connections
-- Would need to integrate with:
-  - `parser/visitor/state.rs` for analysis parameters
-  - `serialization/mod.rs` for output formatting
-  - Future CLI arguments in `main.rs.back`
+### Verified State
+- Empty module file (0 exports, 0 lines of code)
+- `options.rs` is also empty (0 lines of code)
+- No integration with other components exists in:
+  - Library root (`lib.rs`: no `config` imports)
+  - Visitor pattern (`visitor/state.rs`: no config references)
+  - Serialization (`serialization/mod.rs`: no config usage)
 
 ### Integration Needs
 - Requires connection to:
@@ -240,7 +219,6 @@ pub struct SerializationConfig {
 graph TD
     A[lib.rs] --> B[parser]
     A --> C[serialization]
-    A --> D[config]
     
     B --> E[graph.rs]
     B --> F[visitor]
@@ -403,12 +381,14 @@ sequenceDiagram
 
 ## Error Handling Infrastructure
 **Path:** `src/error.rs`  
-**Purpose:** (Current placeholder) Foundation for error type definitions
+**Purpose:** (Not implemented) Currently empty file
 
-### Current State
-- Contains only a TODO comment placeholder
-- Not yet integrated with other components
-- Missing concrete error type implementations
+### Verified State
+- Blank file (0 lines of code)
+- Error handling implemented ad-hoc in:
+  - `relations.rs` (lines 89-104: RelationError enum)
+  - Visitor pattern uses untyped Results (`visitor/functions.rs:56`)
+- No error conversion traits exist
 
 ### Immediate Integration Needs
 - Define core error enum matching foundational types:

@@ -1,10 +1,11 @@
 Documentation should:
 
 ## Core Principles
-1. **Accuracy First** - Precisely reflect current implementation state
-2. **Code-Centric** - Reference actual file paths and line numbers
-3. **Change Tracking** - Highlight discrepancies between planned/actual code
-4. **Dependency Mapping** - Explicitly connect components through imports and calls
+1. **As-Is Accuracy** - Document only verified code existence
+2. **Line-Anchored References** - Use exact line numbers (e.g., `nodes.rs:67-72`)
+3. **Anti-Speculation** - No "planned" or "would need" statements
+4. **Dependency Proofs** - Show actual `use` statements from code
+5. **Negative Space** - Document absence (empty files, unused modules)
 
 ## Technical Documentation
 5. **Concrete Examples** - Show real function signatures with error handling
@@ -36,7 +37,15 @@ Documentation should:
 - Error propagation through analysis pipeline
 
 ## Maintenance Practices
-- Use SEARCH/REPLACE blocks for surgical updates
-- Maintain line number accuracy through changes
-- Regular cross-references between docs and code
-- Version control integration (git hashes in changelogs)
+1. **Change Validation**:
+   - SEARCH blocks must match exact line numbers
+   - Verify against `git blame` for recent changes
+2. **Speculation Checks**:
+   - Scan for "planned", "would", "future" markers
+   - Replace with code references or remove
+3. **Empty State**:
+   - Document blank files/modules as empty
+   - No placeholder documentation
+4. **Diagram Grounding**:
+   - Mermaid elements must match `mod.rs` structure
+   - Remove non-existent relationships
