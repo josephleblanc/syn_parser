@@ -757,6 +757,47 @@ sequenceDiagram
    - Handle generic parameters and where clauses (line 127)
    - Track type/lifetime/const generics with bounds (line 45)
 
+### Generics Processing Implementation
+**Path:** `src/parser/visitor/utils/generics.rs`  
+**Purpose:** Process Rust generic parameters and constraints during AST analysis
+
+#### Key Responsibilities
+1. **Generic Parameter Tracking** - Handle type/lifetime/const parameters (lines 15-24)
+2. **Bounds Resolution** - Process trait and lifetime bounds (lines 26-41)
+3. **Default Type Handling** - Track generic type defaults (lines 43-48)
+4. **Parameter Relationships** - Create generic constraint relations (lines 127-135)
+
+#### Trait Implementations
+- `GenericsProcessor` trait (line 15) with blanket impl for CodeProcessor
+- Requires `GenericsOperations` supertrait (line 19)
+- Integrates with `TypeOperations` for bound resolution (line 30)
+
+#### Integration Points
+- Used by `VisitorState` via `process_generics()` (state.rs:134-137)
+- Shared across:
+  - Struct/enum processing (structures.rs:155-162)
+  - Trait definitions (traits_impls.rs:89-94)
+  - Function signatures (functions.rs:203-215)
+
+#### Notable Patterns
+1. **Parameter Kind Handling**:
+```rust
+match param {
+    GenericParam::Type(t) => /* process type params */,
+    GenericParam::Lifetime(l) => /* process lifetimes */,
+    GenericParam::Const(c) => /* process const generics */
+}
+```
+2. **Bound Tracking**:
+   - Trait bounds stored as TypeIds (line 34)
+   - Lifetime bounds as strings (line 39)
+
+#### Inconsistencies
+1. Default type handling commented out (lines 44-47 TODO)
+2. Blanket implementation limits specialization (lines 152-155)
+3. Bound storage mixes TypeIds and strings
+4. Missing where clause predicate processing
+
 ### Trait Implementations
 - `DocProcessor` trait (docs.rs:23-27) provides default impl for extracting docs
 - `GenericsProcessor` trait (generics.rs:15-19) handles parameter tracking
