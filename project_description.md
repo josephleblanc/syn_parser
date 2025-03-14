@@ -486,70 +486,28 @@ impl RelationBatch {
 **Path:** `src/parser/visitor/state.rs`  
 **Purpose:** Maintain analysis state during AST traversal and coordinate graph construction
 
-### Key Components
-1. **Core State Struct**:
-```rust
-pub struct VisitorState {
-    pub code_graph: CodeGraph,          // Mutable graph under construction
-    pub next_node_id: usize,            // Atomic ID counter for nodes
-    pub next_trait_id: usize,           // Atomic ID counter for traits
-    pub next_type_id: usize,            // Atomic ID counter for types
-    pub type_map: DashMap<String, TypeId>, // Concurrent type deduplication
-    pub relation_batch: RelationBatch,  // Atomic graph updates
-    pub current_module: NodeId,         // Module scope tracking
-}
-```
+### Key Responsibilities
+1. **State Preservation** - Tracks current parsing context including module hierarchy (current_module), type resolutions (type_map), and batched graph updates (relation_batch)
+2. **ID Generation** - Atomic counters for nodes, traits and types ensure unique identifiers across the codebase
+3. **Type Deduplication** - DashMap-based cache prevents duplicate type entries using type string signatures
+4. **Batch Processing** - Collects relation updates atomically to maintain graph consistency
 
-2. **Trait Implementations**:
-```mermaid
-classDiagram
-    VisitorState --> StateManagement
-    VisitorState --> TypeOperations
-    VisitorState --> AttributeOperations
-    VisitorState --> DocOperations
-    VisitorState --> GenericsOperations
-    
-    class StateManagement {
-        <<trait>>
-        +code_graph() &mut CodeGraph
-        +add_function(FunctionNode)
-        +add_relation(Relation)
-        +next_node_id() NodeId
-        +next_type_id() TypeId
-    }
-    
-    class TypeOperations {
-        <<trait>>
-        +get_or_create_type(&Type) TypeId
-        +process_type(&Type) (TypeKind, Vec<TypeId>)
-    }
-```
+### Integration Points
+- Directly mutates CodeGraph through StateManagement trait (code_graph())
+- Coordinates with TypeSystem via get_or_create_type() (types.rs:87-92)
+- Supplies metrics to ParseMetrics for performance tracking
+- Shares visibility handling logic with structures.rs (lines 89-103 vs 45-53)
 
-### State Management Details
-- **Concurrent Access**:
-  - Uses `DashMap` for thread-safe type deduplication (line 15)
-  - Atomic ID counters with interior mutability (lines 8-10)
-- **Graph Mutation**:
-  - Direct access to CodeGraph via trait (lines 132-135)
-  - Batched relation updates through RelationBatch (line 13)
-- **Scope Tracking**:
-  - Current module context (line 14)
-  - Nested visibility handling (lines 89-103)
+### Critical Dependencies
+- **CodeGraph** - Directly modifies graph structure through mutable reference
+- **syn Types** - Processes raw syntax elements into normalized identifiers
+- **DashMap** - Enables concurrent type resolution across threads
 
-### Serialization Notes
-- `ParseMetrics` struct (lines 17-22) tracks:
-  - ID generation latency
-  - Type cache hit rate
-  - Relation batch sizes
-- Missing serialization derives for:
-  - VisitorState (contains non-serializable DashMap)
-  - RelationBatch (test-only CozoDB dependency)
-
-### Inconsistencies
-1. Mixed counter types: `usize` vs `AtomicUsize` (lines 8-10)
-2. Test-only CozoDB storage in production path (line 13)
-3. Duplicate visibility handling (lines 89-103 vs structures.rs:45-53)
-4. Missing module hierarchy validation (line 14)
+### Optimization Strategies
+- Atomic batch updates minimize graph locking
+- Type string hashing avoids redundant processing
+- Scoped ID generation prevents identifier collisions
+- Module stack enables hierarchical lookups
 
 ---
 
