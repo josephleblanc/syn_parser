@@ -1001,6 +1001,61 @@ fn process_return_type(&mut self, output: &ReturnType) -> Option<TypeId> {
 
 ---
 
+## Serialization Module
+**Path:** `src/serialization/mod.rs`  
+**Purpose:** Handle conversion of CodeGraph to persistent formats while maintaining structural relationships
+
+### Core Requirements
+1. **Format Agnostic** - Unified trait interface across RON/JSON
+2. **ID Preservation** - Maintain Node/Type/Trait Ids across serialization
+3. **Version Control** - Embed schema version in output (ron.rs:21)
+4. **Backwards Compatibility** - Support old graph versions (RON only)
+
+### Key Implementations
+
+/// RON Serialization ///
+**Path:** `src/serialization/ron.rs`  
+**Traits:** 
+- Implements custom Serialize/Deserialize for CodeGraph (lines 15-48)
+- Uses `ron::ser::PrettyConfig` for readability (line 19)
+
+**Features:**
+- Normalizes UUIDs to strings (graph_ids.rs:67-72)
+- Preserves collection order via IndexMap
+- Embeds schema version metadata (v0.1.0)
+
+**Critical Methods:**
+```rust
+pub fn save_to_ron(code_graph: &CodeGraph, path: &Path)
+pub fn load_from_ron(path: &Path) -> Result<CodeGraph>
+```
+
+/// JSON Serialization ///
+**Path:** `src/serialization/json.rs`  
+**Current State:**
+- Unimplemented placeholder functions (lines 10-15)
+- Contains stub trait impls for future development
+- Lacks error handling scaffolding
+
+### Cross-Format Consistency
+| Feature          | RON               | JSON              |
+|------------------|-------------------|-------------------|
+| Schema Version   | ✔ Embedded        | ❌ Missing        | 
+| Type Preservation| ✔ Custom impls    | ❌ Not started    |
+| ID Serialization | ✔ UUID strings    | ❌ TODO           |
+| Pretty Printing  | ✔ Configurable    | ❌ Unimplemented  |
+
+### Key Dependencies
+- **serde**: Core serialization traits
+- **ron**: Primary production format
+- **uuid**: String conversion helpers
+
+### Inconsistencies
+1. JSON implementation incomplete while RON fully functional
+2. Version handling only in RON (ron.rs:21 vs json.rs:7)
+3. Error types diverge - RON uses io::Error, JSON unimplemented
+4. RON relies on external PrettyConfig, JSON formatting undefined
+
 ## Architecture Overview
 ```mermaid
 graph TD

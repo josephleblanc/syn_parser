@@ -61,7 +61,7 @@ Files to analyze and incorporate to main project document in project root `proje
 - [x] src/parser/visitor/utils/docs.rs
 - [x] src/parser/visitor/utils/generics.rs
 - [x] src/parser/visitor/utils/mod.rs
-- [ ] src/serialization/
-- [ ] src/serialization/json.rs
-- [ ] src/serialization/mod.rs
-- [ ] src/serialization/ron.rs
+- [x] src/serialization/
+- [x] src/serialization/json.rs
+- [x] src/serialization/mod.rs
+- [x] src/serialization/ron.rs
