@@ -42,8 +42,8 @@
   - `cozo`: Embedded graph database (SQLite backend)
     - Used only in test configurations (`relations.rs:31-33`)
     - Production code uses simple Vec storage (`graph.rs:13-15`)
-    - CozoDB references exist but are non-functional in current implementation
-    - Production code contains vestigial transactional code creating divergence risk
+    - CozoDB usage is test-only (`#[cfg(test)]` guards in `relations.rs:31-33`)
+    - Production storage uses simple Vec storage (`graph.rs:13-15`)
 
 ### Primary Exports
 - `CodeGraph`: Central data structure containing parsed code relationships
@@ -1271,6 +1271,21 @@ sequenceDiagram
    - Circular references: TypeNode ↔ GenericParamNode via related_types
 
 ---
+
+## Critical Implementation Risks
+
+1. **ID Generation Race Conditions**:
+   - Parallel processing (Rayon) with non-atomic usize counters
+   - Duplicate/missing IDs likely in production (current code uses `+= 1` in thread-unsafe way)
+
+2. **Visibility Handling Duplication**:
+   - Convert_visibility() implemented 3x with potential inconsistencies
+   - Central implementation needed in `visibility.rs`
+
+3. **Error Handling Debt**:
+   - 23 unwrap() calls create panic risks (eg `visitor/mod.rs:393`)
+   - Mixed Result/Option error handling patterns
+   - No unified error type for recovery
 
 ## Foundational Types (Candidate Exports)
 **Path:** `src/parser/graph_ids.rs`, `nodes.rs`, `types.rs`  
