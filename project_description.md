@@ -265,26 +265,94 @@ graph TD
 
 ---
 
+## Data Structure Interactions
+
+### Core Relationship Map
+```mermaid
+flowchart LR
+    CodeGraph --> NodeIds
+    CodeGraph --> Relations
+    CodeGraph --> TypeSystem
+    
+    NodeIds --> |Contains| GraphNodeId
+    Relations --> |Uses| NodeIds
+    TypeSystem --> |Uses| Relations
+    
+    Visitor --> |Builds| CodeGraph
+    Visitor --> |Updates| TypeSystem
+    Parser --> |Feeds| Visitor
+    
+    Serialization --> |Persists| CodeGraph
+    Serialization --> |Uses| NodeIds
+```
+
+### Key Interaction Patterns
+1. **Node Creation Flow**:
+```rust
+// visitor/functions.rs
+fn visit_item_fn() -> FunctionNode {
+  // Creates FunctionNode
+  // Registers with CodeGraph via VisitorState
+  // Links to TypeSystem via TypeId references
+}
+
+// parser/graph.rs
+impl CodeGraph {
+  pub fn add_function(&mut self, func: FunctionNode) {
+    self.functions.insert(func.id, func);
+  }
+}
+```
+
+2. **Relation Establishment**:
+```rust
+// visitor/traits_impls.rs
+fn record_impl_relationship() {
+  let relation = Relation {
+    source: impl_node.self_type,
+    target: impl_node.trait_type,
+    kind: RelationKind::Implements
+  };
+  state.add_relation(relation);
+}
+
+// parser/relations.rs
+impl RelationBatch {
+  pub fn apply(self, graph: &mut CodeGraph) {
+    graph.relations.extend(self.relations);
+  }
+}
+```
+
+3. **Type Resolution**:
+```mermaid
+sequenceDiagram
+    Visitor->>+TypeSystem: resolve_type(syn::Type)
+    TypeSystem->>-Visitor: TypeId
+    Visitor->>CodeGraph: store_type_relation(source, TypeId)
+    CodeGraph->>TypeSystem: verify_compatibility()
+```
+
+---
+
 ## Implementation Inconsistencies
 1. **Storage Backends**:
-   - CozoDB used in tests but not production
-   - RON serialization implemented while JSON is stubbed
-   - Mixed use of IndexMap (ordered) and Vec (unordered) collections
+   - CozoDB (relations.rs:132) test-only despite production needs
+   - JSON serialization (serialization/json.rs) unimplemented stubs
+   - Mixed collections: IndexMap (graph.rs:12) vs Vec (nodes.rs:45)
 
 2. **Error Handling**:
-   - Core error type placeholder in error.rs
-   - Validation errors in relations.rs not integrated
-   - Missing error conversion traits
+   - error.rs placeholder vs relations.rs validation (relations.rs:89-104)
+   - Missing error conversion for syn::Error (visitor/mod.rs:67)
 
 3. **Visitor Pattern**:
-   - State management split between visitor/state.rs and parser/utils.rs
-   - Partial attribute processing implementations
-   - Macro expansion tracking incomplete
+   - State split: visitor/state.rs vs parser/utils.rs:33-48
+   - Partial attributes: visitor/utils/attributes.rs:15 vs nodes.rs:127
 
 4. **Type System**:
-   - ArcTypeNode defined but not fully utilized
-   - LegacyTypeId alias present but unused
-   - Generic bounds storage differs between structs/traits
+   - ArcTypeNode (types.rs:42) vs direct TypeId usage (nodes.rs:89)
+   - LegacyTypeId (types.rs:24) never referenced
+   - Generic storage mismatch: nodes.rs:201 vs relations.rs:55
 
 ---
 
