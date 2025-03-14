@@ -271,7 +271,7 @@
   - `GenericParamNode` with kind-specific data
   - Bounds checking through `related_types`
 - Memory management:
-  - `ArcTypeNode` enables shared ownership (line 42)
+  - `ArcTypeNode` struct exists but is orphaned code (defined in types.rs but unused)
   - DashMap in VisitorState for type deduplication
 
 ### Validation Mechanisms
@@ -291,7 +291,7 @@
   - Used in relation validation (relations.rs:89-104)
 
 ### Inconsistencies
-1. `LegacyTypeId` alias (types.rs:24) never referenced
+1. `LegacyTypeId` alias (types.rs:24) is commented out and never referenced
 2. Hardcoded root ModuleId=0 creates hierarchy fragility (visitor/mod.rs:153)
 3. `DashMap` concurrency conflicts with sequential ID generation (state.rs:15 vs state.rs:67-72)
 4. Parallel processing (modules.rs:153-189) uses Rayon with non-atomic ID counter
@@ -870,7 +870,9 @@ attrs.iter()
 ### Inconsistencies
 1. Missing `process_derive` utility for #[derive] attributes
 2. Generic bounds stored as strings vs parsed types
-3. No common error type for parsing failures
+3. **Attribute Inheritance**: Processing filters out `#[doc]` attributes but leaves others like
+   `#[cfg]` unprocessed, potentially missing conditional compilation context
+4. No common error type for parsing failures
 
 ## Attribute Processing Implementation
 **Path:** `src/parser/visitor/utils/attributes.rs`  
