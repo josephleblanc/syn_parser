@@ -32,16 +32,16 @@
 ### Dependencies
 - Internal Submodules:
   - `graph`: Core graph structure implementation
-  - `visitor`: AST traversal and analysis implementation
+  - `visitor`: AST traversal and analysis implementation 🚧
   - `types`: Type system representation
 - External Crates:
-  - `syn`: Rust syntax parsing
-  - `quote`: Token stream manipulation for type hashing
-  - `indexmap`: Preserved insertion order for analysis  
-  - `dashmap`: Concurrent type deduplication map
-  - `cozo`: Embedded graph database (SQLite backend)
+  - `syn`: Rust syntax parsing ✅
+  - `quote`: Token stream manipulation for type hashing ✅
+  - `indexmap`: Preserved insertion order for analysis ✅ 
+  - `dashmap`: Concurrent type deduplication map ⚠️ (state.rs:15)
+  - `rayon`: Parallel processing 🚧 (modules.rs:153-189)
+  - `cozo`: Embedded graph database (SQLite backend) ❌
     - Used only in test configurations (`relations.rs:31-33`)
-    - Production code uses simple Vec storage (`graph.rs:13-15`)
     - CozoDB usage is test-only (`#[cfg(test)]` guards in `relations.rs:132-135`)
     - Production storage uses simple Vec storage (`graph.rs:12-14`)
 
@@ -1063,9 +1063,14 @@ fn process_return_type(&mut self, output: &ReturnType) -> Option<TypeId> {
 
 ---
 
-## Serialization Module
+## Serialization Module  
 **Path:** `src/serialization/mod.rs`  
-**Purpose:** Handle conversion of CodeGraph to persistent formats while maintaining structural relationships
+**Purpose:** Handle graph persistence formats 🚧
+
+❌ **JSON Serialization**: 
+- src/serialization/json.rs is placeholder (15 LoC)
+- Lacks error handling
+- Missing type preservation
 
 ### Core Requirements
 1. **Format Agnostic** - Unified trait interface across RON/JSON
