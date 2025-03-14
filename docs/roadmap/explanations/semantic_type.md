@@ -183,6 +183,8 @@ This approach preserves the immediate utility of categorical types while enablin
 
 
 ## In Depth Explanation
+Design as of: refactor_type_system c942e12
+
 Let's clarify with a focused example that maintains the parser's core responsibility while showing the path to CozoDB integration:
 
 The current `Relation` struct in the code represents edges
