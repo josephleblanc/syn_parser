@@ -315,6 +315,52 @@
 
 ---
 
+## AST Visitor Implementation
+**Path:** `src/parser/visitor/mod.rs`  
+**Purpose:** Core AST traversal and graph construction logic
+
+### Key Components
+1. **Processor Traits** (lines 23-102):
+   - `CodeProcessor` with state management
+   - Specialized traits for type/attribute/doc operations
+   - Generic parameter handling
+2. **Visitor Implementation** (lines 237-487):
+   - Implements `syn::visit::Visit` for 15+ syntax node types
+   - Handles macro expansion and module relationships
+   - Coordinates with specialized visitors via traits
+
+### Core Workflows
+1. **Type Resolution** (lines 341-348):
+   ```rust
+   fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
+       let type_str = ty.to_token_stream().to_string();
+       self.state.type_map.get_or_insert_with(type_str, || {
+           self.state.next_type_id()
+       })
+   }
+   ```
+2. **Module Hierarchy** (lines 153-189):
+   - Creates root module first (lines 153-160)
+   - Tracks submodule relationships via `RelationKind::Contains`
+   - Processes imports/exports through `extract_use_path`
+
+### State Management
+- **VisitorState** (line 109):
+  - Atomic ID counters (node/type/trait)
+  - DashMap for type deduplication
+  - Batched relation storage
+- **CodeGraph Integration**:
+  - Direct mutation via `state_mut().code_graph()`
+  - Relation batching for atomic updates
+
+### Inconsistencies
+1. Error handling ad-hoc (lines 67, 487) with untyped Results
+2. Macro expansion tracking incomplete (lines 433-436)
+3. Test-only CozoDB storage (lines 132-135) in production path
+4. Visibility conversion duplicated (lines 230-241 vs structures.rs:45-53)
+
+---
+
 ## Architecture Overview
 ```mermaid
 graph TD
