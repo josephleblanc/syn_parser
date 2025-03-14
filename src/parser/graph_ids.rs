@@ -14,14 +14,6 @@ pub enum NodeType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-// causing an error here in relation.rs, which I've copied below:
-// #[error("Invalid implementation relationship between {source} and {target}")]
-// InvalidImplementation {
-//     source: GraphNodeId,
-//     target: GraphNodeId,
-//     kind: RelationKind,
-// },
-// └╴  doesn't satisfy `graph_ids::GraphNodeId: AsDynError<'_>` or `graph_ids::GraphNodeId: StdError` rustc (E0599) [17, 1]
 pub struct GraphNodeId {
     pub type_prefix: NodeType,
     pub unique_id: usize,
@@ -38,11 +30,8 @@ impl GraphNodeId {
             NodeType::Function => uuid::Uuid::from_bytes([0x8E; 16]),
             NodeType::Impl => uuid::Uuid::from_bytes([0x8F; 16]),
         };
-        
-        uuid::Uuid::new_v5(
-            &namespace,
-            &self.unique_id.to_le_bytes()
-        )
+
+        uuid::Uuid::new_v5(&namespace, &self.unique_id.to_le_bytes())
     }
 }
 

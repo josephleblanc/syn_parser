@@ -34,6 +34,33 @@ type_map: DashMap<String, TypeId>
 type_map: DashMap<[u8; 16], SemanticType>
 ```
 
+**SemanticType Definition:**
+```rust
+struct SemanticType {
+    fingerprint: [u8; 16],
+    ast_span: Range<usize>,
+    relationships: Vec<TypeRelationship>,
+    versions: BTreeMap<u32, TypeVersion>,
+}
+```
+**Relationships:**
+```mermaid
+graph TD
+    A[SemanticType] --> B[BaseTypes]
+    A --> C[GenericParams]
+    A --> D[TraitBounds]
+    A --> E[WhereClauses]
+    B --> F[Primitive]
+    B --> G[Composite]
+    C --> H[Lifetimes]
+    C --> I[TypeParams]
+```
+
+**DashMap Mechanics:**
+- Sharded concurrent HashMap
+- Lock per shard vs global lock
+- Auto-scales with contention
+
 ## 2. ID Generation Changes
 
 ### Affected Files:
@@ -60,6 +87,11 @@ fn next_node_id(&mut self) -> NodeId;
 // AFTER
 fn atomic_next_id(&self, counter: &AtomicUsize) -> HardwareAlignedId;
 ```
+**Usage:**
+- **Atomic Counters** - Lock-free ID generation across threads
+- **Version Epoch** - Temporal tracking for incremental updates
+- **NUMA Optimization** - Separate pools per NUMA node (critical for 9800X3D's 4
+CCDs)
 
 ## 3. CozoDB Integration
 
@@ -91,6 +123,11 @@ code_graph: CodeGraph
 code_graph: CozoGraphStore
 ```
 
+**Benefits:**
+1. **False Sharing Prevention** - Aligns to 9800X3D's 64B cache lines
+2. **Predictable Access** - Enables stride-based prefetching
+3. **Scalability** - Reduces cross-core cache invalidations
+
 ## 4. Incremental Processing
 
 ### Affected Files:
@@ -116,7 +153,6 @@ struct VersionTracker {
     patches: RwLock<Vec<GraphDelta>>,
 }
 ```
-
 ## 5. RAG Artifact Changes
 
 ### Affected Files:
