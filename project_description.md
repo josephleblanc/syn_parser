@@ -1332,19 +1332,42 @@ sequenceDiagram
     V->>G: Store node with ID
 ```
 
-| ID Type       | Source Code Reference | Uniqueness Guarantee | Wraparound Risk |
-|---------------|-----------------------|----------------------|-----------------|
-| NodeID        | state.rs:67-72        | Single-threaded only | After usize::MAX|
-| TypeID        | state.rs:123-135      | DashMap protected    | Collisions possible |
-| TraitID       | state.rs:89-93        | No concurrency guard | Unbounded growth|
+### ID Generation Flow
 
-### Cross-Mode References
-| Source Type    | Target Type    | Validation            | File:Line          |
-|----------------|----------------|-----------------------|--------------------|
-| Function Param | Type           | HasType relation      | structures.rs:133-137|
-| Trait Method   | Type           | Signature check       | traits_impls.rs:199|
-| Impl Block     | Trait          | Explicit link         | traits_impls.rs:352-359|
-| Macro Use      | Definition     | Path matching         | macros.rs:123-145|
+| ID Type       | Source Code Reference      | Underlying Type | Uniqueness Scope    | Wraparound Risk | Validation                                  |
+|---------------|----------------------------|-----------------|---------------------|-----------------|---------------------------------------------|
+| `NodeId`      | nodes.rs:23-45             | usize           | Per-analysis session | usize::MAX      | ❌ No overflow checks                      |
+| `TraitId`     | nodes.rs:88-95             | usize           | Global               | Unbounded       | ✅ Unique per-trait (traits_impls.rs:32-37)|
+| `TypeId`      | types.rs:12-24             | usize           | Global               | Collisions possible (dashmap) | SHA-1 hash fallback (state.rs:123-135)     |
+| `GraphNodeId` | graph_ids.rs:23-56         | (NodeType, usize) | Composite key       | Component-wise  | ✅ UUIDv5 conversion (graph_ids.rs:67-72)  |
+| `MacroId`     | nodes.rs:215-218           | NodeId          | Same as NodeId       | Inherited       | ❌ Shares NodeId namespace                 |
+| `ParameterId` | nodes.rs:67-72             | NodeId          | Function-scoped      | Inherited       | ✅ Contained in FunctionNode               |
+| `VariantId`   | nodes.rs:127-132           | NodeId          | Enum-scoped          | Inherited       | ✅ Parent enum validation (structures.rs:57-86)|
+| `FieldId`     | nodes.rs:127-132           | NodeId          | Struct/Union-scoped  | Inherited       | ✅ Parent struct validation (structures.rs:20-55)|
+| `ModuleId`    | nodes.rs:112-115           | NodeId          | Hierarchy-scoped     | Inherited       | ✅ Parent-child validation (modules.rs:153-189)|
+| `RelationId`  | relations.rs:45-53         | usize           | Global               | Unbounded       | ❌ Sequential, no reuse                   |
+
+### Expanded Cross-Mode References
+
+| Source Type          | Target Type          | Relationship Kind        | Validation Mechanism                     | Code Reference                |
+|----------------------|----------------------|--------------------------|------------------------------------------|-------------------------------|
+| Struct Node          | Field Type           | HasType                  | Type existence check                     | structures.rs:133-137         |
+| Enum Node            | Variant Type         | Contains                 | Variant field type resolution            | structures.rs:158-179         |
+| Function Parameter   | Type                 | ValueType                | Parameter type validation                | functions.rs:133-137          |
+| Function Return      | Type                 | Returns                  | Return type resolution                   | functions.rs:179-183          |
+| Impl Block           | Self Type            | ImplementsFor            | Type existence verification              | traits_impls.rs:341-345       |
+| Impl Block           | Trait                | ImplementsTrait          | Trait declaration check                  | traits_impls.rs:352-359       |
+| Trait Method         | Signature Type       | Defines                  | Signature validation                     | traits_impls.rs:189-194       |
+| Macro Invocation     | Macro Definition     | MacroUse                 | Path matching                            | macros.rs:123-145             |
+| Module               | Contained Item       | Contains                 | Scoping rules                            | modules.rs:153-189            |
+| Type Alias           | Target Type          | Aliases                  | Type resolution                          | visitor/mod.rs:393-402        |
+| Generic Parameter    | Constraint Type      | Constrains               | Bound checking                           | generics.rs:127-135           |
+| Trait                | Super Trait          | Inherits                 | Trait hierarchy validation               | traits_impls.rs:116-125       |
+| Closure              | Captured Variable    | Captures                 | Lifetime analysis                        | ❌ Not implemented            |
+| Attribute            | Procedural Macro     | Invokes                 | Attribute processor check                | macros.rs:58-102              |
+| Pattern Binding      | Type                 | BindsTo                  | Type inference                           | ❌ Basic type mapping only    |
+| Associated Type      | Concrete Type        | Specifies               | Trait implementation check               | ❌ Placeholder (traits_impls.rs:375-377) |
+| Lifetime             | Bounded Type         | Outlives                | Lifetime constraint checking             | generics.rs:39-41             |
 
 ### Dependency Lifecycles
 1. **Type Resolution**:
