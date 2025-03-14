@@ -20,12 +20,14 @@ Let's create a structured plan to triage the documentation:
 
 ### Step 2: Triage by Category
 
-#### A. AI Workflow Documents
-| Document | Recommendation | Reason |
-|----------|----------------|--------|
-| `ai_next_task.md` | Delete | Superseded by current implementation |
-| `ai_project_notes.md` | Archive | Historical record of thought process |
-| `ai_todo.md` | Delete | Contains outdated task lists |
+#### A. AI Workflow Documents - Historical Tracking
+| Document Path | Completed? | Category | Status | Rationale | Alternatives Considered |
+|---------------|------------|----------|--------|-----------|-------------------------|
+| `ai_next_task.md` | ☐ | Active Dev Tracking | Delete | Contains concrete implementation details now captured in:<br>- src/parser/visitor/state.rs:67-72 (ID generation)<br>- tests/common/mod.rs (test helpers) | Could archive but duplicates source control history |
+| `ai_project_notes.md` | ☐ | Architectural Design | Archive | Valuable for:<br>1. Mermaid diagrams showing original visitor flow<br>2. Lesson learned about trait-impl disconnect<br>3. Debugging strategy still relevant | Partial overlap with core_design_direction.md section 3.2 |
+| `ai_todo.md` | ☐ | Task Tracking | Delete | Obsolete because:<br>- 100% of CLI integration items completed<br>- JSON serialization abandoned per serialization/mod.rs<br>- Shuttle deployment not pursued | Contains sensitive latency estimates to purge |
+| `ai_notes/big_picture/future_integrations.md` | ☐ | Speculative Design | Merge | Keep Qdrant integration plan (partially implemented)<br>Delete Rig.dev section (abandoned) | Needs redaction of deprecated approaches |
+| `ai_notes/testing_status_start.md` | ☐ | QA History | Archive | Baseline metrics useful for:<br>- Tracking test coverage growth<br>- Benchmarking parser performance | Historical reference only - no active value |
 
 #### B. ID System Refactoring
 | Document | Recommendation | Reason |
