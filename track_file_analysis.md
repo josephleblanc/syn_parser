@@ -1,4 +1,3 @@
- I was doing a refactor of this project, but ended up making more changes than I had at first considered and the project is becoming disorganized. I want your help stepping through the entire project, one file at a time, and creating a core document that describes the structure of the whole project. 
 ```
 src
 ├── config
@@ -39,7 +38,7 @@ Files to analyze and incorporate to main project document in project root `proje
 - [ ] src/config/mod.rs
 - [ ] src/config/options.rs
 - [ ] src/error.rs
-- [ ] src/lib.rs
+- [x] src/lib.rs
 - [ ] src/parser/
 - [ ] src/parser/graph.rs
 - [ ] src/parser/graph_ids.rs
