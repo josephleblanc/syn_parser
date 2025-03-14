@@ -169,9 +169,15 @@
 - Stores concrete node types from `nodes.rs`
 - Built by visitor pattern in `visitor/` module
 
+#### Storage Inconsistency Caveats
+- `functions` uses `IndexMap` for insertion-order preservation (graph.rs:12)
+- Other collections (`impls`, `defined_types`) use `Vec` 
+- Mixed collection types may affect serialization determinism
+
 #### Serialization
 - Derives `Serialize`/`Deserialize` for RON persistence
 - Maintains insertion order for deterministic output
+- JSON serialization unavailable (serialization/json.rs is empty)
 
 ---
 
