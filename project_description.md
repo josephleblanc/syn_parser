@@ -54,6 +54,36 @@
 
 ---
 
+### Graph Identifiers Implementation
+**Path:** `src/parser/graph_ids.rs`  
+**Purpose:** Core type definitions for unique graph node identifiers
+
+#### Key Data Structures
+- `NodeType` enum:
+  - Variants: Node, Trait, Type, Module, Function, Impl
+  - Used to namespace IDs and ensure type-safe references
+- `GraphNodeId` struct:
+  - Composite key combining type prefix and unique integer ID
+  - Implements UUID conversion for persistent storage
+  
+#### Critical Methods
+- `to_uuid()`: Generates deterministic UUIDv5 based on:
+  - Namespace UUIDs per node type (currently placeholder values)
+  - Unique ID bytes in little-endian format
+- `From` implementations: Allow conversion from domain-specific IDs
+  - `TraitId` and `TypeId` from parser modules
+
+#### Integration Points
+- Used by:
+  - `CodeGraph` relationships tracking
+  - Serialization formats needing stable identifiers
+  - Visitor pattern when recording node connections
+- Depends on:
+  - `NodeId`/`TraitId` definitions from `nodes.rs`
+  - Type system IDs from `types.rs`
+
+---
+
 ### Graph Structure Implementation
 **Path:** `src/parser/graph.rs**  
 **Purpose:** Central data structure storing all parsed code relationships
