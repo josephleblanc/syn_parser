@@ -964,108 +964,85 @@ pub fn parse_attribute(attr: &syn::Attribute) -> ParsedAttribute {
    - Attribute arguments stored as unparsed strings (lines 28-34)
 3. Original attribute preserved redundantly in `value` field (line 38) - synchrony risk
 
-## Function Processing Implementation
+## Function Processing Implementation  
 **Path:** `src/parser/visitor/functions.rs`  
-**Purpose:** Analyze function definitions and their relationships within code
+**Purpose:** Analyze function signatures and bodies to build call graphs and type dependencies
 
-### Key Components
-1. **Core Structures**:
-```rust
-pub struct FunctionNode {
-    pub id: NodeId,              // Unique function identifier
-    pub name: String,            // Function name
-    pub parameters: Vec<ParameterNode>,  // Processed parameters
-    pub return_type: Option<TypeId>,      // Resolved return type
-    pub generic_params: Vec<GenericParamNode>, // Generic type parameters
-    pub visibility: VisibilityKind,        // Visibility modifier
-    pub attributes: Vec<ParsedAttribute>, // Function attributes
-    pub docstring: Option<String>,         // Documentation comments
-    pub body: Option<String>,              // Raw function body
-}
+### Key Responsibilities
+1. **Signature Analysis** - Processes parameters, return types, and generics (lines 45-135)
+2. **Body Capture** - Stores raw function bodies for later analysis (line 123)
+3. **Relationship Mapping** - Creates `ValueType` and `Returns` relations (relations.rs:89-93)
+4. **Visibility Handling** - Converts Rust visibility to internal `VisibilityKind` (shared with structures.rs:230-241)
 
-pub struct ParameterNode {
-    pub id: NodeId,             // Unique parameter identifier
-    pub name: Option<String>,   // Parameter name (if named)
-    pub type_id: TypeId,        // Resolved parameter type
-    pub is_mutable: bool,       // Mutability qualifier
-    pub is_self: bool,          // Special case for self parameter
-}
-```
+### Processing Workflow
 
-2. **Processing Workflow**:
 ```mermaid
-graph TD
-    A[Visit ItemFn] --> B[Create FunctionNode]
-    B --> C[Process Parameters]
-    C --> D[Resolve Return Type]
-    D --> E[Extract Generics]
-    E --> F[Record Relations]
-    F --> G[Store in CodeGraph]
-```
-
-### Key Methods
-1. **Parameter Processing** (lines 45-72):
-```rust
-fn process_parameters(&mut self, params: Vec<&FnArg>) -> Vec<ParameterNode> {
-    params.iter()
-        .filter_map(|arg| self.process_fn_arg(arg))
-        .collect()
-}
-
-fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
-    match arg {
-        FnArg::Typed(pat_type) => {
-            let type_id = self.state_mut().get_or_create_type(&pat_type.ty);
-            Some(ParameterNode {
-                id: self.state_mut().next_node_id(),
-                name: extract_pat_ident(&pat_type.pat),
-                type_id,
-                is_mutable: pat_type.mutability.is_some(),
-                is_self: false,
-            })
-        }
-        FnArg::Receiver(receiver) => {
-            Some(ParameterNode {
-                id: self.state_mut().next_node_id(),
-                name: Some("self".into()),
-                type_id: self.state_mut().get_or_create_type(&receiver.ty),
-                is_mutable: receiver.mutability.is_some(),
-                is_self: true,
-            })
-        }
-    }
-}
-```
-
-2. **Return Type Handling** (lines 74-82):
-```rust
-fn process_return_type(&mut self, output: &ReturnType) -> Option<TypeId> {
-    match output {
-        ReturnType::Default => None,
-        ReturnType::Type(_, ty) => {
-            let type_id = self.state_mut().get_or_create_type(ty);
-            self.state_mut().add_relation(Relation {
-                source: self.current_function_id,
-                target: type_id.into(),
-                kind: RelationKind::Returns,
-            });
-            Some(type_id)
-        }
-    }
-}
+sequenceDiagram
+    participant Visitor
+    participant State
+    participant CodeGraph
+    
+    Visitor->>State: Begin function processing
+    State->>State: Generate NodeId (functions.rs:56)
+    loop Parameters
+        Visitor->>State: process_fn_arg() (functions.rs:76)
+        State->>TypeSystem: get_or_create_type() (state.rs:123-135)
+        State->>CodeGraph: Add ParameterNode (nodes.rs:67-72)
+    end
+    Visitor->>State: Resolve return type (functions.rs:110-118)
+    State->>Relations: Create Returns edge (relations.rs:56-59)
+    Visitor->>CodeGraph: Store FunctionNode (graph.rs:12-14)
 ```
 
 ### Integration Points
-- Uses `TypeId` from `types.rs` (lines 12, 34, 67)
-- Creates `Relation` entries for `relations.rs` (lines 79-83)
-- Stores final `FunctionNode` in `CodeGraph` (line 95)
-- Shares visibility handling with `structures.rs` (line 28)
+1. **Type System** - Resolves parameter/return types through `get_or_create_type()` (state.rs:123-135)
+2. **Graph Relations** - Creates:
+   - `ValueType` for parameters (relations.rs:89-93)
+   - `Returns` for function outputs (relations.rs:56-59)
+3. **Visibility Handling** - Shared implementation with structural type processing (structures.rs:230-241)
+4. **State Management** - Uses sequential ID generation (state.rs:67-72) despite parallel processing risks
+
+### Foundational Patterns
+- **Parameter Handling** (functions.rs:76-107):
+  - Special `self` detection through `FnArg::Receiver`
+  - Anonymous parameters get `None` name (line 85)
+  - Mutability tracked via `is_mutable` flag
+- **Generics Processing** (functions.rs:203-215):
+  - Delegates to `GenericsOperations` trait
+  - Stores bounds as `TypeId` references
+- **Body Storage**:
+  - Preserves raw token stream (line 123)
+  - No AST preservation for later analysis
+
+### Data Flow
+1. **Initialization** - Visitor triggers processing via `visit_item_fn` override (visitor/mod.rs:413-420)
+2. **Node Creation** - Builds `FunctionNode` with:
+   - Parameters vector of `ParameterNode`
+   - Optional return `TypeId`
+   - Generic constraints
+3. **Graph Updates**:
+   - Direct insertion into `CodeGraph.functions` (graph.rs:12-14)
+   - Relationship creation through `add_relation()` (state.rs:89-93)
 
 ### Inconsistencies
-1. Hard-coded parameter limit (usize::MAX) for ID generation
-2. Duplicate visibility handling with structures.rs
-3. Raw body storage without syntax tree preservation
-4. Ad-hoc error handling (Option<> vs Result<>)
+1. **Error Handling** - Uses `Option<ParameterNode>` (line 76) vs `Result` pattern elsewhere
+2. **Body Analysis** - Raw string storage (line 123) without syntax preservation
+3. **Self Handling** - Special casing (line 97) creates parameter type duplicates
+4. **Visibility Conversion** - Duplicated logic (3 implementations) creates maintenance risk
+
+### Cross-Component Impacts
+| Change Location          | Affected Areas                 | Risk Level |
+|--------------------------|---------------------------------|------------|
+| ParameterNode definition (nodes.rs:67-72) | Serialization formats, Relation validation | High |
+| Type resolution (state.rs:123-135) | Function signature validation, Generics processing | Critical |
+| VisibilityKind enum (types.rs:201-205) | Function/trait/struct visibility handling | Medium |
+
+**Line-Anchored References:**  
+- ID Generation: state.rs:67-72  
+- Parameter Processing: functions.rs:76-107  
+- Return Type Handling: functions.rs:110-118  
+- Visibility Conversion: structures.rs:230-241 (shared)  
+- Graph Storage: graph.rs:12-14  
 
 ---
 
