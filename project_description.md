@@ -358,9 +358,11 @@ sequenceDiagram
      4. Function bodies (src/parser/visitor/functions.rs:56-189)
      5. Macro expansions (src/parser/visitor/macros.rs:18-32)
    - State Mutations:
-     - NodeID generation (visitor/state.rs:67-72)
-     - Type resolution cache (visitor/state.rs:123-135)
-     - Relation batch storage (visitor/state.rs:88-94)
+     - Atomic ID generation: `visitor/state.rs:67-72` (usize increment)
+     - DashMap usage: `visitor/state.rs:15` (type_map concurrency) 
+     - Relation batching: `relations.rs:132-135` (test-only CozoDB storage)
+     - Type resolution cache: `visitor/state.rs:123-135`
+     - Relation batch storage: `visitor/state.rs:88-94`
 
 4. **Type System**:
    - ArcTypeNode (types.rs:42) vs direct TypeId usage (nodes.rs:89)
