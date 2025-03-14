@@ -553,6 +553,111 @@ classDiagram
 
 ---
 
+## Function Processing Implementation
+**Path:** `src/parser/visitor/functions.rs`  
+**Purpose:** Analyze function definitions and their relationships within code
+
+### Key Components
+1. **Core Structures**:
+```rust
+pub struct FunctionNode {
+    pub id: NodeId,              // Unique function identifier
+    pub name: String,            // Function name
+    pub parameters: Vec<ParameterNode>,  // Processed parameters
+    pub return_type: Option<TypeId>,      // Resolved return type
+    pub generic_params: Vec<GenericParamNode>, // Generic type parameters
+    pub visibility: VisibilityKind,        // Visibility modifier
+    pub attributes: Vec<ParsedAttribute>, // Function attributes
+    pub docstring: Option<String>,         // Documentation comments
+    pub body: Option<String>,              // Raw function body
+}
+
+pub struct ParameterNode {
+    pub id: NodeId,             // Unique parameter identifier
+    pub name: Option<String>,   // Parameter name (if named)
+    pub type_id: TypeId,        // Resolved parameter type
+    pub is_mutable: bool,       // Mutability qualifier
+    pub is_self: bool,          // Special case for self parameter
+}
+```
+
+2. **Processing Workflow**:
+```mermaid
+graph TD
+    A[Visit ItemFn] --> B[Create FunctionNode]
+    B --> C[Process Parameters]
+    C --> D[Resolve Return Type]
+    D --> E[Extract Generics]
+    E --> F[Record Relations]
+    F --> G[Store in CodeGraph]
+```
+
+### Key Methods
+1. **Parameter Processing** (lines 45-72):
+```rust
+fn process_parameters(&mut self, params: Vec<&FnArg>) -> Vec<ParameterNode> {
+    params.iter()
+        .filter_map(|arg| self.process_fn_arg(arg))
+        .collect()
+}
+
+fn process_fn_arg(&mut self, arg: &FnArg) -> Option<ParameterNode> {
+    match arg {
+        FnArg::Typed(pat_type) => {
+            let type_id = self.state_mut().get_or_create_type(&pat_type.ty);
+            Some(ParameterNode {
+                id: self.state_mut().next_node_id(),
+                name: extract_pat_ident(&pat_type.pat),
+                type_id,
+                is_mutable: pat_type.mutability.is_some(),
+                is_self: false,
+            })
+        }
+        FnArg::Receiver(receiver) => {
+            Some(ParameterNode {
+                id: self.state_mut().next_node_id(),
+                name: Some("self".into()),
+                type_id: self.state_mut().get_or_create_type(&receiver.ty),
+                is_mutable: receiver.mutability.is_some(),
+                is_self: true,
+            })
+        }
+    }
+}
+```
+
+2. **Return Type Handling** (lines 74-82):
+```rust
+fn process_return_type(&mut self, output: &ReturnType) -> Option<TypeId> {
+    match output {
+        ReturnType::Default => None,
+        ReturnType::Type(_, ty) => {
+            let type_id = self.state_mut().get_or_create_type(ty);
+            self.state_mut().add_relation(Relation {
+                source: self.current_function_id,
+                target: type_id.into(),
+                kind: RelationKind::Returns,
+            });
+            Some(type_id)
+        }
+    }
+}
+```
+
+### Integration Points
+- Uses `TypeId` from `types.rs` (lines 12, 34, 67)
+- Creates `Relation` entries for `relations.rs` (lines 79-83)
+- Stores final `FunctionNode` in `CodeGraph` (line 95)
+- Shares visibility handling with `structures.rs` (line 28)
+
+### Inconsistencies
+1. Hard-coded parameter limit (usize::MAX) for ID generation
+2. Duplicate visibility handling with structures.rs
+3. Raw body storage without syntax tree preservation
+4. Ad-hoc error handling (Option<> vs Result<>)
+
+---
+
 ## Architecture Overview
 ```mermaid
 graph TD
