@@ -482,6 +482,43 @@ impl RelationBatch {
 
 ---
 
+## Macro Processing Implementation
+**Path:** `src/parser/visitor/macros.rs`  
+**Purpose:** Analyze declarative and procedural macro definitions and their usage
+
+### Key Responsibilities
+1. **Declarative Macros** - Process `macro_rules!` definitions with export tracking (lines 15-48)
+2. **Procedural Macros** - Identify proc macro attributes on functions (lines 67-102)
+3. **Invocation Tracking** - Record macro usage sites and link to definitions (lines 123-145)
+4. **Rule Parsing** - Basic pattern/expansion parsing for declarative macros (lines 150-178)
+
+### Integration Points
+- Stores `MacroNode` in `CodeGraph.macros` (graph.rs:112-115)
+- Creates `MacroUse` relations (relations.rs:89-93)
+- Shares visibility handling with structures.rs (lines 230-241 vs 45-53)
+- Uses `TypeId` for macro-generated type associations (types.rs:89-92)
+
+### Processing Workflow
+```mermaid
+sequenceDiagram
+    Visitor->>MacroProcessor: visit_item_macro()
+    MacroProcessor->>CodeGraph: check #[macro_export]
+    alt Is exported
+        CodeGraph->>MacroNode: create with rules
+    else
+        CodeGraph-x: Skip non-exported
+    end
+    Note right of Visitor: Later invocations create MacroUse relations
+```
+
+### Inconsistencies
+1. Procedural macro expansion tracking limited to attribute detection (lines 110-115)
+2. Test-only CozoDB storage of macro rules (lines 180-185)
+3. Error handling uses untyped Options (lines 68, 127)
+4. Pattern parsing ignores complex fragment specifiers (lines 162-165)
+
+---
+
 ## Type Processing Implementation
 **Path:** `src/parser/visitor/type_processing.rs`  
 **Purpose:** Core type resolution and relationship tracking during AST analysis
