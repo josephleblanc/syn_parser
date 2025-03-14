@@ -371,9 +371,10 @@ sequenceDiagram
    - Partial attributes: visitor/utils/attributes.rs:15 vs nodes.rs:127
    - Traversal Order:
      1. Modules and submodules (src/parser/visitor/modules.rs:23-45)
-     2. Struct/Enum definitions (src/parser/visitor/structures.rs:15-78)
+     2. Struct/Enum definitions (src/parser/visitor/structures.rs:15-78) 
      3. Trait and Impl blocks (src/parser/visitor/traits_impls.rs:32-112)
      4. Function bodies (src/parser/visitor/functions.rs:56-189)
+     5. Macro expansions (src/parser/visitor/macros.rs:18-32)
    - State Mutations:
      - NodeID generation (visitor/state.rs:67-72)
      - Type resolution cache (visitor/state.rs:123-135)
