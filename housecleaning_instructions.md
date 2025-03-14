@@ -44,11 +44,12 @@ Let's create a structured plan to triage the documentation:
 3. Align GraphNodeId with channel-based architecture
 4. Preserve ID safety documentation for parallel processing
 
-#### C. Performance/Concurrency
-| Document | Recommendation | Reason |
-|----------|----------------|--------|
-| `concurrency_*` files | Keep condensed version | Still relevant to roadmap |
-| `performance/*` | Merge with above | Related concerns |
+#### C. Performance/Concurrency - Completed
+| Document Path | Status | Action Taken | Location | Rationale |
+|---------------|--------|--------------|----------|-----------|
+| `concurrency_possible_approach.md` | Merged | Content integrated into Concurrency Migration docs | `book/src/Concurrency_Migration/Visitor_Plan.md` | Unified concurrency design definitions | 
+| `concurrency_roadmap.md` | Archived | Moved to archive with timestamp | `docs/archive/performance/roadmap_20240314.md` | Shows evolution of parallel processing strategy |
+| Performance folder | Removed | Directory kept empty | N/A | All content merged or historical |
 
 #### D. Architecture/Design Docs
 | Document | Recommendation | Reason |
