@@ -132,7 +132,7 @@
 - `ImplNode` lacks visibility (inherits from implemented type)
 - `MacroNode` contains unique `parent_function` reference
 - `ValueNode` combines constants/statics in single type
-- `TypeDefNode` enum variants share common base fields
+- `TypeDefNode` enum variants use distinct structs without shared base fields
 - `GraphNodeId` conversions handled in separate module
 
 ---
