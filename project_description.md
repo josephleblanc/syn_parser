@@ -286,14 +286,26 @@ flowchart LR
     Serialization --> |Uses| NodeIds
 ```
 
+#### Cross-Component Reference Matrix
+| Component | Creates NodeTypes | Modifies State | Reads From |
+|---|---|---|---|
+| `functions.rs` | `FunctionNode` | `CodeGraph.functions` | `TypeSystem`, `Relations` |
+| `traits_impls.rs` | `TraitNode`, `ImplNode` | `CodeGraph.traits` | `TypeSystem`, `NodeIds` |
+| `modules.rs` | `ModuleNode` | `CodeGraph.modules` | `Relations`, `NodeIds` |
+| `relations.rs` | `Relation` | `CodeGraph.relations` | `NodeIds`, `TypeSystem` |
+
 ### Key Interaction Patterns
 1. **Node Creation Flow**:
 ```rust
 // visitor/functions.rs
-fn visit_item_fn() -> FunctionNode {
-  // Creates FunctionNode
-  // Registers with CodeGraph via VisitorState
-  // Links to TypeSystem via TypeId references
+fn visit_item_fn(
+    &mut self, 
+    item_fn: &syn::ItemFn
+) -> Result<FunctionNode, AnalysisError> {
+    let id = self.state.next_node_id();
+    let return_type = self.resolve_type(&item_fn.sig.output);
+    // ...
+    self.state.code_graph.add_function(FunctionNode { /*...*/ })
 }
 
 // parser/graph.rs
@@ -331,7 +343,14 @@ sequenceDiagram
     TypeSystem->>-Visitor: TypeId
     Visitor->>CodeGraph: store_type_relation(source, TypeId)
     CodeGraph->>TypeSystem: verify_compatibility()
-```
+    
+#### Type Unification Process
+1. Convert `syn::Type` to token stream
+2. Hash tokens to create type fingerprint
+3. Check existing `TypeMap` (src/parser/types.rs:87-92)
+4. Create new `TypeId` if novel type
+5. Record generic bounds (src/parser/types.rs:134-141)
+6. Link to trait constraints (src/parser/relations.rs:45-53)
 
 ---
 
