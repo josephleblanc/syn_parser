@@ -1174,12 +1174,23 @@ sequenceDiagram
     
 ```
 #### Type Unification Process
-1. Convert `syn::Type` to token stream
-2. Hash tokens to create type fingerprint
-3. Check existing `TypeMap` (src/parser/types.rs:87-92)
-4. Create new `TypeId` if novel type
-5. Record generic bounds (src/parser/types.rs:134-141)
-6. Link to trait constraints (src/parser/relations.rs:45-53)
+```mermaid
+sequenceDiagram
+    participant V as Visitor
+    participant TS as TypeSystem
+    participant CG as CodeGraph
+    
+    V->>TS: Resolve syn::Type (type_processing.rs:87-92)
+    TS->>TS: Create type fingerprint (types.rs:134-141)
+    alt New Type
+        TS->>CG: Create TypeNode (graph.rs:154-162)
+    else Existing
+        TS->>CG: Retrieve TypeNode (graph.rs:127-135)
+    end
+    TS->>V: Return TypeId
+    V->>CG: Store type relation (relations.rs:89-104)
+    
+    Note right of CG: Links to trait constraints via <br/>RelationKind::Constrains (relations.rs:56-59)
 
 
 ---
