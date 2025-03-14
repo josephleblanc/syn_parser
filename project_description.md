@@ -36,30 +36,24 @@
 
 ## Error Handling Infrastructure
 **Path:** `src/error.rs`  
-**Purpose:** Centralized error types and handling for code analysis pipeline
+**Purpose:** (Current placeholder) Foundation for error type definitions
 
-### Key Data Structures
-- `AnalysisError` (Planned):
-  - Purpose: Unified error type for parsing/analysis failures
-  - Planned variants:
-    - `SyntaxError`: Wraps parser-level failures
-    - `TypeResolution`: Failed type lookups/inferences
-    - `CircularDependency`: Invalid graph relationships
+### Current State
+- Contains only a TODO comment placeholder
+- Not yet integrated with other components
+- Missing concrete error type implementations
 
-### Error Handling Strategy
-- Planned error propagation:
-  - Use `thiserror` crate for explicit variant definitions
-  - Implement `From` trait for foreign error types
-  - Context-aware error reporting with source chains
+### Immediate Integration Needs
+- Define core error enum matching foundational types:
+  - `NodeId`, `TypeId` references from parser
+  - Relation types from graph module
+- Connect to visitor pattern error handling
+- Establish error conversion traits for serialization
 
-### Integration Points
-- Cross-cutting concern used by:
-  - Parser modules
-  - Visitor implementations
-  - Serialization components
-- Will unify error reporting across:
-  - CLI interface (main.rs.back)
-  - Library consumers
-  - Test assertions
+### Critical Dependencies
+- Requires integration with:
+  - `parser/visitor/state.rs` (graph construction errors)
+  - `serialization/mod.rs` (serialization failures)
+  - `parser/utils.rs` (parsing validation)
 
 ---
