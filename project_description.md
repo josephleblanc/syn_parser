@@ -482,6 +482,46 @@ impl RelationBatch {
 
 ---
 
+## Module Hierarchy Implementation
+**Path:** `src/parser/visitor/modules.rs`  
+**Purpose:** Analyze module structure and track item visibility/relationships
+
+### Key Responsibilities
+1. **Module Hierarchy** - Track parent/child module relationships via `submodules` vector
+2. **Use Statements** - Process imports and record cross-module dependencies
+3. **Extern Crates** - Track external dependency declarations
+4. **Visibility Resolution** - Convert syntax visibility to internal `VisibilityKind`
+
+### Integration Points
+- Creates `Contains` relations (relations.rs:45-49)
+- Uses `NodeId` from state management (state.rs:89-93)
+- Stores `ModuleNode` in `CodeGraph.modules` (nodes.rs:112-115)
+- Shares visibility handling with structures.rs (lines 230-241 vs 45-53)
+
+### Processing Workflow
+```mermaid
+flowchart TD
+    A[Visit ItemMod] --> B[Create ModuleNode]
+    B --> C[Process Contents]
+    C --> D[Parallel Item Processing]
+    D --> E[Establish Relations]
+    E --> F[Update CodeGraph]
+```
+
+### Critical Dependencies
+- **syn::ItemMod** - Raw module syntax node handling
+- **rayon** - Parallel processing of module items
+- **DashMap** - Concurrent access to module hierarchy
+- **petgraph** - Graph structure for module relationships
+
+### Inconsistencies
+1. Test-only CozoDB storage of module hierarchy (lines 180-185)
+2. Visibility conversion duplicated with structures.rs
+3. Error handling uses untyped Results (lines 67, 487)
+4. Hardcoded root module ID (line 153)
+
+---
+
 ## Macro Processing Implementation
 **Path:** `src/parser/visitor/macros.rs`  
 **Purpose:** Analyze declarative and procedural macro definitions and their usage

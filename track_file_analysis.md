@@ -51,7 +51,7 @@ Files to analyze and incorporate to main project document in project root `proje
 - [x] src/parser/visitor/functions.rs
 - [x] src/parser/visitor/macros.rs
 - [x] src/parser/visitor/mod.rs
-- [ ] src/parser/visitor/modules.rs
+- [x] src/parser/visitor/modules.rs
 - [x] src/parser/visitor/state.rs
 - [ ] src/parser/visitor/structures.rs
 - [ ] src/parser/visitor/traits_impls.rs
