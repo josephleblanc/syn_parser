@@ -629,6 +629,59 @@ flowchart TD
 
 ---
 
+## Structural Type Visitor Implementation
+**Path:** `src/parser/visitor/structures.rs`  
+**Purpose:** Analyze and record structural type definitions (structs, enums, unions) and their components
+
+### Key Responsibilities
+1. **Type Definition Processing** - Handle struct/enum/union syntax nodes
+2. **Field Analysis** - Process named/unnamed fields and their types
+3. **Generic Parameter Tracking** - Record generic type parameters and constraints
+4. **Relationship Establishment** - Create HAS_TYPE relations between fields and their types
+
+### Implementation Details
+- **Trait Hierarchy**: `StructVisitor` extends `TypeProcessor` (line 17)
+- **Core Methods**:
+  ```rust
+  fn process_struct(&mut self, s: &ItemStruct)  // Lines 20-55
+  fn process_enum(&mut self, e: &ItemEnum)      // Lines 57-86
+  fn process_union(&mut self, u: &ItemUnion)    // Lines 88-117
+  ```
+- **Field Processing**:
+  - Named/Unnamed field unification (lines 119-159)
+  - Automatic anonymous naming (line 153: `format!("{}", idx)`)
+  - Type relation creation (lines 133-137, 175-179)
+
+### Integration Points
+- **Type System**: Uses `get_or_create_type()` (state.rs:123-127)
+- **Graph Relations**: Creates `HasType` relations (relations.rs:45-49)
+- **Visibility Handling**: Shares conversion logic with functions.rs (lines 230-241 vs 45-53)
+- **Code Graph**: Populates `defined_types` vector (graph.rs:28-31)
+
+### Processing Workflow
+```mermaid
+sequenceDiagram
+    Visitor->>+StructVisitor: process_struct/enum/union()
+    StructVisitor->>+State: next_node_id()
+    StructVisitor->>+TypeProcessor: get_or_create_type()
+    loop For each field
+        StructVisitor->>+FieldProcessor: process_fields()
+        FieldProcessor->>+State: create_field_relation()
+    end
+    StructVisitor->>CodeGraph: add TypeDefNode
+```
+
+### Inconsistencies
+1. Visibility conversion duplicates FunctionVisitor (lines 228-241 vs functions.rs:230-241)
+2. Union field processing clones entire fields (line 93) - potential perf impact
+3. Blanket implementation for TypeProcessor (line 241) limits trait isolation
+4. Anonymous field naming uses stringified indices (line 153) vs proper anonymization
+
+### Foundational Patterns
+- **ID Generation**: Sequential NodeIDs via StateManagement (line 22)
+- **Attribute Handling**: Uses AttributeOperations traits (line 38)
+- **Generic Processing**: Leverages GenericsOperations supertrait (line 17)
+
 ## Function Processing Implementation
 **Path:** `src/parser/visitor/functions.rs`  
 **Purpose:** Analyze function definitions and their relationships within code
