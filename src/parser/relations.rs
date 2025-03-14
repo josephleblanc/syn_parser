@@ -5,6 +5,7 @@ use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::types::TypeId;
 use serde::{Deserialize, Serialize};
 
+#[cfg(concurrency_migration)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RelationBatch {
     pub version: u32, // Schema version for evolution
@@ -12,7 +13,7 @@ pub struct RelationBatch {
     pub estimated_size: usize,
     pub source_hash: [u8; 32], // Blake3 hash of source code
 }
-
+#[cfg(concurrency_migration)]
 impl RelationBatch {
     /// Serialize relations to JSON for external storage
     pub fn to_json(&self) -> String {
@@ -21,19 +22,22 @@ impl RelationBatch {
 
     /// Convert to Cozo-compatible tuples (for future integration)
     pub fn to_cozo_tuples(&self) -> Vec<serde_json::Value> {
-        self.relations.iter().map(|rel| {
-            cozo::Array::from(vec![
-                rel.source.into(),
-                rel.target.into(),
-                serde_json::json!({
-                    "source": rel.source,
-                    "target": rel.target,
-                    "kind": rel.kind.to_string(),
-                    "uuid": self.content_uuid().to_string(),
-                    "embedding": blake3::hash(rel.kind.to_string().as_bytes()).as_bytes()
-                })
-            ])
-        }).collect()
+        self.relations
+            .iter()
+            .map(|rel| {
+                cozo::Array::from(vec![
+                    rel.source.into(),
+                    rel.target.into(),
+                    serde_json::json!({
+                        "source": rel.source,
+                        "target": rel.target,
+                        "kind": rel.kind.to_string(),
+                        "uuid": self.content_uuid().to_string(),
+                        "embedding": blake3::hash(rel.kind.to_string().as_bytes()).as_bytes()
+                    }),
+                ])
+            })
+            .collect()
     }
 
     /// Batch format for CozoDB ingestion
@@ -49,7 +53,7 @@ impl RelationBatch {
                         self.content_uuid().to_string(),
                     ])
                 })
-                .collect()
+                .collect(),
         )
     }
 
