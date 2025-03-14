@@ -29,10 +29,20 @@ Let's create a structured plan to triage the documentation:
 | `ai_notes/big_picture/future_integrations.md` | ☑ | Speculative Design | Merge | Keep MIR/HIR analysis docs for current work<br>Delete obsolete LSP/Neovim specs (handled by rust-analyzer) | Redacted Rig.dev and nightly-dependent sections |
 | `ai_notes/testing_status_start.md` | ☑ | QA History | Archive | Baseline metrics useful for:<br>- Tracking test coverage growth (current: 58% → 92%)<br>- Benchmarking parser performance (now 3.2x faster) | Historical reference only - matches commit 5270f3f |
 
-#### B. ID System Refactoring
-| Document | Recommendation | Reason |
-|----------|----------------|--------|
-| All `id_refactor/*.md` | Merge into single `history/id_refactor_arch.md` | Completed work, preserve context |
+#### B. ID System Refactoring - Relationship to Concurrency
+| Document Path | Status | Concurrency Impact | Preservation Recommendation | Code References |
+|---------------|--------|--------------------|-----------------------------|-----------------|
+| `id_refactor/growing_pains.md` | Obsolete | Replaced by atomic ID gen in `state.rs:67-72` | Archive with concurrency notes | VisitorState counters now use AtomicUsize |
+| `id_refactor/detailed_plan.md` | Partially Implemented | Phases 4-5 relate to concurrency migration | Merge relevant sections into `Concurrency_Migration/Visitor_Plan.md` | Rayon usage in modules.rs:153-189 |
+| `id_refactor/reasoning.md` | Validated | Foundation for channel-based ID allocation | Keep as reference | CodeGraph uses DashMap collections |
+| `id_refactor/track_id_refactor.md` | Completed | Checklist obsolete - see CI pipeline | Delete | CI handles test sequencing |
+| `id_refactor/visitor_ids_behavior.md` | Active Patterns | Needs concurrency adaptation | Merge with `Concurrency_Migration/Intro.md` | state_mut() now uses Arc<Mutex> |
+
+**Concurrency Integration Plan**:
+1. Migrate ID generation metrics to atomic counters
+2. Adapt type cache for multi-threaded access patterns
+3. Align GraphNodeId with channel-based architecture
+4. Preserve ID safety documentation for parallel processing
 
 #### C. Performance/Concurrency
 | Document | Recommendation | Reason |
