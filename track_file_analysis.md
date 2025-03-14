@@ -60,7 +60,7 @@ Files to analyze and incorporate to main project document in project root `proje
 - [ ] src/parser/visitor/utils/attributes.rs
 - [ ] src/parser/visitor/utils/docs.rs
 - [ ] src/parser/visitor/utils/generics.rs
-- [ ] src/parser/visitor/utils/mod.rs
+- [x] src/parser/visitor/utils/mod.rs
 - [ ] src/serialization/
 - [ ] src/serialization/json.rs
 - [ ] src/serialization/mod.rs

@@ -741,6 +741,60 @@ sequenceDiagram
 - **Attribute Handling**: Uses AttributeOperations traits (line 38)
 - **Generic Processing**: Leverages GenericsOperations supertrait (line 17)
 
+## Shared Visitor Utilities
+**Path:** `src/parser/visitor/utils/mod.rs`  
+**Purpose:** Provide common utilities for AST processing across visitor implementations
+
+### Core Components
+1. **Attribute Handling** (`attributes.rs`):
+   - Extract custom attributes from syntax nodes (line 15)
+   - Parse attribute syntax into `ParsedAttribute` struct (lines 34-48)
+2. **Doc Processing** (`docs.rs`):
+   - Aggregate documentation comments from `#[doc]` attributes (line 89)
+   - Filters out non-doc attributes during processing (mod.rs:9)
+3. **Generics Processing** (`generics.rs`):
+   - Handle generic parameters and where clauses (line 127)
+   - Track type/lifetime/const generics with bounds (line 45)
+
+### Trait Implementations
+- `DocProcessor` trait (docs.rs:23-27)
+- `GenericsProcessor` trait (generics.rs:15-19)
+- Re-exported operations (mod.rs:7-8):
+  ```rust
+  pub use self::attributes::{extract_attributes, ParsedAttribute};
+  pub use self::docs::extract_docstring; 
+  pub use self::generics::process_generics;
+  ```
+
+### Integration Points
+- Used by `VisitorState` for:
+  - Generic param processing (state.rs:134-137)
+  - Docstring extraction (state.rs:89-92)
+  - Attribute parsing (state.rs:102-105)
+- Shared across:
+  - Struct/enum processing (structures.rs:38, 67)
+  - Trait/impl analysis (traits_impls.rs:45, 198)
+  - Function parsing (functions.rs:123)
+
+### Notable Patterns
+1. **Attribute Filtering**:
+```rust
+attrs.iter()
+    .filter(|attr| !attr.path().is_ident("doc"))  // attributes.rs:15
+    .map(parse_attribute)
+```
+2. **Doc Comment Aggregation**:
+```rust
+attrs.iter()
+    .filter(|attr| attr.path().is_ident("doc"))  // docs.rs:34
+    .filter_map(parse_doc_attr)
+```
+
+### Inconsistencies
+1. Missing `process_derive` utility for #[derive] attributes
+2. Generic bounds stored as strings vs parsed types
+3. No common error type for parsing failures
+
 ## Function Processing Implementation
 **Path:** `src/parser/visitor/functions.rs`  
 **Purpose:** Analyze function definitions and their relationships within code
