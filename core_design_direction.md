@@ -4,13 +4,13 @@
 A high-performance Rust source code analyzer that incrementally builds and maintains a hybrid graph+vector representation of code semantics, optimized for integration with RAG pipelines to enable:
 - Context-aware code generation/refactoring
 - Cross-version dependency resolution
-- Real-time documentation synthesis
+- Structural metadata for documentation synthesis
 - Architectural pattern detection
 - Legacy code modernization
 
 Key Differentiators:
 - **Incremental Processing**: Efficient updates for active codebases
-- **Hybrid Data Model**: Native graph relationships + semantic vectors
+- **Hybrid Data Foundation**: Native graph relationships + structured code artifacts
 - **Hardware-Aware**: Optimized for consumer-grade ML hardware
 
 ## 2. RAG Pipeline Integration
@@ -27,8 +27,8 @@ Parser Responsibilities:
                       |                           |
                       v                           v
            +----------------------+     +----------------------+
-           |  Graph Structure     |     | Semantic Embeddings  |
-           |  (CozoDB Relations)  |     |  (HNSW Vector DB)    |
+           |  Graph Structure     |     | Prepared Artifacts   |
+           |  (CozoDB Relations)  |     | (Code Snippets/Meta) |
            +----------------------+     +----------------------+
                       |                           |
                       +-----------+   +-----------+

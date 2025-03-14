@@ -36,14 +36,18 @@ First designed as of commit: refactor_type_system b9c89b3
    }
    ```
 
-4. **Basic RAG Pipeline**
+4. **RAG Preparation Pipeline**
    ```rust
-   fn process_node(&self, node: Node) {
-       let text = node.source_snippet();
-       let embedding = self.embedding_model.encode(&text); // CPU fallback
-       self.graph.store_embedding(node.id, embedding);
+   fn process_node(&self, node: Node) -> RagArtifact {
+       RagArtifact {
+           id: node.id,
+           source_snippet: node.source_snippet(),
+           metadata: node.metadata(),
+           relations: node.relations()
+       }
    }
    ```
+   - Outputs structured data for external embedding service
 
 **Success Metrics**:
 - 40% reduction in type collisions
