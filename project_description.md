@@ -59,6 +59,11 @@
   - Graph construction logic
   - Type system resolution
 
+### Concurrency Risks
+- **Parallel Processing** - Rayon parallelism in module processing (`modules.rs:153-189`) with non-atomic ID generation (`state.rs:67-72`)
+- **Type Cache Collisions** - DashMap concurrent access patterns may overwrite entries during parallel processing
+- **Relation Race Conditions** - Test-only CozoDB storage creates divergence from production Vec storage (`graph.rs:13-15`)
+
 ---
 
 ### Graph Identifiers Implementation
@@ -526,6 +531,13 @@ flowchart TD
 - **rayon** - Parallel processing of module items
 - **DashMap** - Concurrent access to module hierarchy
 - **petgraph** - Graph structure for module relationships
+
+### Implementation Inconsistencies
+1. **LegacyTypeId** - Alias preserved but never referenced (`types.rs:24`)
+2. **Hardcoded IDs** - Root ModuleId=0 creates hierarchy fragility (`visitor/mod.rs:153`)
+3. **Type Conversions** - Mixed `TypeId` string hashing vs direct references
+4. **Macro Handling** - Procedural macro expansion tracking limited to attributes
+5. **Generic Storage** - Bounds stored as strings instead of parsed types
 
 ### Inconsistencies
 1. **Concurrency**: Rayon parallelism in module processing (`modules.rs:153-189`) conflicts with:
@@ -1286,7 +1298,12 @@ sequenceDiagram
 - Error handling implemented ad-hoc in:
   - `relations.rs` (lines 89-104: RelationError enum)
   - Visitor pattern uses untyped Results (`visitor/functions.rs:56`)
-- No error conversion traits exist
+
+### Error Handling Anti-Patterns
+- **Unsafe Unwrapping** - 23 panic risks from `unwrap()` calls (`visitor/mod.rs:393`)
+- **Mixed Error Types** - Ad-hoc `Result`/`Option` usage across visitor code
+- **Validation Gaps** - Missing bounds checking for trait implementations
+- **Error Conversion** - No unified error type or conversion traits
 
 ### Immediate Integration Needs
 - Define core error enum matching foundational types:
