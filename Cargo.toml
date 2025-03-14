@@ -17,6 +17,11 @@ ahash = "0.8"
 thiserror = "2.0"
 uuid = { version = "1.7", features = ["v5"] }
 blake3 = "1.5"
-cozo = { version = "0.7", features = ["storage-sqlite"] } # Lightweight storage for testing
+cozo = { version = "0.7", features = [
+    "storage-sqlite",
+] } # Lightweight storage for testing
 
 [dev-dependencies]
+
+[features]
+concurrency_migration = []

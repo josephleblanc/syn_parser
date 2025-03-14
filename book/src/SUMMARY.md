@@ -7,8 +7,13 @@
   - [Edges](./Introduction/edges.md)
 
 - [Documentation](./Project_Structure/Visitor_Documentation.md)
-  - [CodeVisitor and VisitorState](./Project_Structure/CodeVisitor_VisitorState.md)
-    - [Naming Nodes](./Project_Structure/Naming_Nodes.md)
+  - [VisitorState](./Project_Structure/Visitor_Documentation.md)
+  - [Naming Nodes](./Project_Structure/Naming_Nodes.md)
+
+- [Concurrency Migration](./Concurrency_Migration/Intro.md)
+  - [Visitor Plan](./Concurrency_Migration/Visitor_Plan.md)
+    - [ Alternate Plan ](./Concurrency_Migration/Alternate_Plan.md)
+  - [Concurrent_File_Handling](./Concurrency_Migration/Concurrent_File_Handling.md)
 
 - [Todos](./Todos/todos.md)
   - [Nodes](./Todos/todo_nodes.md)
