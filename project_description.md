@@ -353,14 +353,20 @@ processor::CodeProcessor
 1. **AST Traversal Lifecycle**:
 ```mermaid
 sequenceDiagram
-    analyze_code->>+CodeVisitor: Create with empty state
-    CodeVisitor->>+syn::File: visit_file()
+    participant analyze_code
+    participant CodeVisitor
+    participant syn_File as syn::File
+    participant SpecializedVisitor
+    participant CodeGraph
+    
+    analyze_code->>CodeVisitor: Create with empty state
+    CodeVisitor->>syn_File: visit_file()
     loop For each AST item
-        syn::File->>CodeVisitor: visit_item_*()
-        CodeVisitor->>SpecializedVisitor: process_*()
+        syn_File-->>CodeVisitor: visit_item_()
+        CodeVisitor->>SpecializedVisitor: process_()
         SpecializedVisitor->>CodeGraph: Add nodes/relations
     end
-    CodeVisitor->>-analyze_code: Return populated CodeGraph
+    CodeVisitor-->>analyze_code: Return populated CodeGraph
 ```
 
 2. **Function Processing** (lines 413-420):
@@ -507,6 +513,7 @@ impl RelationBatch {
 
 ### Processing Workflow
 ```mermaid
+
 flowchart TD
     A[Visit ItemMod] --> B[Create ModuleNode]
     B --> C[Process Contents]
@@ -1103,24 +1110,25 @@ graph TD
 flowchart TD
     AST --> Visitor
     Visitor --> TypeProcessor
-    TypeProcessor -->|resolves| State.type_map
-    State.type_map -->|manages| CodeGraph.type_graph
-    CodeGraph.type_graph -->|creates| Relation
+    TypeProcessor -->|resolves| StateTypeMap[State.type_map]
+    StateTypeMap -->|manages| CodeGraphTypeGraph[CodeGraph.type_graph]
+    CodeGraphTypeGraph -->|creates| Relation
     CodeGraph -->|stores| FunctionNode
     CodeGraph -->|references| TypeId
     Relation -->|links| NodeId
     
-    style State.type_map fill:#f9f,stroke:#333,stroke-width:2px
-    style CodeGraph.type_graph fill:#bbf,stroke:#333,stroke-width:2px
+    style StateTypeMap fill:#f9f,stroke:#333,stroke-width:2px
+    style CodeGraphTypeGraph fill:#bbf,stroke:#333,stroke-width:2px
     
     subgraph ConcurrencyRisks["Critical Flows (Concurrency Risks)"]
-    direction LR
-    type_deduplication[Type Deduplication] -.->|race condition| state_conflict[State Concurrency]
-    graph_updates[Graph Updates] -.->|non-atomic| data_race[Data Race Potential]
+        direction LR
+        type_deduplication[Type Deduplication] -.->|race condition| state_conflict[State Concurrency]
+        graph_updates[Graph Updates] -.->|non-atomic| data_race[Data Race Potential]
     end
 ```
 
 #### ID Conversion Matrix
+
 | From Type         | To Type          | Conversion Method            | File:Line              |
 |--------------------|------------------|-------------------------------|------------------------|
 | TraitId            | GraphNodeId      | From<TraitId> impl            | graph_ids.rs:68        |
@@ -1180,6 +1188,7 @@ impl RelationBatch {
 
 3. **Type Resolution**:
 ```mermaid
+
 sequenceDiagram
     Visitor->>+TypeSystem: resolve_type(syn::Type)
     TypeSystem->>-Visitor: TypeId
