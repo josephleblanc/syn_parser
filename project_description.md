@@ -1355,7 +1355,6 @@ sequenceDiagram
 - Blank file (0 lines of code)
 - Error handling implemented ad-hoc in:
   - `relations.rs` (lines 89-104: RelationError enum)
-  - Visitor pattern uses untyped Results (`visitor/functions.rs:56`)
 
 ### Error Handling Anti-Patterns
 - **Unsafe Unwrapping** - 23 panic risks from `unwrap()` calls (`visitor/mod.rs:393`)
