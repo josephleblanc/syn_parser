@@ -485,12 +485,11 @@ fn visit_item_macro(&mut self, item: &ItemMacro) {
 }
 ```
 
-3. **Test/Prod Split**:
+3. **Concurrency Conflicts**:
 ```rust
-#[cfg(test)]
-impl RelationBatch {
-    fn cozo_storage(&self) { ... } // Test-only DB integration
-}
+// modules.rs:153-189 vs state.rs:67-72
+Rayon parallel processing with non-atomic ID generation
+Creates race conditions in node/type ID assignment
 ```
 
 ---
@@ -652,9 +651,9 @@ flowchart TD
 
 ### Key Responsibilities
 1. **Trait Processing** - Parse trait definitions including methods and supertraits
-2. **Impl Block Analysis** - Handle explicit implementations of traits
-3. **Trait-Impl Relationships** - Connect implementations to their target types
-4. **Method Signature Tracking** - Record trait method signatures and implementations
+2. **Impl Block Analysis** - Handle explicit trait implementations (including blanket impls)
+3. **Trait-Impl Relationships** - Connect implementations while resolving type conflicts
+4. **Method Signature Tracking** - Record signatures but lack trait bound validation
 
 ### Implementation Details
 - **Trait Hierarchy**: 
