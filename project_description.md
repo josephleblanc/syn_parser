@@ -37,6 +37,9 @@
 - External Crates:
   - `syn`: Rust syntax parsing
   - `indexmap`: Preserved insertion order for analysis
+  - `cozo`: Embedded graph database (SQLite backend)
+    - Currently test-only via `#[cfg(test)]` guards
+    - Future: Planned for production storage backend
 
 ### Primary Exports
 - `CodeGraph`: Central data structure containing parsed code relationships
@@ -199,6 +202,10 @@ pub struct SerializationConfig {
 - `RelationBatch`:
   - Batched updates for atomic graph modifications
   - Contains versioning and source code hash
+  - **Storage Backend**: 
+    - Uses CozoDB (embedded SQLite) for temporary storage
+    - Enables transactional updates and complex graph queries
+    - Marked as test-only in current implementation (`#[cfg(test)]`)
 
 ### Key Relationship Types
 - `RelationKind` enum variants:
