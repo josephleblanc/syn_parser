@@ -1100,27 +1100,28 @@ graph TD
 
 ## Data Structure Interactions
 
-### Core Relationship Map
+#### Core Relationship Map
 ```mermaid
-flowchart LR
-    CodeGraph --> NodeIds
-    CodeGraph --> Relations
-    CodeGraph --> TypeSystem
+flowchart TD
+    AST --> Visitor --> TypeProcessor --> State.type_map
+    State -->|manages| CodeGraph.type_graph --> Relation
+    CodeGraph -->|stores| nodes::FunctionNode
+    CodeGraph -->|references| types::TypeId
+    Relation -->|links| nodes::NodeId
     
-    NodeIds --> |Contains| GraphNodeId
-    Relations --> |Uses| NodeIds
-    TypeSystem --> |Uses| Relations
-    
-    Visitor --> |Builds| CodeGraph
-    Visitor --> |Updates| TypeSystem
-    Visitor --> |uses| VisitorState
-    VisitorState --> |manages| CodeGraph
-    VisitorState --> |tracks| TypeSystem
-    Parser --> |Feeds| Visitor
-    
-    Serialization --> |Persists| CodeGraph
-    Serialization --> |Uses| NodeIds
+    subgraph Critical Flows
+    type_deduplication[Type Deduplication] --> state_conflict[State Concurrency Risk]
+    graph_storage[Graph Updates] --> vec_storage[Vec.push() Data Race Potential]
+    end
 ```
+
+#### ID Conversion Matrix
+| From Type         | To Type          | Conversion Method            | File:Line              |
+|--------------------|------------------|-------------------------------|------------------------|
+| TraitId            | GraphNodeId      | From<TraitId> impl            | graph_ids.rs:68        |
+| TypeId             | NodeId           | as_node_id() method           | types.rs:38            | 
+| syn::Type          | TypeId           | get_or_create_type()          | state.rs:123-135       |
+| ItemFn             | FunctionNode     | process_function()            | functions.rs:56-189    |
 
 #### Cross-Component Reference Matrix
 | Component | Creates NodeTypes | Modifies State | Reads From |
