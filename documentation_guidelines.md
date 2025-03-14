@@ -1,21 +1,42 @@
 Documentation should:
 
-1. Capture each component's raison d'être
-2. Document important types and their relationships
-3. Surface dependencies between modules
-4. Identify potential areas of duplication
-5. Create natural cross-references between components
-6. Details specific pattern adherence with concrete examples                                         
-7. Highlights intentional deviations from common patterns                                            
-8. Maintains existing integration points while expanding technical context                           
-9. References actual field names and type relationships from code                                    
-10. Explains design choices around storage strategies and type organization  
+## Core Principles
+1. **Accuracy First** - Precisely reflect current implementation state
+2. **Code-Centric** - Reference actual file paths and line numbers
+3. **Change Tracking** - Highlight discrepancies between planned/actual code
+4. **Dependency Mapping** - Explicitly connect components through imports and calls
 
-From looking at your codebase, we should particularly focus on:
-- The visitor pattern implementation in `parser/visitor/`
-- Type system handling in `types.rs` and `type_processing.rs`
-- Graph structure definitions in `graph.rs`
-- State management in `state.rs`
-- Attribute/docstring processing in the `utils/` directory
+## Technical Documentation
+5. **Concrete Examples** - Show real function signatures with error handling
+6. **Implementation Details**:
+   - Data structure memory ownership
+   - Serialization/deserialization boundaries
+   - Type conversion traits
+7. **Versioning** - Track RON format requirements and compatibility
+8. **Validation** - Document constraint checks and error conditions
 
-Would you like me to start applying this template with the first file (`src/lib.rs`), then proceed through the dependency chain? We can iterate on the template as we go if we find it needs adjustment.
+## Visual Documentation
+9. **Architecture Diagrams** - Use Mermaid.js for system overviews
+10. **Flow Charts** - Illustrate key workflows (type resolution, node creation)
+11. **Interaction Matrices** - Tabular views of cross-component relationships
+
+## Consistency Checks
+12. **Pattern Tracking**:
+   - Consistent use of derive macros
+   - ID generation strategies
+   - Visibility handling
+13. **Deviation Log** - Catalog intentional pattern breaks with justification
+14. **Test/Prod Parity** - Flag test-only code paths needing productionization
+
+## Implementation Focus Areas
+- Visitor pattern traversal order and state mutations
+- Type system unification process
+- Graph storage backends (CozoDB vs RON)
+- Macro expansion and attribute processing
+- Error propagation through analysis pipeline
+
+## Maintenance Practices
+- Use SEARCH/REPLACE blocks for surgical updates
+- Maintain line number accuracy through changes
+- Regular cross-references between docs and code
+- Version control integration (git hashes in changelogs)
