@@ -25,6 +25,35 @@
 
 ---
 
+## Parser Module
+**Path:** `src/parser/mod.rs`  
+**Purpose:** Central coordination point for code parsing and analysis infrastructure
+
+### Dependencies
+- Internal Submodules:
+  - `graph`: Core graph structure implementation
+  - `visitor`: AST traversal and analysis implementation
+  - `types`: Type system representation
+- External Crates:
+  - `syn`: Rust syntax parsing
+  - `indexmap`: Preserved insertion order for analysis
+
+### Primary Exports
+- `CodeGraph`: Central data structure containing parsed code relationships
+- `TypeId`: Opaque identifier for type system entities
+- `analyze_code`: Main entry point for file analysis
+
+### Integration Points
+- Consumed by:
+  - Library root (`lib.rs`) as primary export
+  - Serialization modules for graph transformation
+- Coordinates between:
+  - AST Visitor pattern implementation
+  - Graph construction logic
+  - Type system resolution
+
+---
+
 ## Configuration Module
 **Path:** `src/config/mod.rs`  
 **Purpose:** Placeholder for future configuration management system
