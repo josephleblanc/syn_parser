@@ -54,6 +54,31 @@
 
 ---
 
+### Graph Structure Implementation
+**Path:** `src/parser/graph.rs**  
+**Purpose:** Central data structure storing all parsed code relationships
+
+#### Core Components
+- `CodeGraph` struct fields:
+  - `functions`: IndexMap of NodeId to FunctionNode (preserving declaration order)
+  - `defined_types`: Aggregate of struct/enum/union/alias definitions
+  - `type_graph`: Collection of all type references with relationships
+  - `impls`: Implementation blocks grouped by self-type
+  - `traits`: Public trait definitions with method signatures
+  - `relations`: Directed edges between nodes (inheritance, calls, etc)
+
+#### Key Relationships
+- Uses `NodeId` from `graph_ids.rs` as primary identifier
+- Contains `Relation` enum from `relations.rs`
+- Stores concrete node types from `nodes.rs`
+- Built by visitor pattern in `visitor/` module
+
+#### Serialization
+- Derives `Serialize`/`Deserialize` for RON persistence
+- Maintains insertion order for deterministic output
+
+---
+
 ## Configuration Module
 **Path:** `src/config/mod.rs`  
 **Purpose:** Placeholder for future configuration management system

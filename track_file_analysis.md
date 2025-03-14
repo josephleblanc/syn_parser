@@ -40,7 +40,7 @@ Files to analyze and incorporate to main project document in project root `proje
 - [x] src/error.rs
 - [x] src/lib.rs
 - [ ] src/parser/
-- [ ] src/parser/graph.rs
+- [x] src/parser/graph.rs
 - [ ] src/parser/graph_ids.rs
 - [x] src/parser/mod.rs
 - [ ] src/parser/nodes.rs
