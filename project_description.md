@@ -286,6 +286,35 @@
 
 ---
 
+## Parser Utilities (Placeholder)
+**Path:** `src/parser/utils.rs`  
+**Purpose:** Reserved for shared parsing utilities and helper functions
+
+### Current State
+- Empty file (0 lines of code)
+- No exports or imports
+- Not referenced elsewhere in codebase:
+  - No `mod utils` in parser/mod.rs
+  - No imports in visitor modules
+
+### Intended Purpose
+1. Potential utility candidates:
+   - ID generation helpers
+   - Type resolution shortcuts
+   - Attribute processing utilities
+   - Documentation parsing helpers
+2. Cross-cutting concerns:
+   - Visitor pattern utilities
+   - Graph traversal algorithms
+   - Batch processing helpers
+
+### Required Integration
+- Needs `pub mod utils` added to `parser/mod.rs`
+- Requires first utility function implementation
+- Needs test module validation
+
+---
+
 ## Architecture Overview
 ```mermaid
 graph TD
