@@ -36,11 +36,14 @@
   - `types`: Type system representation
 - External Crates:
   - `syn`: Rust syntax parsing
-  - `indexmap`: Preserved insertion order for analysis
+  - `quote`: Token stream manipulation for type hashing
+  - `indexmap`: Preserved insertion order for analysis  
+  - `dashmap`: Concurrent type deduplication map
   - `cozo`: Embedded graph database (SQLite backend)
-    - Used only in test configurations (`relations.rs:132-135`)
-    - Production code uses simple Vec storage (`graph.rs:112-115`)
+    - Used only in test configurations (`relations.rs:31-33`)
+    - Production code uses simple Vec storage (`graph.rs:13-15`)
     - No transaction synchronization between components
+    - Test-only features create production divergence risk
 
 ### Primary Exports
 - `CodeGraph`: Central data structure containing parsed code relationships
@@ -280,10 +283,12 @@
   - Used in relation validation (relations.rs:89-104)
 
 ### Inconsistencies
-1. `LegacyTypeId` alias (line 24) never referenced
-2. `ArcTypeNode` serialization not implemented
-3. `GenericParamNode` stored in Vec rather than IndexMap
-4. `Unknown` type variant lacks resolution hooks
+1. `LegacyTypeId` alias (types.rs:24) never referenced
+2. Hardcoded root ModuleId=0 creates hierarchy fragility (visitor/mod.rs:153)
+3. `DashMap` concurrency conflicts with sequential ID generation (state.rs:15 vs state.rs:67-72)
+4. Parallel processing (modules.rs:153-189) uses Rayon with non-atomic ID counter
+5. 23 unwrap() calls create panics (visitor/mod.rs:393)
+6. Type string hashing lacks normalization (state.rs:57)
 
 ---
 
