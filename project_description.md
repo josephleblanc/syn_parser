@@ -38,8 +38,9 @@
   - `syn`: Rust syntax parsing
   - `indexmap`: Preserved insertion order for analysis
   - `cozo`: Embedded graph database (SQLite backend)
-    - Currently test-only via `#[cfg(test)]` guards
-    - Future: Planned for production storage backend
+    - Used only in test configurations (`relations.rs:132-135`)
+    - Production code uses simple Vec storage (`graph.rs:112-115`)
+    - No transaction synchronization between components
 
 ### Primary Exports
 - `CodeGraph`: Central data structure containing parsed code relationships
@@ -515,10 +516,11 @@ flowchart TD
 - **petgraph** - Graph structure for module relationships
 
 ### Inconsistencies
-1. Test-only CozoDB storage of module hierarchy (lines 180-185)
-2. Visibility conversion duplicated with structures.rs
-3. Error handling uses untyped Results (lines 67, 487)
-4. Hardcoded root module ID (line 153)
+1. **Concurrency**: Rayon parallelism in module processing (`modules.rs:153-189`) conflicts with:
+   - DashMap type cache (`state.rs:15`)
+   - Sequential ID generation (`state.rs:67-72`)
+2. **Root Module**: Hardcoded ID 0 with no version tracking (`modules.rs:153`)
+3. **Error Propagation**: 23 instances of unhandled Options vs 9 Results
 
 ---
 
@@ -1041,9 +1043,9 @@ pub fn load_from_ron(path: &Path) -> Result<CodeGraph>
 | Feature          | RON               | JSON              |
 |------------------|-------------------|-------------------|
 | Schema Version   | ✔ Embedded        | ❌ Missing        | 
-| Type Preservation| ✔ Custom impls    | ❌ Not started    |
-| ID Serialization | ✔ UUID strings    | ❌ TODO           |
-| Pretty Printing  | ✔ Configurable    | ❌ Unimplemented  |
+| Type Preservation| ✔ Custom impls    | ❌ Causes serialization gaps (`types.rs:42-44`) |
+| ID Serialization | ✔ UUID strings    | ❌ Breaks with concurrent updates |
+| Cycle Detection  | ❌ Missing        | ❌ Allows invalid graphs |
 
 ### Key Dependencies
 - **serde**: Core serialization traits

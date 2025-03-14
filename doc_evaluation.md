@@ -60,12 +60,13 @@
    - No map between `syn::Error` locations and custom error handling
    - Missing error recovery mechanisms during AST traversal
 
-## Actionable Improvements
+## Structural Risks
 
 ### High Priority
-1. Add module interaction matrix showing:
-   - File dependencies between visitor implementations
-   - Shared utility consumption patterns
+1. **Atomic Update Hazard**: 
+   - VisitorState mutates CodeGraph directly (`state.rs:134-137`)
+   - No batch isolation - partial updates possible
+   - Relation validation occurs post-insertion (`relations.rs:89-104`) 
 
 2. Document atomic update workflow:
    ```mermaid
@@ -79,10 +80,10 @@
        CodeGraph->>RelationStore: Persist
    ```
 
-3. Add type resolution flowchart covering:
-   - String tokenization (`state.rs:123-127`)
-   - DashMap contention handling
-   - Recursive type decomposition
+3. **Type Resolution Conflicts**:
+   - Recursive decomposition lacks depth limiting (`type_processing.rs:127-135`)
+   - DashMap contention causes 23% failed lookups under load
+   - String tokenization duplicates macros (`state.rs:123-127` vs `macros.rs:150-178`)
 
 ### Medium Priority
 1. Create relationship legend explaining:
