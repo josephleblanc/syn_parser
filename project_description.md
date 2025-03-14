@@ -31,14 +31,32 @@
 
 ### Current State
 - Empty module file (0 exports)
-- Adjacent options.rs contains no implementation
+- Adjacent `options.rs` contains no implementation
 - Not yet integrated with other components
 
-### Anticipated Role
-- Eventually centralize:
-  - Parser configuration options
-  - Graph visualization parameters
-  - Serialization preferences
+### Configuration Options (Planned)
+**Path:** `src/config/options.rs`  
+**Purpose:** Intended to define configuration structures
+
+#### Planned Structure
+```rust
+// Expected to contain:
+pub struct ParserConfig {
+    pub preserve_comments: bool,
+    pub detect_macros: bool,
+}
+
+pub struct SerializationConfig {
+    pub format: OutputFormat, // enum { Json, Ron }
+    pub pretty_print: bool,
+}
+```
+
+#### Required Connections
+- Would need to integrate with:
+  - `parser/visitor/state.rs` for analysis parameters
+  - `serialization/mod.rs` for output formatting
+  - Future CLI arguments in `main.rs.back`
 
 ### Integration Needs
 - Requires connection to:
