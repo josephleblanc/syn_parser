@@ -361,6 +361,10 @@ sequenceDiagram
    - CozoDB (relations.rs:132) test-only despite production needs
    - JSON serialization (serialization/json.rs) unimplemented stubs
    - Mixed collections: IndexMap (graph.rs:12) vs Vec (nodes.rs:45)
+    - Storage Guarantees:
+      - Relationships stored as directed edges (src/serialization/ron.rs:42-49)
+      - Function bodies preserved verbatim (src/parser/nodes.rs:67-72)
+      - Macro expansions retained as raw tokens (src/parser/nodes.rs:215-218)
 
 2. **Error Handling**:
    - error.rs placeholder vs relations.rs validation (relations.rs:89-104)
