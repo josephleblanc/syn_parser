@@ -187,6 +187,47 @@ pub struct SerializationConfig {
   - Serialization format selection
 ---
 
+## Relationship Modeling
+**Path:** `src/parser/relations.rs`  
+**Purpose:** Defines and manages code dependency relationships between graph nodes
+
+### Core Components
+- `Relation` struct:
+  - `source`: Origin node (Node/Trait/Type)
+  - `target`: Destination node (Type/Trait)
+  - `kind`: Relationship type enum
+- `RelationBatch`:
+  - Batched updates for atomic graph modifications
+  - Contains versioning and source code hash
+
+### Key Relationship Types
+- `RelationKind` enum variants:
+  - **Structural**: `Implements`, `Contains`, `Extends`
+  - **Functional**: `Calls`, `Reads`, `Writes`
+  - **Type System**: `Aliases`, `Instantiates`, `Constrains`
+
+### Validation Mechanisms
+- `validate_types()`: Ensures type compatibility between endpoints
+- `check_circular_dependency()`: Prevents cyclic references
+- Type-specific validation traits:
+  - `TraitRelationValidator`
+  - `TypeRelationValidator`
+  - `FunctionRelationValidator`
+
+### Error Handling
+- `RelationError` enum:
+  - `CircularDependency`: Invalid cyclic reference detected
+  - `TypeMismatch`: Source/target type incompatibility
+  - `InvalidEndpoint`: Unsupported node type combination
+
+### Integration Points
+- Directly consumed by `CodeGraph` for relationship storage
+- Used by visitor pattern during analysis phase
+- Serialized with graph structure via RON
+- Validation integrated with error handling infrastructure
+
+---
+
 ## Foundational Types (Candidate Exports)
 **Potential Core Primitives:**
 - `GraphNodeId`: Composite identifier combining node type and unique ID
