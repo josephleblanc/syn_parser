@@ -23,3 +23,43 @@
   - Serialization formats
 
 ---
+
+## Foundational Types (Candidate Exports)
+**Potential Core Primitives:**
+- `GraphNodeId`: Composite identifier combining node type and unique ID
+- `NodeId`: Opaque identifier for graph nodes
+- `TraitId`: Specialized identifier for trait definitions
+- `TypeId`: Unique identifier for type system entities
+- `Relation`: Enum representing various code relationships
+
+---
+
+## Error Handling Infrastructure
+**Path:** `src/error.rs`  
+**Purpose:** Centralized error types and handling for code analysis pipeline
+
+### Key Data Structures
+- `AnalysisError` (Planned):
+  - Purpose: Unified error type for parsing/analysis failures
+  - Planned variants:
+    - `SyntaxError`: Wraps parser-level failures
+    - `TypeResolution`: Failed type lookups/inferences
+    - `CircularDependency`: Invalid graph relationships
+
+### Error Handling Strategy
+- Planned error propagation:
+  - Use `thiserror` crate for explicit variant definitions
+  - Implement `From` trait for foreign error types
+  - Context-aware error reporting with source chains
+
+### Integration Points
+- Cross-cutting concern used by:
+  - Parser modules
+  - Visitor implementations
+  - Serialization components
+- Will unify error reporting across:
+  - CLI interface (main.rs.back)
+  - Library consumers
+  - Test assertions
+
+---

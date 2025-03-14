@@ -37,7 +37,7 @@ Files to analyze and incorporate to main project document in project root `proje
 - [ ] src/config/
 - [ ] src/config/mod.rs
 - [ ] src/config/options.rs
-- [ ] src/error.rs
+- [x] src/error.rs
 - [x] src/lib.rs
 - [ ] src/parser/
 - [ ] src/parser/graph.rs
