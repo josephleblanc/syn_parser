@@ -20,8 +20,9 @@
 
 ### Inaccuracies
 1. **Type System Diagram**:
-   - Missing `ArcTypeNode` refcount tracking shown in `types.rs:42-44`
-   - Does not show legacy type ID alias that's present but unused (`types.rs:24`)
+   - `ArcTypeNode` refcount tracking exists in code (`types.rs:42-44`) but lacks serialization
+   - Unused `LegacyTypeId` alias remains in types.rs (`types.rs:24`) causing dead code
+   - `related_types` connections don't enforce acyclic constraints allowing loops
 
 2. **Visitor Pattern Flow**:
    - Sequence diagram omits error handling paths from `visitor/mod.rs:487-489`

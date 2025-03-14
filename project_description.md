@@ -459,9 +459,10 @@ impl StateManagement for VisitorState {
 
 1. **Error Handling**:
 ```rust
-// Ad-hoc error handling (line 487)
+// Fragmented error handling (line 487)
 fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
-    // No custom error type unification
+    // Mixed error types: 17 instances of unwrap() in visitor implementations
+    // No error recovery mechanism despite backtracking lexer setup
 }
 ```
 
