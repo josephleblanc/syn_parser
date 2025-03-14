@@ -60,11 +60,24 @@
   - Type system resolution
 
 ### Concurrency Risks
-- **Parallel Processing** - Rayon parallelism in module processing (`modules.rs:153-189`) with non-atomic ID counters (`state.rs:67-72`) creates race conditions for:
+**Component Safety Matrix**:
+| Component          | Thread-Safe | Risk Level | Lines          |
+|--------------------|-------------|------------|----------------|
+| ID Generation      | ❌ No       | Critical   | state.rs:67-72 |
+| Type Cache         | ✅ Yes      | Low        | state.rs:15    |
+| Relation Batches   | ❌ No       | High       | relations.rs:132-135 |
+| Module Hierarchy   | ❌ No       | Medium     | modules.rs:153-189 |
+
+**Parallel Processing**:
+- Rayon parallelism (modules.rs:153-189) conflicts with sequential ID gen (state.rs:67-72)
+- DashMap type cache (state.rs:15) safe but depends on unsafe ID generation
   - Node/Trait/Type ID uniqueness
   - Type cache integrity
   - Graph relationship validity
-- **Type Cache Collisions** - DashMap concurrent access patterns may overwrite entries during parallel processing
+- **Type Cache Risks**:
+  - Hash collisions from unnormalized type strings (state.rs:57)
+  - Concurrent inserts may clobber entries (dashmap::entry API not used)
+  - No collision statistics or metrics collected
 - **Storage Backend Divergence** - Test-only CozoDB storage creates discrepancy from production Vec storage (`graph.rs:13-15`)
 
 ---
@@ -146,7 +159,7 @@
   - `functions`: IndexMap of NodeId to FunctionNode (preserving declaration order)
   - `defined_types`: Aggregate of struct/enum/union/alias definitions
   - `type_graph`: Collection of all type references with relationships
-  - `impls`: Implementation blocks grouped by self-type
+  - `impls`: Implementation blocks stored in insertion order via Vec (graph.rs:13-15)
   - `traits`: Public trait definitions with method signatures
   - `relations`: Directed edges between nodes (inheritance, calls, etc)
 
