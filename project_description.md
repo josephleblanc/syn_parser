@@ -629,6 +629,65 @@ flowchart TD
 
 ---
 
+## Trait and Implementation Processing
+**Path:** `src/parser/visitor/traits_impls.rs`  
+**Purpose:** Analyze trait definitions and implementation blocks, connecting them to types and methods
+
+### Key Responsibilities
+1. **Trait Processing** - Parse trait definitions including methods and supertraits
+2. **Impl Block Analysis** - Handle explicit implementations of traits
+3. **Trait-Impl Relationships** - Connect implementations to their target types
+4. **Method Signature Tracking** - Record trait method signatures and implementations
+
+### Implementation Details
+- **Trait Hierarchy**: 
+  - `TraitVisitor` extends `FunctionVisitor` (line 15)
+  - `ImplVisitor` extends `FunctionVisitor` (line 272)
+- **Core Methods**:
+  ```rust
+  fn process_trait(&mut self, t: &ItemTrait)  // Lines 17-108
+  fn process_impl(&mut self, i: &ItemImpl)    // Lines 276-365
+  ```
+- **Relationship Creation**:
+  - `ImplementsTrait` relations (lines 352-359)
+  - `TypeDefinition` for traits (lines 64-67)
+  - `Inherits` for supertraits (lines 121-125)
+
+### Integration Points
+- **Type System**:
+  - Creates trait type entries (lines 59-62)
+  - Uses `get_or_create_type()` from state.rs
+- **Graph Relations**:
+  - Stores `ImplNode` in code_graph (line 334)
+  - Creates `RelationKind::ImplementsFor` (line 341)
+- **Visibility**:
+  - Shares conversion logic with structures.rs (lines 238-241)
+  - Handles public/private trait storage (lines 96-104)
+
+### Processing Workflow
+```mermaid
+sequenceDiagram
+    Trait->>Visitor: process_trait()
+    Visitor->>Graph: store TraitNode
+    loop For each method
+        Visitor->>Function: process_trait_method()
+        Function->>Graph: add method signature
+    end
+    Impl->>Visitor: process_impl()
+    Visitor->>Graph: connect impl to type/trait
+```
+
+### Inconsistencies
+1. Trait method visibility hardcoded to Public (line 199)
+2. Impl block visibility commented out (line 324-327)
+3. Super trait lookup uses string matching (line 44)
+4. Blanket implementation limits specialization (lines 375-377)
+
+### Foundational Patterns
+- **Trait Method Resolution**: Requires `FunctionVisitor` supertrait
+- **Generic Handling**: Inherits `GenericsOperations` through traits
+- **Validation**: Missing bounds checking for trait implementations
+
 ## Structural Type Visitor Implementation
 **Path:** `src/parser/visitor/structures.rs`  
 **Purpose:** Analyze and record structural type definitions (structs, enums, unions) and their components
