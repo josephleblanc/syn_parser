@@ -675,6 +675,13 @@ flowchart TD
 ---
 
 ## Trait and Implementation Processing
+**ImplNode Relationships:**
+- Connects `self_type` (TypeId) to implemented type via `ImplementsFor` relation (traits_impls.rs:364-368)
+- Links `trait_type` (TraitId) through `TypeDefinition` relation (traits_impls.rs:64-67)
+- Validation Gaps:
+  - No signature matching between trait declarations and impl methods (traits_impls.rs:199 vs 44)
+  - No bounds checking for generic implementations (traits_impls.rs:318-321)
+  - Limited supertrait resolution (traits_impls.rs:44-49)
 **Path:** `src/parser/visitor/traits_impls.rs`  
 **Purpose:** Analyze trait definitions and implementation blocks, connecting them to types and methods
 
