@@ -547,6 +547,7 @@ flowchart TD
 - Uses `TypeId` for macro-generated type associations (types.rs:89-92)
 
 ### Processing Workflow
+// This mermaid diagram is broken. Fix AI!
 ```mermaid
 sequenceDiagram
     Visitor->>MacroProcessor: visit_item_macro()
@@ -1090,10 +1091,6 @@ graph TD
     P -->|tracks| G
     P -->|updates| H
     
-    style A fill:#f9f,stroke:#333
-    style B fill:#ccf,stroke:#333
-    style C fill:#ccf,stroke:#333
-    style D fill:#ccf,stroke:#333
 ```
 
 ---
@@ -1101,6 +1098,8 @@ graph TD
 ## Data Structure Interactions
 
 #### Core Relationship Map
+// mermaid diagram below has errors. Fix. AI!
+
 ```mermaid
 flowchart TD
     AST --> Visitor --> TypeProcessor --> State.type_map
@@ -1200,7 +1199,7 @@ sequenceDiagram
     V->>CG: Store type relation (relations.rs:89-104)
     
     Note right of CG: Links to trait constraints via <br/>RelationKind::Constrains (relations.rs:56-59)
-
+```
 
 ---
 
