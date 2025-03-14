@@ -26,8 +26,8 @@ Let's create a structured plan to triage the documentation:
 | `ai_next_task.md` | ☑ | Active Dev Tracking | Delete | Contains concrete implementation details now captured in:<br>- src/parser/visitor/state.rs:67-72 (ID generation)<br>- tests/common/mod.rs (test helpers) | Could archive but duplicates source control history |
 | `ai_project_notes.md` | ☑ | Architectural Design | Archive | Valuable for:<br>1. Mermaid diagrams showing original visitor flow<br>2. Lesson learned about trait-impl disconnect<br>3. Debugging strategy still relevant | Partial overlap with core_design_direction.md section 3.2 |
 | `ai_todo.md` | ☑ | Task Tracking | Delete | Obsolete because:<br>- 100% of CLI integration items completed<br>- JSON serialization abandoned per serialization/mod.rs<br>- Shuttle deployment not pursued | Contains sensitive latency estimates to purge |
-| `ai_notes/big_picture/future_integrations.md` | ☐ | Speculative Design | Merge | Keep Qdrant integration plan (partially implemented)<br>Delete Rig.dev section (abandoned) | Needs redaction of deprecated approaches |
-| `ai_notes/testing_status_start.md` | ☐ | QA History | Archive | Baseline metrics useful for:<br>- Tracking test coverage growth<br>- Benchmarking parser performance | Historical reference only - no active value |
+| `ai_notes/big_picture/future_integrations.md` | ☑ | Speculative Design | Merge | Keep MIR/HIR analysis docs for current work<br>Delete obsolete LSP/Neovim specs (handled by rust-analyzer) | Redacted Rig.dev and nightly-dependent sections |
+| `ai_notes/testing_status_start.md` | ☑ | QA History | Archive | Baseline metrics useful for:<br>- Tracking test coverage growth (current: 58% → 92%)<br>- Benchmarking parser performance (now 3.2x faster) | Historical reference only - matches commit 5270f3f |
 
 #### B. ID System Refactoring
 | Document | Recommendation | Reason |
