@@ -1068,8 +1068,8 @@ fn process_return_type(&mut self, output: &ReturnType) -> Option<TypeId> {
 **Purpose:** Handle graph persistence formats 🚧
 
 ❌ **JSON Serialization**: 
-- src/serialization/json.rs is placeholder (15 LoC)
-- Lacks error handling
+- src/serialization/json.rs is empty (0 lines of code)
+- Lacks error handling scaffolding
 - Missing type preservation
 
 ### Core Requirements
@@ -1310,6 +1310,50 @@ sequenceDiagram
    - Circular references: TypeNode ↔ GenericParamNode via related_types
 
 ---
+
+## Lifecycle Constraints
+
+### ID Generation Flow
+```mermaid
+sequenceDiagram
+    participant V as Visitor
+    participant S as State
+    participant G as CodeGraph
+    
+    V->>S: next_node_id()
+    S->>S: Increment counter (state.rs:67-72)
+    S->>V: Return new NodeId
+    V->>G: Store node with ID
+```
+
+| ID Type       | Source Code Reference | Uniqueness Guarantee | Wraparound Risk |
+|---------------|-----------------------|----------------------|-----------------|
+| NodeID        | state.rs:67-72        | Single-threaded only | After usize::MAX|
+| TypeID        | state.rs:123-135      | DashMap protected    | Collisions possible |
+| TraitID       | state.rs:89-93        | No concurrency guard | Unbounded growth|
+
+### Cross-Mode References
+| Source Type    | Target Type    | Validation            | File:Line          |
+|----------------|----------------|-----------------------|--------------------|
+| Function Param | Type           | HasType relation      | structures.rs:133-137|
+| Trait Method   | Type           | Signature check       | traits_impls.rs:199|
+| Impl Block     | Trait          | Explicit link         | traits_impls.rs:352-359|
+| Macro Use      | Definition     | Path matching         | macros.rs:123-145|
+
+### Dependency Lifecycles
+1. **Type Resolution**:
+   - Created during AST processing (type_processing.rs)
+   - Cached in DashMap (state.rs:15)
+   - Persisted via RON (serialization/ron.rs)
+   
+2. **Node Relationships**:
+   - Established during visitor pattern execution
+   - Batched in RelationBatch (relations.rs:132-135)
+   - Committed atomically to CodeGraph
+
+3. **Trait-Impl Binding**:
+   - Requires post-processing pass (missing implementation)
+   - Current technical debt: No validation between trait definitions and impl blocks
 
 ## Critical Implementation Risks
 
