@@ -34,8 +34,10 @@ Documentation should:
 ## Implementation Focus Areas
 - Visitor pattern traversal order and state mutations
 - Type system unification process
-- Graph storage backends (CozoDB vs RON)
+- Formatting parsed data for database storage (CozoDB)
+  - Actual database interface in another project
 - Macro expansion and attribute processing
+  - How is it handled?
 - Error propagation through analysis pipeline
 
 ## Maintenance Practices
