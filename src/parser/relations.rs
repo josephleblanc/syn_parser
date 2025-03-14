@@ -147,7 +147,11 @@ impl Relation {
                     (self.source, self.target),
                     (RelationSource::Type(_), RelationTarget::Trait(_))
                 ) {
-                    return Err(RelationError::InvalidImplementation);
+                    return Err(RelationError::InvalidImplementation {
+                        source: self.source.into(),
+                        target: self.target.into(),
+                        kind: self.kind,
+                    });
                 }
             }
             RelationKind::ImplementsTrait(trait_id) => {
@@ -162,7 +166,7 @@ impl Relation {
                 self.validate_types(
                     "Type",
                     "Trait",
-                    RelationSource::Type(_),
+                    RelationSource::Type(&self.source),
                     RelationTarget::Trait(_),
                 )?
             }
