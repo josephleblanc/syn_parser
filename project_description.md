@@ -60,9 +60,12 @@
   - Type system resolution
 
 ### Concurrency Risks
-- **Parallel Processing** - Rayon parallelism in module processing (`modules.rs:153-189`) with non-atomic ID generation (`state.rs:67-72`)
+- **Parallel Processing** - Rayon parallelism in module processing (`modules.rs:153-189`) with non-atomic ID counters (`state.rs:67-72`) creates race conditions for:
+  - Node/Trait/Type ID uniqueness
+  - Type cache integrity
+  - Graph relationship validity
 - **Type Cache Collisions** - DashMap concurrent access patterns may overwrite entries during parallel processing
-- **Relation Race Conditions** - Test-only CozoDB storage creates divergence from production Vec storage (`graph.rs:13-15`)
+- **Storage Backend Divergence** - Test-only CozoDB storage creates discrepancy from production Vec storage (`graph.rs:13-15`)
 
 ---
 
