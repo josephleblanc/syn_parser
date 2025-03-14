@@ -84,6 +84,34 @@
 
 ---
 
+### Node Definitions Implementation
+**Path:** `src/parser/nodes.rs**  
+**Purpose:** Core data structures representing parsed code elements
+
+#### Key Data Structures
+- `FunctionNode`: Represents function definitions with:
+  - Parameters, return type, generics, and body
+  - Documentation and attributes
+- `TypeDefNode` enum: Unified type system variants:
+  - Struct/Enum/Union/Alias with common metadata
+- `TraitNode`: Trait definitions with method signatures
+- `ImplNode`: Implementation blocks linking types to traits
+- `ModuleNode`: Module hierarchy and item organization
+
+#### Common Patterns
+- Consistent use of `NodeId` for graph references
+- `VisibilityKind` tracking across all definitions
+- `ParsedAttribute` for proc-macro attribute handling
+- Docstring preservation with semantic markup
+
+#### Integration Points
+- Directly consumed by `CodeGraph` storage
+- Referenced in `Relation` enum values
+- Built by visitor pattern during AST traversal
+- Serialized via RON for persistent storage
+
+---
+
 ### Graph Structure Implementation
 **Path:** `src/parser/graph.rs**  
 **Purpose:** Central data structure storing all parsed code relationships
