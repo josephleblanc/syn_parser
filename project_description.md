@@ -319,45 +319,166 @@
 **Path:** `src/parser/visitor/mod.rs`  
 **Purpose:** Core AST traversal and graph construction logic
 
-### Key Components
-1. **Processor Traits** (lines 23-102):
-   - `CodeProcessor` with state management
-   - Specialized traits for type/attribute/doc operations
-   - Generic parameter handling
-2. **Visitor Implementation** (lines 237-487):
-   - Implements `syn::visit::Visit` for 15+ syntax node types
-   - Handles macro expansion and module relationships
-   - Coordinates with specialized visitors via traits
+### Key Architectural Components
 
-### Core Workflows
-1. **Type Resolution** (lines 341-348):
-   ```rust
-   fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
-       let type_str = ty.to_token_stream().to_string();
-       self.state.type_map.get_or_insert_with(type_str, || {
-           self.state.next_type_id()
-       })
-   }
-   ```
-2. **Module Hierarchy** (lines 153-189):
-   - Creates root module first (lines 153-160)
-   - Tracks submodule relationships via `RelationKind::Contains`
-   - Processes imports/exports through `extract_use_path`
+1. **Trait Hierarchy**:
+```rust
+processor::CodeProcessor
+├─ StateManagement        // ID generation + graph access
+├─ TypeOperations         // Type resolution + processing
+├─ AttributeOperations    // Attribute parsing
+├─ DocOperations          // Doc comment extraction
+└─ GenericsOperations     // Generic parameter handling
+```
 
-### State Management
-- **VisitorState** (line 109):
-  - Atomic ID counters (node/type/trait)
-  - DashMap for type deduplication
-  - Batched relation storage
-- **CodeGraph Integration**:
-  - Direct mutation via `state_mut().code_graph()`
-  - Relation batching for atomic updates
+2. **Core Structs**:
+- `CodeVisitor` (line 237): Main visitor implementing both `syn::Visit` and `CodeProcessor`
+- `VisitorState` (line 109): Mutable analysis state carried through traversal
+- `RelationBatch` (line 132): Atomic graph update container
+
+3. **Specialized Visitors**:
+- `FunctionVisitor` (line 413): Processes function definitions + signatures
+- `StructVisitor` (line 422): Handles structs/enums/unions
+- `ImplVisitor` (line 427): Manages trait implementations
+- `TraitVisitor` (line 432): Processes trait definitions
+
+### Detailed Workflows
+
+1. **AST Traversal Lifecycle**:
+```mermaid
+sequenceDiagram
+    analyze_code->>+CodeVisitor: Create with empty state
+    CodeVisitor->>+syn::File: visit_file()
+    loop For each AST item
+        syn::File->>CodeVisitor: visit_item_*()
+        CodeVisitor->>SpecializedVisitor: process_*()
+        SpecializedVisitor->>CodeGraph: Add nodes/relations
+    end
+    CodeVisitor->>-analyze_code: Return populated CodeGraph
+```
+
+2. **Function Processing** (lines 413-420):
+```rust
+fn visit_item_fn(&mut self, func: &ItemFn) {
+    <Self as FunctionVisitor>::process_function(self, func);
+    syn::visit::visit_item_fn(self, func); // Continue depth-first
+}
+
+// In functions.rs:
+fn process_function() {
+    let id = state.next_node_id();
+    let return_type = state.get_or_create_type(&sig.output);
+    state.code_graph.functions.insert(id, FunctionNode { ... });
+}
+```
+
+3. **Module Hierarchy Building** (lines 153-189):
+- Creates root module with hardcoded ID 0
+- Tracks parent/child relationships via `submodules` vector
+- Processes `mod` items before other items for scoping
+
+### State Management Details
+
+1. **Atomic ID Generation**:
+```rust
+impl VisitorState {
+    fn next_node_id(&mut self) -> NodeId {
+        let id = NodeId(self.next_node_id);
+        self.next_node_id += 1; // Not thread-safe (per-file processing)
+        id
+    }
+}
+```
+
+2. **Type Deduplication**:
+```rust
+fn get_or_create_type(&mut self, ty: &Type) -> TypeId {
+    let type_str = ty.to_token_stream().to_string();
+    self.type_map.entry(type_str)
+        .or_insert_with(|| self.next_type_id())
+}
+```
+
+### Key Methods
+
+1. **Visibility Conversion** (lines 230-241):
+```rust
+fn convert_visibility(&self, vis: &Visibility) -> VisibilityKind {
+    match vis {
+        Visibility::Public(_) => VisibilityKind::Public,
+        Visibility::Restricted(r) => parse_restricted_vis(r),
+        _ => VisibilityKind::Inherited
+    }
+}
+// Duplicated in structures.rs (needs refactor)
+```
+
+2. **Import Processing** (lines 292-311):
+```rust
+fn extract_use_path(use_tree: &syn::UseTree) -> Vec<String> {
+    let mut path = Vec::new();
+    // Recursively process nested UseTree variants
+    match use_tree {
+        UseTree::Path(p) => {
+            path.push(p.ident.to_string());
+            path.extend(extract_use_path(&p.tree))
+        }
+        UseTree::Name(n) => path.push(n.ident.to_string()),
+        UseTree::Rename(r) => path.push(format!("{} as {}", r.ident, r.rename)),
+        UseTree::Glob(_) => path.push("*".into()),
+        UseTree::Group(g) => g.items.iter()
+            .flat_map(|i| extract_use_path(i))
+            .collect()
+    }
+    path
+}
+```
+
+### Critical Dependencies
+
+1. **syn Visitor Overrides**:
+```rust
+impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
+    fn visit_item_fn(&mut self, i: &'ast ItemFn) { ... }
+    fn visit_item_struct(&mut self, s: &'ast ItemStruct) { ... }
+    // 15+ overridden methods
+}
+```
+
+2. **CodeGraph Integration**:
+```rust
+impl StateManagement for VisitorState {
+    fn code_graph(&mut self) -> &mut CodeGraph {
+        &mut self.code_graph // Direct mutable access
+    }
+}
+```
 
 ### Inconsistencies
-1. Error handling ad-hoc (lines 67, 487) with untyped Results
-2. Macro expansion tracking incomplete (lines 433-436)
-3. Test-only CozoDB storage (lines 132-135) in production path
-4. Visibility conversion duplicated (lines 230-241 vs structures.rs:45-53)
+
+1. **Error Handling**:
+```rust
+// Ad-hoc error handling (line 487)
+fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
+    // No custom error type unification
+}
+```
+
+2. **Macro Expansion**:
+```rust
+fn visit_item_macro(&mut self, item: &ItemMacro) {
+    // Only tracks #[macro_export] macros
+    // Lacks procedural macro support
+}
+```
+
+3. **Test/Prod Split**:
+```rust
+#[cfg(test)]
+impl RelationBatch {
+    fn cozo_storage(&self) { ... } // Test-only DB integration
+}
+```
 
 ---
 
