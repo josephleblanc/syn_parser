@@ -482,6 +482,77 @@ impl RelationBatch {
 
 ---
 
+## Visitor State Management
+**Path:** `src/parser/visitor/state.rs`  
+**Purpose:** Maintain analysis state during AST traversal and coordinate graph construction
+
+### Key Components
+1. **Core State Struct**:
+```rust
+pub struct VisitorState {
+    pub code_graph: CodeGraph,          // Mutable graph under construction
+    pub next_node_id: usize,            // Atomic ID counter for nodes
+    pub next_trait_id: usize,           // Atomic ID counter for traits
+    pub next_type_id: usize,            // Atomic ID counter for types
+    pub type_map: DashMap<String, TypeId>, // Concurrent type deduplication
+    pub relation_batch: RelationBatch,  // Atomic graph updates
+    pub current_module: NodeId,         // Module scope tracking
+}
+```
+
+2. **Trait Implementations**:
+```mermaid
+classDiagram
+    VisitorState --> StateManagement
+    VisitorState --> TypeOperations
+    VisitorState --> AttributeOperations
+    VisitorState --> DocOperations
+    VisitorState --> GenericsOperations
+    
+    class StateManagement {
+        <<trait>>
+        +code_graph() &mut CodeGraph
+        +add_function(FunctionNode)
+        +add_relation(Relation)
+        +next_node_id() NodeId
+        +next_type_id() TypeId
+    }
+    
+    class TypeOperations {
+        <<trait>>
+        +get_or_create_type(&Type) TypeId
+        +process_type(&Type) (TypeKind, Vec<TypeId>)
+    }
+```
+
+### State Management Details
+- **Concurrent Access**:
+  - Uses `DashMap` for thread-safe type deduplication (line 15)
+  - Atomic ID counters with interior mutability (lines 8-10)
+- **Graph Mutation**:
+  - Direct access to CodeGraph via trait (lines 132-135)
+  - Batched relation updates through RelationBatch (line 13)
+- **Scope Tracking**:
+  - Current module context (line 14)
+  - Nested visibility handling (lines 89-103)
+
+### Serialization Notes
+- `ParseMetrics` struct (lines 17-22) tracks:
+  - ID generation latency
+  - Type cache hit rate
+  - Relation batch sizes
+- Missing serialization derives for:
+  - VisitorState (contains non-serializable DashMap)
+  - RelationBatch (test-only CozoDB dependency)
+
+### Inconsistencies
+1. Mixed counter types: `usize` vs `AtomicUsize` (lines 8-10)
+2. Test-only CozoDB storage in production path (line 13)
+3. Duplicate visibility handling (lines 89-103 vs structures.rs:45-53)
+4. Missing module hierarchy validation (line 14)
+
+---
+
 ## Architecture Overview
 ```mermaid
 graph TD
@@ -499,9 +570,14 @@ graph TD
     F --> K[functions.rs]
     F --> L[modules.rs]
     F --> M[traits_impls.rs]
+    F --> P[state.rs]
     
     C --> N[ron.rs]
     C --> O[json.rs]
+    
+    P -->|manages| E
+    P -->|tracks| G
+    P -->|updates| H
     
     style A fill:#f9f,stroke:#333
     style B fill:#ccf,stroke:#333
@@ -526,6 +602,9 @@ flowchart LR
     
     Visitor --> |Builds| CodeGraph
     Visitor --> |Updates| TypeSystem
+    Visitor --> |uses| VisitorState
+    VisitorState --> |manages| CodeGraph
+    VisitorState --> |tracks| TypeSystem
     Parser --> |Feeds| Visitor
     
     Serialization --> |Persists| CodeGraph
