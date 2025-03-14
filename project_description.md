@@ -547,17 +547,18 @@ flowchart TD
 - Uses `TypeId` for macro-generated type associations (types.rs:89-92)
 
 ### Processing Workflow
-// This mermaid diagram is broken. Fix AI!
 ```mermaid
 sequenceDiagram
-    Visitor->>MacroProcessor: visit_item_macro()
-    MacroProcessor->>CodeGraph: check #[macro_export]
+    Visitor->>+MacroProcessor: visit_item_macro()
+    MacroProcessor->>CodeGraph: Check #[macro_export]
     alt Is exported
         CodeGraph->>MacroNode: create with rules
+        CodeGraph-->>MacroProcessor: Return new MacroNode
     else
-        CodeGraph-x: Skip non-exported
+        MacroProcessor->>MacroProcessor: Skip non-exported
     end
-    Note right of Visitor: Later invocations create MacroUse relations
+    MacroProcessor->>-Visitor: Process completion
+    Note right of Visitor: Subsequent invocations<br/>create MacroUse relations
 ```
 
 ### Inconsistencies
@@ -1098,19 +1099,24 @@ graph TD
 ## Data Structure Interactions
 
 #### Core Relationship Map
-// mermaid diagram below has errors. Fix. AI!
-
 ```mermaid
 flowchart TD
-    AST --> Visitor --> TypeProcessor --> State.type_map
-    State -->|manages| CodeGraph.type_graph --> Relation
-    CodeGraph -->|stores| nodes::FunctionNode
-    CodeGraph -->|references| types::TypeId
-    Relation -->|links| nodes::NodeId
+    AST --> Visitor
+    Visitor --> TypeProcessor
+    TypeProcessor -->|resolves| State.type_map
+    State.type_map -->|manages| CodeGraph.type_graph
+    CodeGraph.type_graph -->|creates| Relation
+    CodeGraph -->|stores| FunctionNode
+    CodeGraph -->|references| TypeId
+    Relation -->|links| NodeId
     
-    subgraph Critical Flows
-    type_deduplication[Type Deduplication] --> state_conflict[State Concurrency Risk]
-    graph_storage[Graph Updates] --> vec_storage[Vec.push() Data Race Potential]
+    style State.type_map fill:#f9f,stroke:#333,stroke-width:2px
+    style CodeGraph.type_graph fill:#bbf,stroke:#333,stroke-width:2px
+    
+    subgraph ConcurrencyRisks["Critical Flows (Concurrency Risks)"]
+    direction LR
+    type_deduplication[Type Deduplication] -.->|race condition| state_conflict[State Concurrency]
+    graph_updates[Graph Updates] -.->|non-atomic| data_race[Data Race Potential]
     end
 ```
 
