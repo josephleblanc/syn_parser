@@ -10,7 +10,11 @@ A high-performance Rust source code analyzer that incrementally builds and maint
 
 Key Differentiators:
 - **Incremental Processing**: Efficient updates for active codebases
-- **Hybrid Data Foundation**: Native graph relationships + structured code artifacts
+- **Hybrid Data Foundation**: 
+  - Semantic type fingerprints (Blake3)
+  - Versioned graph relations
+  - Structured code artifacts (RAG-ready)
+  - Hardware-optimized ID allocation
 - **Hardware-Aware**: Optimized for consumer-grade ML hardware
 
 ## 2. RAG Pipeline Integration

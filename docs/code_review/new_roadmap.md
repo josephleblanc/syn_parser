@@ -43,11 +43,15 @@ First designed as of commit: refactor_type_system b9c89b3
            id: node.id,
            source_snippet: node.source_snippet(),
            metadata: node.metadata(),
-           relations: node.relations()
+           relations: node.relations(),
+           type_fingerprint: blake3::hash(node.type_repr.as_bytes()),
+           code_span: node.span.as_str()
        }
    }
    ```
-   - Outputs structured data for external embedding service
+   - Outputs structured artifacts with semantic fingerprints
+   - Preserves code spans for cross-modal alignment
+   - Excludes embedding generation per core design
 
 **Success Metrics**:
 - 40% reduction in type collisions

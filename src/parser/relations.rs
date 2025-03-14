@@ -36,19 +36,21 @@ impl RelationBatch {
         }).collect()
     }
 
-    /// Create HNSW index for fast similarity searches
-    pub fn create_hnsw_index(&self, db: &cozo::DbInstance) -> Result<()> {
-        db.create_hnsw_index(
-            "relations",
-            "embedding",
-            cozo::HnswConfig {
-                max_elements: self.relations.len() as u32,
-                m: 16,
-                ef_construction: 200,
-                ..Default::default()
-            }
-        )?;
-        Ok(())
+    /// Batch format for CozoDB ingestion
+    pub fn to_cozo_batch(&self) -> cozo::DataFrame {
+        cozo::DataFrame::from_rows(
+            self.relations
+                .iter()
+                .map(|r| {
+                    cozo::Row::from(vec![
+                        r.source.into(),
+                        r.target.into(),
+                        r.kind.to_string(),
+                        self.content_uuid().to_string(),
+                    ])
+                })
+                .collect()
+        )
     }
 
     /// Content-based UUID for batch tracking                                     
