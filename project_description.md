@@ -1332,6 +1332,18 @@ sequenceDiagram
 **Path:** `src/error.rs`  
 **Purpose:** (Not implemented) Currently empty file
 
+**Critical Unwrap() Locations**:
+1. visitor/mod.rs:393 - Raw block processing
+2. macros.rs:68 - Procedural macro detection
+3. traits_impls.rs:203 - Trait method processing
+4. modules.rs:173 - Parallel item handling
+
+**Recommended Strategy**:
+1. Define `AnalysisError` enum with variants matching parse stages
+2. Convert unwraps to `anyhow::Context` for better traces
+3. Add error propagation through VisitorState
+4. Implement Error trait with source chaining
+
 ### Verified State
 - Blank file (0 lines of code)
 - Error handling implemented ad-hoc in:
