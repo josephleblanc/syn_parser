@@ -8,6 +8,7 @@
 - Internal Modules:
   - `parser`: Code parsing and AST traversal infrastructure
   - `serialization`: Graph serialization implementations
+  - `config`: (Nascent) Configuration management stubs
 
 ### Primary Exports
 - `analyze_code`: Main entry function for code analysis
@@ -22,6 +23,28 @@
   - Graph node/relation identifiers
   - Serialization formats
 
+---
+
+## Configuration Module
+**Path:** `src/config/mod.rs`  
+**Purpose:** Placeholder for future configuration management system
+
+### Current State
+- Empty module file (0 exports)
+- Adjacent options.rs contains no implementation
+- Not yet integrated with other components
+
+### Anticipated Role
+- Eventually centralize:
+  - Parser configuration options
+  - Graph visualization parameters
+  - Serialization preferences
+
+### Integration Needs
+- Requires connection to:
+  - CLI arguments (future main binary)
+  - Visitor pattern configuration
+  - Serialization format selection
 ---
 
 ## Foundational Types (Candidate Exports)

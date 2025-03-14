@@ -35,7 +35,7 @@ src
 ```
 Files to analyze and incorporate to main project document in project root `project_description.md`
 - [ ] src/config/
-- [ ] src/config/mod.rs
+- [x] src/config/mod.rs
 - [ ] src/config/options.rs
 - [x] src/error.rs
 - [x] src/lib.rs
