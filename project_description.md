@@ -1209,9 +1209,14 @@ sequenceDiagram
    - error.rs placeholder vs relations.rs validation (relations.rs:89-104)
    - Missing error conversion for syn::Error (visitor/mod.rs:67)
 
-3. **Visitor Pattern**:
-   - State split: visitor/state.rs vs parser/utils.rs:33-48
-   - Partial attributes: visitor/utils/attributes.rs:15 vs nodes.rs:127
+3. **Visitor Pattern** (visitor/mod.rs:237-241):
+   - State hierarchy: VisitorState ← CodeGraph ← TypeSystem
+   - Overrides 15+ syn::Visit methods with trait-based processing
+   - Transactional updates via RelationBatch (state.rs:132-137)
+   - Shared visibility conversion duplicated in:
+     - structures.rs:230-241
+     - functions.rs:45-53
+     - modules.rs:189-201
    - Traversal Order:
      1. Modules and submodules (src/parser/visitor/modules.rs:23-45)
      2. Struct/Enum definitions (src/parser/visitor/structures.rs:15-78) 
@@ -1226,19 +1231,27 @@ sequenceDiagram
      - Relation batch storage: `visitor/state.rs:88-94`
 
 4. **Type System**:
-   - ArcTypeNode (types.rs:42) vs direct TypeId usage (nodes.rs:89)
-   - LegacyTypeId (types.rs:24) never referenced
-   - Generic storage mismatch: nodes.rs:201 vs relations.rs:55
+   - ArcTypeNode (types.rs:42-44) vs direct TypeId usage conflict (nodes.rs:89)
+   - LegacyTypeId alias unused (types.rs:24) but preserved
+   - Generic storage mismatch: Node storage (nodes.rs:201) vs Relation tracking (relations.rs:55)
+   - Circular references: TypeNode ↔ GenericParamNode via related_types
 
 ---
 
 ## Foundational Types (Candidate Exports)
-**Potential Core Primitives:**
-- `GraphNodeId`: Composite identifier combining node type and unique ID
-- `NodeId`: Opaque identifier for graph nodes
-- `TraitId`: Specialized identifier for trait definitions
-- `TypeId`: Unique identifier for type system entities
-- `Relation`: Enum representing various code relationships
+**Path:** `src/parser/graph_ids.rs`, `nodes.rs`, `types.rs`  
+**Core Primitives**:
+- `GraphNodeId` (graph_ids.rs:23-56): Composite identifier combining node type and unique ID
+- `NodeId` (nodes.rs:23-45): Opaque graph node identifier
+- `TraitId` (nodes.rs:88-95): Specialized trait identifier
+- `TypeId` (types.rs:12-24): Unique type system identifier
+- `Relation` (relations.rs:45-53): Code relationship descriptor
+
+**Interdependencies**:
+1. `GraphNodeId` conversion implements From/TryFrom for domain IDs (graph_ids.rs:67-72)
+2. `TypeId` contains raw pointer to `ArcTypeNode` (types.rs:42-44) 
+3. `Relation` validation depends on NodeId and TypeId (relations.rs:89-104)
+4. Visibility conversions shared across nodes (structures.rs:230-241, functions.rs:45-53)
 
 ---
 
