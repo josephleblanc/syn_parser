@@ -367,6 +367,15 @@ sequenceDiagram
 3. **Visitor Pattern**:
    - State split: visitor/state.rs vs parser/utils.rs:33-48
    - Partial attributes: visitor/utils/attributes.rs:15 vs nodes.rs:127
+   - Traversal Order:
+     1. Modules and submodules (src/parser/visitor/modules.rs:23-45)
+     2. Struct/Enum definitions (src/parser/visitor/structures.rs:15-78)
+     3. Trait and Impl blocks (src/parser/visitor/traits_impls.rs:32-112)
+     4. Function bodies (src/parser/visitor/functions.rs:56-189)
+   - State Mutations:
+     - NodeID generation (visitor/state.rs:67-72)
+     - Type resolution cache (visitor/state.rs:123-135)
+     - Relation batch storage (visitor/state.rs:88-94)
 
 4. **Type System**:
    - ArcTypeNode (types.rs:42) vs direct TypeId usage (nodes.rs:89)
