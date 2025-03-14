@@ -389,6 +389,8 @@ sequenceDiagram
         SpecializedVisitor->>CodeGraph: Add nodes/relations
     end
     CodeVisitor-->>analyze_code: Return populated CodeGraph
+    analyze_code->>VisitorState: Process module hierarchy
+    VisitorState->>CodeGraph: Add root module relations
 ```
 
 2. **Function Processing** (lines 413-420):
