@@ -482,6 +482,47 @@ impl RelationBatch {
 
 ---
 
+## Type Processing Implementation
+**Path:** `src/parser/visitor/type_processing.rs`  
+**Purpose:** Core type resolution and relationship tracking during AST analysis
+
+### Key Responsibilities
+1. **Type Resolution** - Converts syn::Type nodes to normalized TypeIds with deduplication
+2. **Bounds Handling** - Processes trait/lifetime bounds for generics (lines 23-45)
+3. **Complex Type Decomposition** - Breaks down nested types into fundamental components
+4. **Relationship Tracking** - Records type dependencies via related_types vectors
+
+### Integration Points
+- **Relations** - Creates `Requires` relations for type dependencies (lines 148-152)
+- **Nodes** - Supplies TypeIds for function params/returns (nodes.rs:89-93)
+- **State** - Uses VisitorState's type_map for deduplication (state.rs:123-127)
+- **Graph** - Populates type_graph with resolved type nodes (graph.rs:45-49)
+
+### Processing Workflow
+```mermaid
+flowchart TD
+    A[AST Type Node] --> B[Type String Normalization]
+    B --> C[DashMap Lookup]
+    C -->|New Type| D[Create TypeId]
+    C -->|Existing| E[Reuse TypeId]
+    D --> F[Decompose Components]
+    F --> G[Store Related Types]
+    G --> H[Update CodeGraph]
+```
+
+### Critical Dependencies
+- **syn Types** - Handles 18+ Type variants (path, reference, tuple, etc)
+- **DashMap** - Thread-safe type cache enables parallel processing
+- **quote** - Token stream conversion for type signatures
+
+### Inconsistencies
+1. Visibility handling duplicated with structures.rs (lines 230-241 vs 45-53)
+2. Error handling uses untyped Results (lines 67, 487)
+3. Macro type tracking limited to declarative macros (lines 433-436)
+4. Raw pointer vs reference handling diverges (lines 125-134 vs 105-112)
+
+---
+
 ## Visitor State Management
 **Path:** `src/parser/visitor/state.rs`  
 **Purpose:** Maintain analysis state during AST traversal and coordinate graph construction
