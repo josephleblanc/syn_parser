@@ -294,7 +294,7 @@
 ### Inconsistencies
 1. `LegacyTypeId` alias (types.rs:24) is commented out and never referenced
 2. Hardcoded root ModuleId=0 creates hierarchy fragility (visitor/mod.rs:153)
-3. `DashMap` concurrency conflicts with sequential ID generation (state.rs:15 vs state.rs:67-72)
+3. `DashMap` type cache (state.rs:15) used inconsistently - only state.rs and generics.rs reference it directly while other modules access it indirectly via StateManagement trait
 4. Parallel processing (modules.rs:153-189) uses Rayon with non-atomic ID counter
 5. 23 unwrap() calls create panics (visitor/mod.rs:393)
 6. Type string hashing lacks normalization (state.rs:57)
