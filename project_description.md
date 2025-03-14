@@ -98,17 +98,27 @@
 - `ImplNode`: Implementation blocks linking types to traits
 - `ModuleNode`: Module hierarchy and item organization
 
-#### Common Patterns
-- Consistent use of `NodeId` for graph references
-- `VisibilityKind` tracking across all definitions
-- `ParsedAttribute` for proc-macro attribute handling
-- Docstring preservation with semantic markup
+#### Implementation Strategy
+- Heavy use of derive macros for serialization (`Serialize/Deserialize`)
+- Hybrid storage approach:
+  - Direct storage for body text/trivial types
+  - ID references for complex relationships
+- Enum-based variant selection for type definitions
+- Field-level granularity for attribute/doc tracking
 
-#### Integration Points
-- Directly consumed by `CodeGraph` storage
-- Referenced in `Relation` enum values
-- Built by visitor pattern during AST traversal
-- Serialized via RON for persistent storage
+#### Consistent Patterns
+- Universal `id: NodeId` field for graph connectivity
+- `visibility: VisibilityKind` on all public-facing nodes
+- `attributes: Vec<ParsedAttribute>` for macro processing
+- `docstring: Option<String>` with raw documentation
+- Type references via `TypeId` indirection
+
+#### Strategic Deviations
+- `ImplNode` lacks visibility (inherits from implemented type)
+- `MacroNode` contains unique `parent_function` reference
+- `ValueNode` combines constants/statics in single type
+- `TypeDefNode` enum variants share common base fields
+- `GraphNodeId` conversions handled in separate module
 
 ---
 
