@@ -235,6 +235,59 @@ pub struct SerializationConfig {
 
 ---
 
+## Architecture Overview
+```mermaid
+graph TD
+    A[lib.rs] --> B[parser]
+    A --> C[serialization]
+    A --> D[config]
+    
+    B --> E[graph.rs]
+    B --> F[visitor]
+    B --> G[types.rs]
+    
+    E --> H[relations.rs]
+    E --> I[nodes.rs]
+    E --> J[graph_ids.rs]
+    
+    F --> K[functions.rs]
+    F --> L[modules.rs]
+    F --> M[traits_impls.rs]
+    
+    C --> N[ron.rs]
+    C --> O[json.rs]
+    
+    style A fill:#f9f,stroke:#333
+    style B fill:#ccf,stroke:#333
+    style C fill:#ccf,stroke:#333
+    style D fill:#ccf,stroke:#333
+```
+
+---
+
+## Implementation Inconsistencies
+1. **Storage Backends**:
+   - CozoDB used in tests but not production
+   - RON serialization implemented while JSON is stubbed
+   - Mixed use of IndexMap (ordered) and Vec (unordered) collections
+
+2. **Error Handling**:
+   - Core error type placeholder in error.rs
+   - Validation errors in relations.rs not integrated
+   - Missing error conversion traits
+
+3. **Visitor Pattern**:
+   - State management split between visitor/state.rs and parser/utils.rs
+   - Partial attribute processing implementations
+   - Macro expansion tracking incomplete
+
+4. **Type System**:
+   - ArcTypeNode defined but not fully utilized
+   - LegacyTypeId alias present but unused
+   - Generic bounds storage differs between structs/traits
+
+---
+
 ## Foundational Types (Candidate Exports)
 **Potential Core Primitives:**
 - `GraphNodeId`: Composite identifier combining node type and unique ID
