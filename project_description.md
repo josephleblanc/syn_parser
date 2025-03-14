@@ -194,9 +194,10 @@
   - Batched updates for atomic graph modifications
   - Contains versioning and source code hash
   - **Storage Backend**: 
-    - Uses CozoDB (embedded SQLite) for temporary storage
-    - Enables transactional updates and complex graph queries
-    - Marked as test-only in current implementation (`#[cfg(test)]`)
+    - Uses CozoDB (embedded SQLite) for temporary storage in test configurations
+    - Transactional updates and complex graph queries only in test code
+    - Marked as test-only via `#[cfg(test)]` guards (relations.rs:31-33)
+    - Production uses simple Vec storage (graph.rs:13-15)
 
 ### Key Relationship Types
 - `RelationKind` enum variants:
@@ -709,7 +710,8 @@ sequenceDiagram
 ```
 
 ### Inconsistencies
-1. Trait method visibility hardcoded to Public (line 199)
+1. **Trait-Impl Validation**: No verification that impl method signatures match trait declarations
+2. Trait method visibility hardcoded to Public (line 199)
 2. Impl block visibility commented out (line 324-327)
 3. Super trait lookup uses string matching (line 44)
 4. Blanket implementation limits specialization (lines 375-377)
