@@ -177,15 +177,15 @@
 
 ## Configuration Module
 **Path:** `src/config/mod.rs`  
-**Purpose:** (Currently unused) Placeholder module
+**Purpose:** ❌ Complete stub - Not implemented
 
 ### Verified State
 - Empty module file (0 exports, 0 lines of code)
 - `options.rs` is also empty (0 lines of code)
-- No integration with other components exists in:
-  - Library root (`lib.rs`: no `config` imports)
-  - Visitor pattern (`visitor/state.rs`: no config references)
-  - Serialization (`serialization/mod.rs`: no config usage)
+- No integration with other components:
+  - Library root (`lib.rs`: no config imports)
+  - Visitor pattern (`visitor/state.rs`: no references)
+  - Serialization (`serialization/mod.rs`: no usage)
 
 ### Integration Needs
 - Requires connection to:
@@ -314,16 +314,17 @@
 
 ---
 
-## Parser Utilities (Placeholder)
+## Parser Utilities 
 **Path:** `src/parser/utils.rs`  
-**Purpose:** Reserved for shared parsing utilities and helper functions
+**Purpose:** ❌ Complete stub - Not implemented
 
 ### Current State
 - Empty file (0 lines of code)
-- No exports or imports
-- Not referenced elsewhere in codebase:
-  - No `mod utils` in parser/mod.rs
-  - No imports in visitor modules
+- No module declaration in parser/mod.rs
+- No references in:
+  - Visitor implementations
+  - Type resolution
+  - Graph construction
 
 ### Intended Purpose
 1. Potential utility candidates:
@@ -1337,9 +1338,14 @@ sequenceDiagram
 
 ---
 
-## Error Handling Infrastructure
+## Error Handling Infrastructure  
 **Path:** `src/error.rs`  
-**Purpose:** (Not implemented) Currently empty file
+**Purpose:** ❌ Critical unimplemented component
+
+⚠️ **High Risk**:
+- 23 `unwrap()` calls in production code (mod.rs:393 etc)
+- Mixed Result/Option patterns
+- No recovery mechanisms
 
 **Critical Unwrap() Locations**:
 1. visitor/mod.rs:393 - Raw block processing

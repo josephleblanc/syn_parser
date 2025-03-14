@@ -3,9 +3,10 @@ Documentation should:
 ## Core Principles
 1. **As-Is Accuracy** - Document only verified code existence
 2. **Line-Anchored References** - Use exact line numbers (e.g., `nodes.rs:67-72`)
-3. **Anti-Speculation** - No "planned" or "would need" statements
+3. **Anti-Speculation** - No "planned" or "would need" statements  
 4. **Dependency Proofs** - Show actual `use` statements from code
 5. **Negative Space** - Document absence (empty files, unused modules)
+6. **Status Markers** - Use ❌/🚧/⚠️/✅ icons for implementation state
 
 ## Technical Documentation
 5. **Conceptual Examples** - Explain code structures using line references rather than full copies
