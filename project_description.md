@@ -795,6 +795,65 @@ attrs.iter()
 2. Generic bounds stored as strings vs parsed types
 3. No common error type for parsing failures
 
+## Attribute Processing Implementation
+**Path:** `src/parser/visitor/utils/attributes.rs`  
+**Purpose:** Extract and process Rust attributes from syntax nodes into normalized form
+
+### Key Data Structures
+1. `ParsedAttribute` struct (lines 6-10):
+```rust
+pub struct ParsedAttribute {
+    pub name: String,         // Attribute name/path
+    pub args: Vec<String>,    // Unprocessed arguments as strings
+    pub value: Option<String>, // Full original attribute text
+}
+```
+
+### Core Implementation
+1. **Attribute Filtering** (lines 12-18):
+```rust
+pub fn extract_attributes(attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
+    attrs
+        .iter()
+        .filter(|attr| !attr.path().is_ident("doc")) // Exclude doc comments
+        .map(parse_attribute)
+        .collect()
+}
+```
+
+2. **Attribute Parsing** (lines 20-38):
+```rust
+pub fn parse_attribute(attr: &syn::Attribute) -> ParsedAttribute {
+    let name = attr.path().to_token_stream().to_string();
+    let mut args = Vec::new();
+    
+    match &attr.meta {
+        syn::Meta::List(list) => { /* parse comma-separated metas */ },
+        syn::Meta::NameValue(nv) => { /* parse name=value pairs */ },
+        syn::Meta::Path(path) => { /* parse simple path */ }
+    }
+    
+    ParsedAttribute { name, args, value: Some(attr.to_token_stream().to_string()) }
+}
+```
+
+### Integration Points
+- Used by `VisitorState` to extract attributes from:
+  - Struct/enum definitions (`structures.rs:38,67`)
+  - Traits and methods (`traits_impls.rs:45,198`)
+  - Functions (`functions.rs:123`)
+- Stores results in nodes:
+  - `StructNode.attributes`
+  - `FunctionNode.attributes`
+  - `VariantNode.attributes`
+
+### Inconsistencies
+1. Path-based filtering of doc attributes (line 14) misses `#[doc = "..."]` format
+2. Meta parsing only handles top-level arguments:
+   - Nested attribute lists not supported (e.g. `#[cfg_attr(feature = "x", y)]`)
+   - Attribute arguments stored as unparsed strings (lines 28-34)
+3. Original attribute preserved redundantly in `value` field (line 38) - synchrony risk
+
 ## Function Processing Implementation
 **Path:** `src/parser/visitor/functions.rs`  
 **Purpose:** Analyze function definitions and their relationships within code
