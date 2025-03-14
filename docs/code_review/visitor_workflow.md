@@ -83,7 +83,7 @@ fn process_function(&mut self, func: &ItemFn) {
 
 3. **Type Resolution Flow**:
 ```
-AST Type → TypeOperations → TypeId → Graph Relation
+AST Type → Semantic Fingerprinting → CozoDB Lookup → Versioned TypeID
 ```
 
 ### 5. Key Data Structures
