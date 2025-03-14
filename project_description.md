@@ -42,8 +42,8 @@
   - `cozo`: Embedded graph database (SQLite backend)
     - Used only in test configurations (`relations.rs:31-33`)
     - Production code uses simple Vec storage (`graph.rs:13-15`)
-    - CozoDB usage is test-only (`#[cfg(test)]` guards in `relations.rs:31-33`)
-    - Production storage uses simple Vec storage (`graph.rs:13-15`)
+    - CozoDB usage is test-only (`#[cfg(test)]` guards in `relations.rs:132-135`)
+    - Production storage uses simple Vec storage (`graph.rs:12-14`)
 
 ### Primary Exports
 - `CodeGraph`: Central data structure containing parsed code relationships
