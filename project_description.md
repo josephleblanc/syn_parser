@@ -214,6 +214,78 @@
 
 ---
 
+## Type System Implementation
+**Path:** `src/parser/types.rs`  
+**Purpose:** Core type system representation and resolution infrastructure
+
+### Key Data Structures
+- `TypeId` (lines 12-16):
+  - Opaque identifier with atomic usize counter
+  - Implements conversion to/from NodeId
+- `ArcTypeNode` (lines 42-44):
+  - Thread-safe reference-counted type node
+  - Contains inner `TypeNode` and refcount
+- `TypeNode` (lines 45-49):
+  - `id`: TypeId for graph connectivity
+  - `kind`: TypeKind enum variant
+  - `related_types`: Graph edges to dependent types
+
+### TypeKind Variants (lines 54-134)
+1. **Concrete Types**:
+   - `Named` (line 56): Path-qualified type (structs/enums)
+   - `Reference` (line 60): Borrowed types with mutability
+   - `Slice/Array` (lines 64-68): Collection types
+   
+2. **Composite Types**:
+   - `Tuple` (line 70): Positional element types
+   - `Function` (line 73): Function pointers with ABI
+   - `TraitObject` (line 83): Dynamic dispatch targets
+   
+3. **Special Types**:
+   - `Never` (line 81): ! type for divergence
+   - `Macro` (line 89): Type-defining macros
+   - `Unknown` (line 92): Fallback for unresolved types
+
+### Type System Management
+- Atomic ID generation (lines 19-21):
+  ```rust
+  impl TypeId {
+    pub fn as_node_id(&self) -> Option<NodeId> {
+      Some(NodeId::from(self.0))
+    }
+  }
+  ```
+- Generic parameter tracking (lines 136-153):
+  - `GenericParamNode` with kind-specific data
+  - Bounds checking through `related_types`
+- Memory management:
+  - `ArcTypeNode` enables shared ownership (line 42)
+  - DashMap in VisitorState for type deduplication
+
+### Validation Mechanisms
+- Type relationship validation through `related_types` links
+- Generic bound checking via `GenericParamKind`:
+  - Type bounds stored as TypeId references
+  - Lifetime bounds as string identifiers
+  - Const generics with explicit type associations
+
+### Integration Points
+- Referenced by:
+  - Function parameters/returns (nodes.rs:67-72)
+  - Struct fields (nodes.rs:127-132) 
+  - Trait method signatures (nodes.rs:201-206)
+- Dependency Tracking:
+  - 58 `related_types` references in codebase
+  - Used in relation validation (relations.rs:89-104)
+
+### Inconsistencies
+1. `LegacyTypeId` alias (line 24) never referenced
+2. `ArcTypeNode` serialization not implemented
+3. `GenericParamNode` stored in Vec rather than IndexMap
+4. `Unknown` type variant lacks resolution hooks
+
+---
+
 ## Architecture Overview
 ```mermaid
 graph TD

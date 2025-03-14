@@ -45,7 +45,7 @@ Files to analyze and incorporate to main project document in project root `proje
 - [x] src/parser/mod.rs
 - [x] src/parser/nodes.rs
 - [x] src/parser/relations.rs
-- [ ] src/parser/types.rs
+- [x] src/parser/types.rs
 - [ ] src/parser/utils.rs
 - [ ] src/parser/visitor/
 - [ ] src/parser/visitor/functions.rs
