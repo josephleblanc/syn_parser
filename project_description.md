@@ -344,6 +344,7 @@ sequenceDiagram
     Visitor->>CodeGraph: store_type_relation(source, TypeId)
     CodeGraph->>TypeSystem: verify_compatibility()
     
+```
 #### Type Unification Process
 1. Convert `syn::Type` to token stream
 2. Hash tokens to create type fingerprint
@@ -351,6 +352,7 @@ sequenceDiagram
 4. Create new `TypeId` if novel type
 5. Record generic bounds (src/parser/types.rs:134-141)
 6. Link to trait constraints (src/parser/relations.rs:45-53)
+
 
 ---
 
