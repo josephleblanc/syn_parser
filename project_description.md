@@ -750,15 +750,16 @@ sequenceDiagram
    - Extract custom attributes from syntax nodes (line 15)
    - Parse attribute syntax into `ParsedAttribute` struct (lines 34-48)
 2. **Doc Processing** (`docs.rs`):
-   - Aggregate documentation comments from `#[doc]` attributes (line 89)
-   - Filters out non-doc attributes during processing (mod.rs:9)
+   - Implements `DocProcessor` trait (line 23) to aggregate documentation comments
+   - Processes `#[doc]` attributes into consolidated strings (lines 34-48)
+   - Filters non-doc attributes from parsed metadata (mod.rs:9)
 3. **Generics Processing** (`generics.rs`):
    - Handle generic parameters and where clauses (line 127)
    - Track type/lifetime/const generics with bounds (line 45)
 
 ### Trait Implementations
-- `DocProcessor` trait (docs.rs:23-27)
-- `GenericsProcessor` trait (generics.rs:15-19)
+- `DocProcessor` trait (docs.rs:23-27) provides default impl for extracting docs
+- `GenericsProcessor` trait (generics.rs:15-19) handles parameter tracking
 - Re-exported operations (mod.rs:7-8):
   ```rust
   pub use self::attributes::{extract_attributes, ParsedAttribute};

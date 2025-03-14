@@ -8,7 +8,9 @@ Documentation should:
 5. **Negative Space** - Document absence (empty files, unused modules)
 
 ## Technical Documentation
-5. **Concrete Examples** - Show real function signatures with error handling
+5. **Conceptual Examples** - Explain code structures using line references rather than full copies
+   - Use brief code snippets only when essential to illustrate patterns
+   - Prefer line number references over verbatim code blocks
 6. **Implementation Details**:
    - Data structure memory ownership
    - Serialization/deserialization boundaries

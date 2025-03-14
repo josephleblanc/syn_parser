@@ -58,7 +58,7 @@ Files to analyze and incorporate to main project document in project root `proje
 - [x] src/parser/visitor/type_processing.rs
 - [ ] src/parser/visitor/utils/
 - [x] src/parser/visitor/utils/attributes.rs
-- [ ] src/parser/visitor/utils/docs.rs
+- [x] src/parser/visitor/utils/docs.rs
 - [ ] src/parser/visitor/utils/generics.rs
 - [x] src/parser/visitor/utils/mod.rs
 - [ ] src/serialization/
