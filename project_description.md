@@ -762,7 +762,11 @@ sequenceDiagram
 ```
 
 ### Inconsistencies
-1. Visibility conversion duplicates FunctionVisitor (lines 228-241 vs functions.rs:230-241)
+1. **Visibility Handling**: Duplicated implementation across:
+   - `structures.rs:228-241`
+   - `functions.rs:230-241`
+   - `modules.rs:189-201`
+   - Needs unified utility module
 2. Union field processing clones entire fields (line 93) - potential perf impact
 3. Blanket implementation for TypeProcessor (line 241) limits trait isolation
 4. Anonymous field naming uses stringified indices (line 153) vs proper anonymization
