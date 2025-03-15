@@ -11,7 +11,7 @@ use super::graph_ids::{self, GraphIdentifier, GraphNodeId};
 )]
 // 4. Deprecate redundant IDs gradually
 #[deprecated = "Use GraphNodeId through GraphIdentifier trait instead"]
-pub struct NodeId(pub usize);
+pub struct NodeId(pub u64);
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum NodeType {

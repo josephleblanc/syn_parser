@@ -5,18 +5,19 @@ use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum NodeType {
-    Node,
-    Trait,
-    Type,
     Module,
     Function,
+    Struct,
+    Type,
+    Trait,
     Impl,
+    // ... other variants
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct GraphNodeId {
     pub type_prefix: NodeType,
-    pub unique_id: usize,
+    pub unique_id: u64,
 }
 
 pub trait GraphIdentifier

@@ -4,6 +4,7 @@ use super::processor::{
 };
 use crate::parser::{
     graph::CodeGraph,
+    graph_ids::{self, GraphNodeId},
     nodes::{FunctionNode, NodeId, ParameterNode, TraitId},
     relations::Relation,
     types::{GenericParamNode, TypeId, TypeKind},
@@ -21,9 +22,9 @@ use super::utils::{attributes, docs};
 
 pub struct VisitorState {
     pub code_graph: CodeGraph,
-    pub next_node_id: usize,
-    pub next_trait_id: usize,
-    pub next_type_id: usize,
+    pub next_node_id: u64,
+    pub next_trait_id: u64,
+    pub next_type_id: u64,
     pub type_map: DashMap<String, TypeId>,
 }
 
@@ -145,6 +146,20 @@ impl StateManagement for VisitorState {
         self.type_map.insert(type_str, id);
         id
     }
+    fn next_graph_id(&mut self, node_type: graph_ids::NodeType) -> GraphNodeId {
+        let counter = match node_type {
+            graph_ids::NodeType::Type => &self.next_type_id,
+            graph_ids::NodeType::Trait => &self.next_trait_id,
+            _ => &self.next_node_id,
+        };
+
+        GraphNodeId {
+            type_prefix: node_type,
+            unique_id: counter.fetch_add(1, Ordering::SeqCst),
+        }
+    }
+
+    #[deprecated = "Use next_graph_id with explicit node type"]
     fn next_node_id(&mut self) -> NodeId {
         let id = NodeId(self.next_node_id);
         self.next_node_id.increment();

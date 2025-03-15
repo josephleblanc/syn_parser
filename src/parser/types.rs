@@ -4,15 +4,29 @@ use crate::parser::nodes::NodeId;
 
 use serde::{Deserialize, Serialize};
 
+use super::graph_ids::{self, GraphIdentifier, GraphNodeId};
+
 // AI: As it says below TypeId was supposed to be a unique identifier for types, I imagine in an
 // effort to distinguish the path of different types,
 // e.g. `Vec<&str>` vs `std::vec::Vec<&str>`
 // However, at some point it seems like it got mixed up with the unique identifier for NodeId,
 // which has an entirely different purpse.
 /// Unique identifier for type references
-#[deprecated = "Use GraphNodeId through GraphIdentifier trait instead"]
+#[deprecated = "Use GraphNodeId with NodeType::Type instead"]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
-pub struct TypeId(pub usize);
+pub struct TypeId(pub u64);
+
+impl GraphIdentifier for TypeId {
+    fn from_graph_id(id: super::graph_ids::GraphNodeId) -> Option<Self> {
+        (id.type_prefix == graph_ids::NodeType::Type).then_some(TypeId(id.unique_id))
+    }
+    fn as_graph_id(&self) -> graph_ids::GraphNodeId {
+        GraphNodeId {
+            type_prefix: graph_ids::NodeType::Type,
+            unique_id: self.0,
+        }
+    }
+}
 
 // AI:
 // The following should probably never have been implemented.

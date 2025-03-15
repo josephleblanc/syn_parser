@@ -21,6 +21,8 @@ pub mod type_processing;
 
 /// Core processor trait with state management
 pub mod processor {
+    use crate::parser::graph_ids;
+    use crate::parser::graph_ids::GraphNodeId;
     use crate::parser::nodes::{FunctionNode, NodeId, TraitId};
     use crate::parser::types::{GenericParamNode, TypeId, TypeKind};
     use crate::parser::visitor::utils::attributes::ParsedAttribute;
@@ -38,6 +40,8 @@ pub mod processor {
     }
 
     pub trait StateManagement {
+        fn next_graph_id(&mut self, node_type: graph_ids::NodeType) -> GraphNodeId;
+
         fn next_node_id(&mut self) -> NodeId;
         fn next_type_id(&mut self) -> TypeId;
         fn next_trait_id(&mut self) -> TraitId;
@@ -64,45 +68,6 @@ pub mod processor {
     }
 }
 pub mod utils;
-
-// Blanket implementations for CodeProcessor
-// impl<T: CodeProcessor> StateManagement for T {
-//     fn next_node_id(&mut self) -> NodeId {
-//         self.state_mut().next_node_id()
-//     }
-//
-//     fn next_type_id(&mut self) -> TypeId {
-//         self.state_mut().next_type_id()
-//     }
-// }
-
-// impl<T: CodeProcessor> TypeOperations for T {
-//     fn get_or_create_type(&mut self, ty: &syn::Type) -> TypeId {
-//         self.state_mut().get_or_create_type(ty)
-//     }
-//
-//     fn process_type(&mut self, ty: &syn::Type) -> (TypeKind, Vec<TypeId>) {
-//         self.state_mut().process_type(ty)
-//     }
-// }
-
-// impl<T: CodeProcessor> AttributeOperations for T {
-//     fn extract_attributes(&mut self, attrs: &[syn::Attribute]) -> Vec<ParsedAttribute> {
-//         self.state_mut().extract_attributes(attrs)
-//     }
-// }
-
-// impl<T: CodeProcessor> DocOperations for T {
-//     fn extract_docstring(&mut self, attrs: &[syn::Attribute]) -> Option<String> {
-//         self.state_mut().extract_docstring(attrs)
-//     }
-// }
-//
-// impl<T: CodeProcessor> GenericsOperations for T {
-//     fn process_generics(&mut self, generics: &syn::Generics) -> Vec<GenericParamNode> {
-//         self.state_mut().process_generics(generics)
-//     }
-// }
 
 // Re-export operation traits from processor module
 pub use processor::{
