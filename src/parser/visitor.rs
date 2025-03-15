@@ -332,7 +332,9 @@ impl VisitorState {
                     .collect();
                 VisibilityKind::Restricted(path)
             }
-            Visibility::Inherited => VisibilityKind::Inherited,
+            // Private visibility shows up as Inherited in syn, which in Rust means
+            // visibility is limited to the current module and its descendants
+            Visibility::Inherited => VisibilityKind::Restricted(vec!["super".to_string()]),
         }
     }
 
@@ -1238,9 +1240,6 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         let attributes = self.state.extract_attributes(&item_trait.attrs);
 
         // Store trait info
-        //  Commenting out below because we should be able to see all traits regardless of
-        //  visibility
-        // if matches!(item_trait.vis, Visibility::Public(_)) {
         let trait_node = TraitNode {
             id: trait_id,
             name: trait_name.clone(),
