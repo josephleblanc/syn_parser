@@ -79,9 +79,18 @@ are obsolete approaches. But they might have useful insights for future
 reference.
 
 #### E. Code Reviews
-| Document | Recommendation | Reason |
-|----------|----------------|--------|
-| `code_review/*` | Merge into `design_decisions.md` | Preserve insights without clutter |
+| Document | Current Relevance | Recommendation | Codebase Alignment | Key Insights to Preserve |
+|----------|-------------------|-----------------|---------------------|--------------------------|
+| `code_review/new_roadmap.md` | Partially implemented | Archive | Phase 1 partially done (src/parser/state.rs:123-135) | Hardware integration strategy for RTX 3060 Ti |
+| `code_review/visitor_workflow.md` | Fully relevant | Keep | Matches active trait hierarchy (visitor/mod.rs:150-158) | Processor/state interaction diagrams |
+| `code_review/overview.md` | Partially valid | Merge into `design_decisions.md` | Some issues resolved (type collisions fixed in b9c89b3) | Performance metrics & hotspot analysis |
+| `code_review/refactor_reasoning.md` | Fully relevant | Keep | Aligns with current architectural direction | Cost-benefit analysis table |
+
+**Notes on code review documents:**
+1. **new_roadmap.md** - Contains detailed technical phases that were partially implemented but diverged from actual development. The hardware-conscious strategies remain valuable but need reconciliation with current code.
+2. **visitor_workflow.md** - Essential documentation of the active trait architecture. The mermaid diagrams precisely match the current visitor flow (visitor/mod.rs:413-420).
+3. **overview.md** - Some findings were addressed (type collisions), but performance metrics need updating. The hotspot analysis should be preserved but moved.
+4. **refactor_reasoning.md** - Continues to guide architectural decisions, particularly the cost-benefit analysis matching current priorities.
 
 #### F. Testing Docs
 | Document | Recommendation | Reason |
