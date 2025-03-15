@@ -52,11 +52,12 @@ Let's create a structured plan to triage the documentation:
 | Performance folder | Removed | Directory kept empty | N/A | All content merged or historical |
 
 #### D. Architecture/Design Docs
-| Document | Recommendation | Reason |
-|----------|----------------|--------|
-| `Architectural_Revamp.md` | Merge into `core_design_direction.md` | Foundational changes |
-| `visitor_architecture_approach.md` | Keep | Active patterns documentation |
-| `different_approaches/*` | Archive | Historical alternatives |
+| Document | Current Relevance | Recommendation | Codebase Alignment | Key Insights to Preserve |
+|----------|-------------------|-----------------|---------------------|--------------------------|
+| `Architectural_Revamp.md` | Partially implemented | Archive | Contradicts current VisitorState implementation (state.rs:122-135) | State separation concept useful for future concurrency work |
+| `visitor_architecture_approach.md` | Fully relevant | Keep | Matches active trait hierarchy (visitor/mod.rs:150-158) | Core processor/state pattern documentation |
+| `different_approaches/weird_visitor_structure.md` | Obsolete | Archive | Incompatible with current blanket impls | Alternative trait composition strategies |
+| `different_approaches/visitor_structure.md` | Historical | Archive | Replaced by processor-state pattern | Early prototype of vertical slices |
 
 #### E. Code Reviews
 | Document | Recommendation | Reason |
