@@ -166,7 +166,7 @@ impl Relation {
                 self.validate_types(
                     "Type",
                     "Trait",
-                    RelationSource::Type(&self.source),
+                    RelationSource::Type(_),
                     RelationTarget::Trait(_),
                 )?
             }

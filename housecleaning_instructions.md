@@ -47,8 +47,8 @@ Let's create a structured plan to triage the documentation:
 #### C. Performance/Concurrency - Completed
 | Document Path | Status | Action Taken | Location | Rationale |
 |---------------|--------|--------------|----------|-----------|
-| `concurrency_possible_approach.md` | Merged | Content integrated into Concurrency Migration docs | `book/src/Concurrency_Migration/Visitor_Plan.md` | Unified concurrency design definitions | 
-| `concurrency_roadmap.md` | Archived | Moved to archive with timestamp | `docs/archive/performance/roadmap_20240314.md` | Shows evolution of parallel processing strategy |
+| `concurrency_possible_approach.md` | Archived| Moved to archive with timestamp | `docs/archive/performance/concurrency_possible_approach_2024_03_15` | Content historical, superceded by `book/src/Concurrency_Migration` docs | 
+| `concurrency_roadmap.md` | Merged | Relevant Content Merged | `docs/archive/performance/Visitor_Plan.md` | Content Historical |
 | Performance folder | Removed | Directory kept empty | N/A | All content merged or historical |
 
 #### D. Architecture/Design Docs
