@@ -140,6 +140,12 @@ impl Relation {
             kind,
         }
     }
+    // What is your take on the following impelementation? Should we be using `validate` together
+    // with `validate_types`, or should they be one method? The below implementation is failing
+    // because
+    //   in expressions, `_` can only be used on the left-hand side of an assignment
+    //     `_` not allowed here rustc  [169, 42]
+    //  what do you think we should do to fix AI?
     pub fn validate(&self) -> Result<(), RelationError> {
         match self.kind {
             RelationKind::ImplementsTrait(_) => {
@@ -400,8 +406,6 @@ impl RelationTarget {
         }
     }
 }
-// How many of these From implemenations should we be using here? Are they merited? Why or why not?
-// AI?
 
 // ANCHOR: Uses
 // Different kinds of relations

@@ -172,7 +172,7 @@ pub trait ImplVisitor: FunctionVisitor {
         let trait_type = if let Some((_, path, _)) = &i.trait_ {
             // Look up trait ID by name
             self.state_mut()
-                .code_graph
+                .code_graph()
                 .traits
                 .iter()
                 .find(|t| t.name == path.segments.last().unwrap().ident.to_string())
@@ -194,22 +194,7 @@ pub trait ImplVisitor: FunctionVisitor {
             trait_type,
             methods,
             generic_params,
-            // removed visiblity below.
-            // The visibility should be tracked by the type and methods being implemented on rather
-            // than in the ImplNode itself.
-            // See also:
-            //  - src/parser/nodes.rs
-            //  - src/parser/graph.rs
-            // visibility: self.convert_visibility(&i.vis),
         };
-
-        // Add to code graph with visibility-based storage
-        // let state = self.state_mut();
-        // if matches!(impl_node.visibility, VisibilityKind::Public) {
-        //     state.code_graph().public_impls.push(impl_node);
-        // } else {
-        //     state.code_graph().private_impls.push(impl_node);
-        // }
 
         let state = self.state_mut();
         state.code_graph().impls.push(impl_node);
@@ -218,8 +203,6 @@ pub trait ImplVisitor: FunctionVisitor {
         self.state_mut().add_relation(Relation {
             source: RelationSource::Node(impl_id),
             target: RelationTarget::Type(self_type),
-            graph_source: impl_id.into(),
-            graph_target: self_type.into(),
             kind: RelationKind::ImplementsFor,
         });
 

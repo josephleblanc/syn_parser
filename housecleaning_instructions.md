@@ -135,12 +135,6 @@ docs/
     └── id_refactor/
 ```
 
-### Step 4: Execution Plan
-1. **Week 1**: Archive AI-related documents
-2. **Week 2**: Consolidate architecture/design docs
-3. **Week 3**: Merge testing and roadmap docs
-4. **Week 4**: Final review and delete deprecated files
-
 ### Final Recommendation
 Keep the documentation focused on:
 1. Current system truth (what exists now)
