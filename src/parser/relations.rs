@@ -425,8 +425,6 @@ pub enum RelationKind {
     MacroInvocation,
     GenericParameter,
     Returns,
-    // TODO: Consider removing `HasType` later.
-    // I don't think it's really useful but am wrestling with bugs rn.
     HasType,
 }
 

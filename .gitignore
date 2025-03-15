@@ -20,8 +20,14 @@ Cargo.lock
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# mdbook
-/book/book/
+## mdbook
+# generated html, css, etc
+book/book/
+# mermaid integration docs
+book/mermaid*.js
+
+
+# Aider files
 .aider*
 
 # backups of old implementations
