@@ -93,10 +93,24 @@ reference.
 4. **refactor_reasoning.md** - Continues to guide architectural decisions, particularly the cost-benefit analysis matching current priorities.
 
 #### F. Testing Docs
-| Document | Recommendation | Reason |
-|----------|----------------|--------|
-| `test_improvements.md` | Keep | Active testing strategy |
-| `modular_tests.md` | Merge with above | Overlapping content |
+| Document | Current Relevance | Recommendation | Codebase Alignment | Key Insights to Preserve |
+|----------|-------------------|-----------------|---------------------|--------------------------|
+| `test_improvements.md` | Partially valid | Archive | Mixed alignment:<br>- Fixture structure valid (tests/fixtures/*)<br>- Verification pattern outdated (visitor/mod.rs:413-420 changed) | Modular test organization strategy |
+| `modular_tests.md` | Mostly obsolete | Merge and archive | Helpers mismatch current CodeGraph:<br>- find_struct_by_name uses Vec storage (graph.rs:12 uses IndexMap)<br>- Integration test expects legacy fields | Test isolation principles |
+
+**Analysis:**
+1. Both docs predate visitor refactor:
+   - Test helpers assume sequential ID generation (state.rs:67-72 now atomic)
+   - Verification patterns don't account for concurrency safeguards
+2. Preserved value:
+   - Fixture organization strategy still valid
+   - Modular test concepts remain relevant
+   - Integration test structure adaptable
+
+**Execution Plan:**
+1. Create new `testing/strategy.md` merging valid portions
+2. Archive original docs with "pre-refactor" labels
+3. Update test helpers to match current CodeGraph storage (IndexMap)
 
 #### G. Roadmaps
 | Document | Recommendation | Reason |
