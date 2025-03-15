@@ -1,31 +1,7 @@
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                      Making Tests More Modular for the Code Graph Project                       ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-                                    3. Create Helper Functions ✅                                 
-
-Create test helpers to reduce duplication:
-
- // tests/common/mod.rs
- use std::path::Path;
- use syn_parser::parser::*;
-
- pub fn parse_fixture(fixture_name: &str) -> CodeGraph {
-     let path = Path::new("tests/fixtures").join(fixture_name);
-     analyze_code(&path).expect("Failed to parse fixture")
- }
-
- pub fn find_struct_by_name<'a>(graph: &'a CodeGraph, name: &str) -> Option<&'a StructNode> {
-     graph.defined_types.iter().find_map(|def| {
-         if let TypeDefNode::Struct(s) = def {
-             if s.name == name {
-                 return Some(s);
-             }
-         }
-         None
-     })
- }
+# ARCHIVED - See docs/testing/strategy.md
+# Preserved for historical reference
+# Last updated: 2024-03-01
 
  // Similar helpers for other node types
 
