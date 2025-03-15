@@ -22,6 +22,7 @@ Cargo.lock
 
 # mdbook
 /book/book/
+book/*.js
 .aider*
 
 # backups of old implementations
