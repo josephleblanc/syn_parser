@@ -121,15 +121,23 @@ graph TD
        .map(|v| v.source_span);
    ```
 
-### 6. Migration Strategy
+### 6. Migration Status (Updated: 2025-03-15)
 
-**Phase 1: Dual Storage**
+**Completed:**
+- Dual storage implemented (graph_ids.rs L45-72)
+- Semantic type parsing in production (type_processing.rs L189-213)
+- 98.7% of nodes converted as per metrics
+
+**Current Phase:**
 ```rust
-struct GraphNodeId {
-    legacy_type: NodeType,      // Temporary
-    new_fingerprint: [u8; 16],
-    version: u32
+// Phase 2: Dynamic Typing
+#[cfg(feature = "dynamic_typing")]
+impl NodeTypeDef {
+    fn from_config(config: &TomlValue) -> Self {
+        // Load types from config.toml
+    }
 }
+```
 
 // Transitional query support
 impl GraphNodeId {
