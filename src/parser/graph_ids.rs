@@ -43,6 +43,15 @@ impl fmt::Display for GraphNodeId {
     }
 }
 
+impl From<NodeId> for GraphNodeId {
+    fn from(id: NodeId) -> Self {
+        Self {
+            type_prefix: NodeType::Node,
+            unique_id: id.0,
+        }
+    }
+}
+
 impl From<TraitId> for GraphNodeId {
     fn from(id: TraitId) -> Self {
         Self {

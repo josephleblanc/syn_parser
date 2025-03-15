@@ -140,156 +140,115 @@ impl Relation {
             kind,
         }
     }
-    // What is your take on the following impelementation? Should we be using `validate` together
-    // with `validate_types`, or should they be one method? The below implementation is failing
-    // because
-    //   in expressions, `_` can only be used on the left-hand side of an assignment
-    //     `_` not allowed here rustc  [169, 42]
-    //  what do you think we should do to fix AI?
     pub fn validate(&self) -> Result<(), RelationError> {
         match self.kind {
-            RelationKind::ImplementsTrait(_) => {
-                if !matches!(
-                    (self.source, self.target),
-                    (RelationSource::Type(_), RelationTarget::Trait(_))
-                ) {
-                    return Err(RelationError::InvalidImplementation {
-                        source: self.source.into(),
-                        target: self.target.into(),
-                        kind: self.kind,
-                    });
-                }
-            }
             RelationKind::ImplementsTrait(trait_id) => {
-                // Validate trait ID exists
                 if trait_id.0 == 0 {
                     return Err(RelationError::MissingTraitId {
                         kind: self.kind.clone(),
                     });
                 }
-
-                // Validate type -> trait relationship
                 self.validate_types(
                     "Type",
                     "Trait",
-                    RelationSource::Type(_),
-                    RelationTarget::Trait(_),
+                    RelationVariant::Type,
+                    RelationVariant::Trait,
                 )?
             }
             RelationKind::FunctionParameter => self.validate_types(
                 "Function",
                 "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
+                RelationVariant::Node,
+                RelationVariant::Type,
             )?,
             RelationKind::FunctionReturn => self.validate_types(
                 "Function",
                 "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
+                RelationVariant::Node,
+                RelationVariant::Type,
             )?,
             RelationKind::StructField => self.validate_types(
                 "Struct",
                 "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
+                RelationVariant::Node,
+                RelationVariant::Type,
             )?,
-            RelationKind::EnumVariant => self.validate_types(
-                "Enum",
-                "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
-            )?,
+            RelationKind::EnumVariant => {
+                self.validate_types("Enum", "Type", RelationVariant::Node, RelationVariant::Type)?
+            }
             RelationKind::ImplementsFor => self.validate_types(
                 "Trait",
                 "Type",
-                RelationSource::Trait(_),
-                RelationTarget::Type(_),
+                RelationVariant::Trait,
+                RelationVariant::Type,
             )?,
             RelationKind::Inherits => {
-                self.validate_types(
-                    "Type",
-                    "Type",
-                    RelationSource::Type(_),
-                    RelationTarget::Type(_),
-                )?;
+                self.validate_types("Type", "Type", RelationVariant::Type, RelationVariant::Type)?;
                 self.check_circular_dependency()?
             }
-            RelationKind::References => self.validate_types(
-                "Node",
-                "Node",
-                RelationSource::Node(_),
-                RelationTarget::Node(_),
-            )?,
+            RelationKind::References => {
+                self.validate_types("Node", "Node", RelationVariant::Node, RelationVariant::Node)?
+            }
             RelationKind::Contains => {
                 self.validate_types(
                     "Container",
                     "Contained",
-                    RelationSource::Node(_),
-                    RelationTarget::Node(_),
+                    RelationVariant::Node,
+                    RelationVariant::Node,
                 )?;
                 self.check_circular_dependency()?
             }
-            RelationKind::TypeDefinition => self.validate_types(
-                "Node",
-                "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
-            )?,
-            RelationKind::Uses => self.validate_types(
-                "Node",
-                "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
-            )?,
+            RelationKind::TypeDefinition => {
+                self.validate_types("Node", "Type", RelationVariant::Node, RelationVariant::Type)?
+            }
+            RelationKind::Uses => {
+                self.validate_types("Node", "Type", RelationVariant::Node, RelationVariant::Type)?
+            }
             RelationKind::ValueType => self.validate_types(
                 "Node",
                 "Primitive",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
+                RelationVariant::Node,
+                RelationVariant::Type,
             )?,
             RelationKind::MacroUse => self.validate_types(
                 "Invocation",
                 "Definition",
-                RelationSource::Node(_),
-                RelationTarget::Node(_),
+                RelationVariant::Node,
+                RelationVariant::Node,
             )?,
             RelationKind::MacroExpansion => self.validate_types(
                 "Macro",
                 "Expanded",
-                RelationSource::Node(_),
-                RelationTarget::Node(_),
+                RelationVariant::Node,
+                RelationVariant::Node,
             )?,
             RelationKind::MacroDefinition => self.validate_types(
                 "Macro",
                 "Signature",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
+                RelationVariant::Node,
+                RelationVariant::Type,
             )?,
             RelationKind::MacroInvocation => self.validate_types(
                 "Caller",
                 "Macro",
-                RelationSource::Node(_),
-                RelationTarget::Node(_),
+                RelationVariant::Node,
+                RelationVariant::Node,
             )?,
             RelationKind::GenericParameter => self.validate_types(
                 "Generic",
                 "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
+                RelationVariant::Node,
+                RelationVariant::Type,
             )?,
             RelationKind::Returns => self.validate_types(
                 "Function",
                 "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
+                RelationVariant::Node,
+                RelationVariant::Type,
             )?,
-            RelationKind::HasType => self.validate_types(
-                "Node",
-                "Type",
-                RelationSource::Node(_),
-                RelationTarget::Type(_),
-            )?,
+            RelationKind::HasType => {
+                self.validate_types("Node", "Type", RelationVariant::Node, RelationVariant::Type)?
+            }
         }
         Ok(())
     }
@@ -298,10 +257,13 @@ impl Relation {
         &self,
         expected_source: &'static str,
         expected_target: &'static str,
-        source_matcher: RelationSource,
-        target_matcher: RelationTarget,
+        expected_source_variant: RelationVariant,
+        expected_target_variant: RelationVariant,
     ) -> Result<(), RelationError> {
-        if !matches!(self.source, source_matcher) {
+        let actual_source = RelationVariant::from(&self.source);
+        let actual_target = RelationVariant::from(&self.target);
+
+        if actual_source != expected_source_variant {
             return Err(RelationError::InvalidSourceType {
                 kind: self.kind.clone(),
                 expected: expected_source,
@@ -309,11 +271,11 @@ impl Relation {
             });
         }
 
-        if !matches!(self.target, target_matcher) {
+        if actual_target != expected_target_variant {
             return Err(RelationError::InvalidTargetType {
                 kind: self.kind.clone(),
                 expected: expected_target,
-                found: self.target.type_name(),
+                found: self.source.type_name(),
             });
         }
 
@@ -332,12 +294,71 @@ impl Relation {
         }
     }
 }
-// AI
+/// Represents valid sources for graph relationships
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum RelationSource {
+    /// Relationship originates from a general node
     Node(NodeId),
+    /// Relationship originates from a trait definition
     Trait(TraitId),
+    /// Relationship originates from a type definition
     Type(TypeId),
+}
+// Add this trait definition
+pub trait Identifier {
+    fn id(&self) -> usize;
+}
+
+// Implement for RelationSource
+impl Identifier for RelationSource {
+    fn id(&self) -> usize {
+        match self {
+            RelationSource::Node(id) => id.0,
+            RelationSource::Trait(id) => id.0,
+            RelationSource::Type(id) => id.0,
+        }
+    }
+}
+
+// Implement for RelationTarget
+impl Identifier for RelationTarget {
+    fn id(&self) -> usize {
+        match self {
+            RelationTarget::Node(id) => id.0,
+            RelationTarget::Type(id) => id.0,
+            RelationTarget::Trait(id) => id.0,
+        }
+    }
+}
+
+#[derive(PartialEq)]
+pub enum RelationVariant {
+    Node,
+    Trait,
+    Type,
+}
+
+/// Helper function for matching arms of RelationSource enum
+// Implement conversion from RelationSource
+impl From<&RelationSource> for RelationVariant {
+    fn from(source: &RelationSource) -> Self {
+        match source {
+            RelationSource::Node(_) => RelationVariant::Node,
+            RelationSource::Trait(_) => RelationVariant::Trait,
+            RelationSource::Type(_) => RelationVariant::Type,
+        }
+    }
+}
+/// Helper function for matching arms of RelationTarget enum
+// Implement conversion from RelationTarget
+impl From<&RelationTarget> for RelationVariant {
+    fn from(source: &RelationTarget) -> Self {
+        match source {
+            RelationTarget::Node(_) => RelationVariant::Node,
+            RelationTarget::Trait(_) => RelationVariant::Trait,
+            RelationTarget::Type(_) => RelationVariant::Type,
+        }
+    }
 }
 
 impl From<NodeId> for RelationSource {
@@ -374,6 +395,7 @@ impl From<RelationSource> for GraphNodeId {
 impl From<RelationTarget> for GraphNodeId {
     fn from(target: RelationTarget) -> Self {
         match target {
+            RelationTarget::Node(id) => GraphNodeId::from(id),
             RelationTarget::Type(id) => GraphNodeId::from(id),
             RelationTarget::Trait(id) => GraphNodeId::from(id),
         }
@@ -382,6 +404,7 @@ impl From<RelationTarget> for GraphNodeId {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub enum RelationTarget {
+    Node(NodeId),
     Type(TypeId),
     Trait(TraitId),
 }
@@ -401,6 +424,7 @@ impl From<TraitId> for RelationTarget {
 impl RelationTarget {
     pub fn type_name(&self) -> &'static str {
         match self {
+            RelationTarget::Node(_) => "Node",
             RelationTarget::Type(_) => "Type",
             RelationTarget::Trait(_) => "Trait",
         }
@@ -431,6 +455,7 @@ pub enum RelationKind {
     Returns,
     HasType,
 }
+//ANCHOR_END: Uses
 
 impl fmt::Display for RelationKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -457,4 +482,3 @@ impl fmt::Display for RelationKind {
         }
     }
 }
-//ANCHOR_END: Uses
