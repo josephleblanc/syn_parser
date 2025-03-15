@@ -139,7 +139,7 @@ fn test_private_function_parsing() {
         find_function_by_name(&graph, "private_function").expect("private_function not found");
 
     assert_eq!(function.name, "private_function");
-    assert_eq!(function.visibility, VisibilityKind::Inherited);
+    assert_eq!(function.visibility, VisibilityKind::Restricted(vec!["super".to_string()]));
     assert!(function.parameters.is_empty());
     assert_eq!(function.return_type, None);
 }
