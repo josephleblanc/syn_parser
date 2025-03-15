@@ -5,7 +5,7 @@ use crate::parser::nodes::{NodeId, TraitId};
 use crate::parser::types::TypeId;
 use serde::{Deserialize, Serialize};
 
-#[cfg(concurrency_migration)]
+#[cfg(feature = "concurrency_migration")]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RelationBatch {
     pub version: u32, // Schema version for evolution
@@ -13,7 +13,7 @@ pub struct RelationBatch {
     pub estimated_size: usize,
     pub source_hash: [u8; 32], // Blake3 hash of source code
 }
-#[cfg(concurrency_migration)]
+#[cfg(feature = "concurrency_migration")]
 impl RelationBatch {
     /// Serialize relations to JSON for external storage
     pub fn to_json(&self) -> String {

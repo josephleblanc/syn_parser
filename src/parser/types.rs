@@ -36,7 +36,7 @@ impl std::ops::AddAssign<usize> for TypeId {
 // ANCHOR: TypeNode
 // Represents a type reference with full metadata
 
-#[cfg(concurrency_migration)]
+#[cfg(feature = "concurrency_migration")]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ArcTypeNode {
     inner: Arc<TypeNode>,
