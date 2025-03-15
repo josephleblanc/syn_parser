@@ -60,6 +60,7 @@ fn end_to_end_workflow() {
     let loaded = load_from_ron(&temp_path).expect("Deserialization failed");
     assert_graph_equivalence!(graph, loaded);
 }
+```
 
 ## 6. Maintenance Practices
 1. IndexMap-based lookups (graph.rs:12)
