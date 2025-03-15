@@ -4,16 +4,25 @@ use crate::parser::nodes::NodeId;
 
 use serde::{Deserialize, Serialize};
 
+// AI: As it says below TypeId was supposed to be a unique identifier for types, I imagine in an
+// effort to distinguish the path of different types,
+// e.g. `Vec<&str>` vs `std::vec::Vec<&str>`
+// However, at some point it seems like it got mixed up with the unique identifier for NodeId,
+// which has an entirely different purpse.
 /// Unique identifier for type references
+#[deprecated = "Use GraphNodeId through GraphIdentifier trait instead"]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub struct TypeId(pub usize);
 
+// AI:
+// The following should probably never have been implemented.
 impl From<TypeId> for NodeId {
     fn from(id: TypeId) -> Self {
         NodeId(id.0)
     }
 }
 
+// AI: This either
 impl TypeId {
     pub fn as_node_id(&self) -> Option<NodeId> {
         Some(NodeId::from(self.0))
@@ -24,6 +33,7 @@ impl TypeId {
     }
 }
 
+// AI: I have no idea why this is here. I feel like I'm walking through a forest of spaghetti
 // Temporary alias for gradual migration
 pub type LegacyTypeId = usize;
 

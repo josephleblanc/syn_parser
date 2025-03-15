@@ -336,11 +336,12 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
 
             // Add relation between constant and its type
             self.state.code_graph.relations.push(Relation {
-                source: RelationSource::Node(const_id),
-                target: RelationTarget::Type(type_id),
-                kind: RelationKind::ValueType,
-                graph_source: const_id,
+                graph_source: GraphNodeId {
+                    unique_id: const_id.into(),
+                    type_prefix: kind.into(), // is this the right way to do this?
+                },
                 graph_target: type_id,
+                kind: RelationKind::ValueType,
             });
         }
 

@@ -3,10 +3,14 @@ use crate::parser::visitor::utils::ParsedAttribute;
 
 use serde::{Deserialize, Serialize};
 
+use super::graph_ids::{self, GraphIdentifier, GraphNodeId};
+
 // Unique ID for a node in the graph
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Default,
 )]
+// 4. Deprecate redundant IDs gradually
+#[deprecated = "Use GraphNodeId through GraphIdentifier trait instead"]
 pub struct NodeId(pub usize);
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -17,21 +21,6 @@ pub enum NodeType {
     Impl,
     Module,
     Other,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct GraphNodeId {
-    pub type_prefix: NodeType,
-    pub unique_id: usize,
-}
-
-impl GraphNodeId {
-    pub fn new(type_prefix: NodeType, unique_id: usize) -> Self {
-        Self {
-            type_prefix,
-            unique_id,
-        }
-    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
@@ -54,6 +43,20 @@ impl From<TraitId> for usize {
         value.0
     }
 }
+// 2. Make existing IDs implement this
+impl GraphIdentifier for NodeId {
+    fn as_graph_id(&self) -> GraphNodeId {
+        GraphNodeId::new(self.0, graph_ids::NodeType::Node)
+    }
+
+    fn from_graph_id(id: GraphNodeId) -> Option<Self> {
+        if id.type_prefix == graph_ids::NodeType::Node {
+            Some(Self(id.unique_id))
+        } else {
+            None
+        }
+    }
+}
 
 impl From<usize> for NodeId {
     fn from(value: usize) -> Self {
@@ -62,23 +65,6 @@ impl From<usize> for NodeId {
 }
 
 // Transitional conversions to GraphNodeId
-impl From<NodeId> for GraphNodeId {
-    fn from(id: NodeId) -> Self {
-        GraphNodeId::new(NodeType::Other, id.0)
-    }
-}
-
-impl From<TraitId> for GraphNodeId {
-    fn from(id: TraitId) -> Self {
-        GraphNodeId::new(NodeType::Trait, id.0)
-    }
-}
-
-impl From<TypeId> for GraphNodeId {
-    fn from(id: TypeId) -> Self {
-        GraphNodeId::new(NodeType::Type, id.0)
-    }
-}
 
 impl From<NodeId> for usize {
     fn from(value: NodeId) -> Self {

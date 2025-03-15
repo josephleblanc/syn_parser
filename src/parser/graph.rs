@@ -1,10 +1,8 @@
-use crate::parser::nodes::NodeId;
 use crate::parser::{
     nodes::{FunctionNode, ImplNode, MacroNode, ModuleNode, TraitNode, TypeDefNode, ValueNode},
     relations::Relation,
     types::TypeNode,
 };
-use indexmap::IndexMap;
 
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CodeGraph {
     // Functions defined in the code
-    pub functions: IndexMap<NodeId, FunctionNode, ahash::RandomState>,
+    pub functions: Vec<FunctionNode>,
     // Types (structs, enums) defined in the code
     pub defined_types: Vec<TypeDefNode>,
     // All observed types, including nested and generic types
@@ -35,4 +33,31 @@ pub struct CodeGraph {
     pub values: Vec<ValueNode>,
     // Macros defined in the code
     pub macros: Vec<MacroNode>,
+}
+
+// This is a second version of the CodeGraph we can use as we start migrating to a concurrent
+// model.
+#[cfg(features = "concurrency_migration")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CodeGraph {
+    // Functions defined in the code - use DashMap for concurrent access
+    pub functions: dashmap::DashMap<NodeId, FunctionNode>,
+    // Types (structs, enums) defined in the code
+    pub defined_types: dashmap::DashSet<TypeDefNode>,
+    // All observed types, including nested and generic types
+    pub type_graph: dashmap::DashSet<TypeNode>,
+    // Implementation blocks
+    pub impls: dashmap::DashSet<ImplNode>,
+    // Public traits defined in the code
+    pub traits: dashmap::DashSet<TraitNode>,
+    // Private traits defined in the code
+    pub private_traits: dashmap::DashSet<TraitNode>,
+    // Relations between nodes
+    pub relations: dashmap::DashSet<Relation>,
+    // Modules defined in the code
+    pub modules: dashmap::DashSet<ModuleNode>,
+    // Constants and static variables
+    pub values: dashmap::DashSet<ValueNode>,
+    // Macros defined in the code
+    pub macros: dashmap::DashSet<MacroNode>,
 }

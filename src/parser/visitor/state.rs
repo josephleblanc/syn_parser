@@ -9,6 +9,8 @@ use crate::parser::{
     types::{GenericParamNode, TypeId, TypeKind},
     visitor::utils::attributes::ParsedAttribute,
 };
+#[cfg(feature = "concurrency_migration")]
+use std::sync::atomic::AtomicUsize;
 
 use dashmap::DashMap;
 use quote::ToTokens;
@@ -22,6 +24,15 @@ pub struct VisitorState {
     pub next_node_id: usize,
     pub next_trait_id: usize,
     pub next_type_id: usize,
+    pub type_map: DashMap<String, TypeId>,
+}
+
+#[cfg(feature = "concurrency_migration")]
+pub struct VisitorState {
+    pub code_graph: CodeGraph,
+    pub next_node_id: AtomicUsize,
+    pub next_trait_id: AtomicUsize,
+    pub next_type_id: AtomicUsize,
     pub type_map: DashMap<String, TypeId>,
 }
 

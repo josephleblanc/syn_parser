@@ -72,8 +72,8 @@ impl RelationBatch {
 // Represents a relation between nodes
 #[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 pub struct Relation {
-    pub source: RelationSource,
-    pub target: RelationTarget,
+    pub graph_source: GraphNodeId,
+    pub graph_target: GraphNodeId,
     pub kind: RelationKind,
 }
 //ANCHOR_END: Relation
@@ -128,22 +128,22 @@ pub enum RelationError {
 }
 impl Relation {
     pub fn new(
-        source: impl Into<RelationSource> + Clone + Copy,
-        target: impl Into<RelationTarget> + Clone + Copy,
+        source: impl Into<GraphNodeId> + Clone + Copy,
+        target: impl Into<GraphNodeId> + Clone + Copy,
         kind: RelationKind,
     ) -> Self {
         let source_val = source.into();
         let target_val = target.into();
         Self {
-            source: source_val,
-            target: target_val,
+            graph_source: source_val,
+            graph_target: target_val,
             kind,
         }
     }
     pub fn validate(&self) -> Result<(), RelationError> {
         match self.kind {
             RelationKind::ImplementsTrait(trait_id) => {
-                if trait_id.0 == 0 {
+                if trait_id.unique_id == 0 {
                     return Err(RelationError::MissingTraitId {
                         kind: self.kind.clone(),
                     });
@@ -260,8 +260,8 @@ impl Relation {
         expected_source_variant: RelationVariant,
         expected_target_variant: RelationVariant,
     ) -> Result<(), RelationError> {
-        let actual_source = RelationVariant::from(&self.source);
-        let actual_target = RelationVariant::from(&self.target);
+        let actual_source = RelationVariant::from(&self.graph_source);
+        let actual_target = RelationVariant::from(&self.graph_target);
 
         if actual_source != expected_source_variant {
             return Err(RelationError::InvalidSourceType {
@@ -440,7 +440,7 @@ pub enum RelationKind {
     StructField,
     EnumVariant,
     ImplementsFor,
-    ImplementsTrait(TraitId), // TraitId type parameter added
+    ImplementsTrait(GraphNodeId), // TraitId type parameter added
     Inherits,
     References,
     Contains,

@@ -19,8 +19,35 @@ pub struct GraphNodeId {
     pub unique_id: usize,
 }
 
+pub trait GraphIdentifier
+where
+    Self: Sized,
+{
+    fn as_graph_id(&self) -> GraphNodeId;
+    fn from_graph_id(id: GraphNodeId) -> Option<Self>;
+}
+
+impl GraphIdentifier for TraitId {
+    fn as_graph_id(&self) -> GraphNodeId {
+        GraphNodeId::new(self.0, NodeType::Trait)
+    }
+
+    fn from_graph_id(id: GraphNodeId) -> Option<Self> {
+        if id.type_prefix == NodeType::Trait {
+            Some(TraitId(id.unique_id))
+        } else {
+            None
+        }
+    }
+}
+
 impl GraphNodeId {
-    /// Convert to IndraDB compatible UUID v5 (name-based)
+    pub fn new(unique_id: usize, type_prefix: NodeType) -> Self {
+        Self {
+            unique_id,
+            type_prefix,
+        }
+    }
     pub fn to_uuid(&self) -> uuid::Uuid {
         let namespace = match self.type_prefix {
             NodeType::Node => uuid::Uuid::from_bytes([0x8A; 16]), // Placeholder namespace UUIDs
