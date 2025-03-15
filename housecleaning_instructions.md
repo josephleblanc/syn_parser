@@ -117,7 +117,7 @@ reference.
 |----------|----------------|--------|
 | `roadmap/*` | Condense into `development_timeline.md` | Historical plans + current direction |
 
-### Step 3: Folder Restructure Proposal
+### Step 3: Folder Restructure Proposal (Not Yet Implemented)
 ```
 docs/
 ├── core/ (actively maintained)
@@ -152,5 +152,3 @@ Archive but don't delete historical docs that:
 - Show evolution of complex systems
 - Contain lessons learned from abandoned approaches
 - Document major refactoring efforts
-
-Would you like me to draft any of the merged documents or create the folder structure?

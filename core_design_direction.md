@@ -1,10 +1,17 @@
 # Rust Code Parser - Core Design Direction
+This document describes how this project, `syn_parser` fits into a larger
+effort to create an RAG pipeline. We are only concerned with the RAG pipeline
+insofar as this project parses rust source code files for later processing by
+the RAG. This project, `syn_parser`, does not perform graph traversal. However,
+it is important to discuss how the data structures in `syn_parser` should be
+structured to provide the down-stream consumer, the RAG, with the good data
+efficiently.
+
+It is **very important** that you understand that this document is intended to provide direction on the long-term goals of the `syn_parser` project and describe where it fits into the larger RAG pipeline, but that `syn_parser` is not responsible for all the functionality of the RAG pipeline. The RAG pipeline is the downstream consumer of the output from `syn_parser`.
 
 ## Overall Project Goal: RAG Integration
 
-This parser project should prepare data for an RAG Processor which will have the following capabilities.
-
-### Target Consumer of Parser Output:
+### Downstream Consumer of Parser Output: RAG Pipeline
 A high-performance Rust source code RAG Processor incrementally builds and maintains a hybrid graph+vector representation of code semantics.
 
 This parser should be optimized for integration with RAG pipelines to enable:
@@ -43,8 +50,10 @@ graph TD
     style C stroke:#333
     style D stroke-dasharray: 5 5
 ```
+**Important Note**: This is how the project we are currently concerned with,
+`syn_parser`, fits into the larger RAG system.
 
-### 2.1 Hardware-Conscious Design
+### 2.1 Hardware-Conscious Design (Experimental, Long Term)
 
 1. **Memory-Mapped Artifacts**
 ```rust
@@ -92,6 +101,12 @@ const BATCH_SIZE: usize = (64 << 20) / std::mem::size_of::<Artifact>();
 | **crossbeam**    | Lock-free inter-thread communication        | 12M msg/s throughput                      |
 | **dashmap**      | Concurrent type/relationship storage        | Sharded read/write performance scaling    |
 
+Please note that many of these dependencies are not currently implemented in
+`syn_parser` and the previous table is meant to provide direction for future
+development, not be an indicator of current project dependencies or
+capabilities. For a detailed description of the project's current status, see
+`project_description.md`
+
 ### 3.1 Local-First Dependencies
 
 | Crate            | Purpose                            | Consumer HW Advantage    |
@@ -103,6 +118,12 @@ const BATCH_SIZE: usize = (64 << 20) / std::mem::size_of::<Artifact>();
 | **crossbeam**    | Ring buffer implementation        | 8M msgs/sec on 16-core    |
 | **bytecheck**    | Memory validation                 | Safe mmap deserialization |
 
+Please note that many of these dependencies are not currently implemented in
+`syn_parser` and the previous table is meant to provide direction for future
+development, not be an indicator of current project dependencies or
+capabilities. For a detailed description of the project's current status, see
+`project_description.md`
+
 ## 4. Hardware Constraints & Optimization
 
 **System Spec Target (Your Current Hardware):**
@@ -113,7 +134,7 @@ Storage: PCIe 4.0 NVMe (7GB/s Read)
 GPU: RTX 3060 Ti (8GB VRAM)
 ```
 
-Optimization Strategy:
+Optimization Strategy (Long term, aspirational):
 - **CPU-Bound Tasks** (Parsing):
   - Leverage 3D V-Cache for AST processing
   - Thread-local caching of common patterns
@@ -139,23 +160,8 @@ fn pin_to_ccd(ccd: usize) {
 ```
 
 ## 5. Async/Concurrency Foundation
+Under Consideration - Need to rework type system before deciding.
 
-**Immediate Implementation:**
-```rust
-//! Architecture for 10k+ concurrent code element processing
-tokio::task::spawn_blocking(move || {
-    let parsed = parse_file(path); // CPU-bound
-    let vectors = model.embed(parsed); // GPU-accelerated
-    cozo_tx.send((parsed, vectors)) // Async channel
-});
-
-// Batch processing pipeline
-rayon::scope(|s| {
-    for batch in file_batches {
-        s.spawn(|_| process_batch(batch, cozo_db.clone()));
-    }
-});
-```
 
 **Future Extensions:**
 - CUDA-accelerated embedding generation
