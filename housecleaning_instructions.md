@@ -59,6 +59,25 @@ Let's create a structured plan to triage the documentation:
 | `different_approaches/weird_visitor_structure.md` | Obsolete | Archive | Incompatible with current blanket impls | Alternative trait composition strategies |
 | `different_approaches/visitor_structure.md` | Historical | Archive | Replaced by processor-state pattern | Early prototype of vertical slices |
 
+**Notes on documentation items in above table:**
+
+1. **Architectural_Revamp.md**:
+The initial thought was to merge it into core_design_direction.md, but upon
+closer look, it's only partially implemented. The current code in state.rs
+doesn't follow the proposed state separation, so it's contradictory. However,
+the concept might still be useful for future concurrency work.
+
+2. **visitor_architecture_approach.md**:
+This document is still fully relevant because it accurately describes the
+current trait-based visitor pattern used in the code, as seen in state.rs and
+visitor/mod.rs. It should be kept as active documentation.
+
+3. **different_approaches/**:These are historical alternatives that aren't used anymore. The code has
+settled on the current visitor pattern, so these should be archived.
+Specifically, the 'weird_visitor_structure.md' and 'visitor_structure.md' files
+are obsolete approaches. But they might have useful insights for future
+reference.
+
 #### E. Code Reviews
 | Document | Recommendation | Reason |
 |----------|----------------|--------|
