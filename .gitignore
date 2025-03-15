@@ -25,5 +25,8 @@ Cargo.lock
 book/*.js
 .aider*
 
+# Test ouput file
+tests/data/code_graph.ron
+
 # backups of old implementations
 *.back
