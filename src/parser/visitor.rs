@@ -1,9 +1,10 @@
+use crate::parser::graph::CodeGraph;
+use crate::parser::nodes::*;
+use crate::parser::relations::*;
+use crate::parser::types::*;
+
 use quote::ToTokens;
-use ron::ser::{to_string_pretty, PrettyConfig};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::File as FsFile;
-use std::io::Write;
 use std::path::Path;
 use syn::parse::Parser;
 use syn::ItemMod;
@@ -14,403 +15,40 @@ use syn::{
     TypePath, TypeReference, Visibility,
 };
 
-// Type ID for internal references
-pub type TypeId = usize;
+pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
+    let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
+    let mut visitor_state = VisitorState::new();
 
-// Main structure representing the entire code graph
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CodeGraph {
-    // Functions defined in the code
-    pub functions: Vec<FunctionNode>,
-    // Types (structs, enums) defined in the code
-    pub defined_types: Vec<TypeDefNode>,
-    // All observed types, including nested and generic types
-    pub type_graph: Vec<TypeNode>,
-    // Implementation blocks
-    pub impls: Vec<ImplNode>,
-    // Traits defined in the code
-    pub traits: Vec<TraitNode>,
-    // Relations between nodes
-    pub relations: Vec<Relation>,
-    // Modules defined in the code
-    pub modules: Vec<ModuleNode>,
-    // Constants and static variables
-    pub values: Vec<ValueNode>,
-    // Macros defined in the code
-    pub macros: Vec<MacroNode>,
+    // Create the root module first
+    let root_module_id = visitor_state.next_node_id();
+    visitor_state.code_graph.modules.push(ModuleNode {
+        id: root_module_id,
+        name: "root".to_string(),
+        visibility: VisibilityKind::Inherited,
+        attributes: Vec::new(),
+        docstring: None,
+        submodules: Vec::new(),
+        items: Vec::new(),
+        imports: Vec::new(),
+        exports: Vec::new(),
+    });
+
+    let mut visitor = CodeVisitor::new(&mut visitor_state);
+    visitor.visit_file(&file);
+
+    // Add relations between root module and top-level items
+    for module in &visitor_state.code_graph.modules {
+        if module.id != root_module_id {
+            visitor_state.code_graph.relations.push(Relation {
+                source: root_module_id,
+                target: module.id,
+                kind: RelationKind::Contains,
+            });
+        }
+    }
+
+    Ok(visitor_state.code_graph)
 }
-
-// Represents a module
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ImportNode {
-    pub id: NodeId,
-    pub path: Vec<String>,
-    pub kind: ImportKind,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum ImportKind {
-    UseStatement,
-    ExternCrate,
-}
-
-// Represents a constant or static variable
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ValueNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub type_id: TypeId,
-    pub kind: ValueKind,
-    pub value: Option<String>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-
-// Represents a macro definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct MacroNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub kind: MacroKind,
-    pub rules: Vec<MacroRuleNode>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-    pub body: Option<String>,
-}
-
-// Represents a macro rule
-#[derive(Debug, Serialize, Deserialize)]
-pub struct MacroRuleNode {
-    pub id: NodeId,
-    pub pattern: String,
-    pub expansion: String,
-}
-
-// Different kinds of macros
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum MacroKind {
-    DeclarativeMacro,
-    ProcedureMacro { kind: ProcMacroKind },
-}
-
-// Different kinds of procedural macros
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum ProcMacroKind {
-    Derive,
-    Attribute,
-    Function,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum ValueKind {
-    Constant,
-    Static { is_mutable: bool },
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ModuleNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-    pub submodules: Vec<NodeId>,
-    pub items: Vec<NodeId>,
-    pub imports: Vec<ImportNode>,
-    pub exports: Vec<NodeId>,
-}
-
-// ANCHOR: ItemFn
-// Represents a function definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FunctionNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub parameters: Vec<ParameterNode>,
-    pub return_type: Option<TypeId>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-    pub body: Option<String>,
-}
-//ANCHOR_END: ItemFn
-
-// Represents a parameter in a function
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ParameterNode {
-    pub id: NodeId,
-    pub name: Option<String>,
-    pub type_id: TypeId,
-    pub is_mutable: bool,
-    pub is_self: bool,
-}
-
-// Represents a type definition (struct, enum, type alias, or union)
-#[derive(Debug, Serialize, Deserialize)]
-pub enum TypeDefNode {
-    Struct(StructNode),
-    Enum(EnumNode),
-    TypeAlias(TypeAliasNode),
-    Union(UnionNode),
-}
-
-impl TypeDefNode {}
-
-// ANCHOR: StructNode
-// Represents a struct definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct StructNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub fields: Vec<FieldNode>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>, // Replace Vec<String>
-    pub docstring: Option<String>,
-}
-//ANCHOR_END: StructNode
-
-// Represents an enum definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EnumNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub variants: Vec<VariantNode>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-
-// ANCHOR: field_node
-// Represents a field in a struct
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FieldNode {
-    pub id: NodeId,
-    pub name: Option<String>,
-    pub type_id: TypeId,
-    pub visibility: VisibilityKind,
-    pub attributes: Vec<Attribute>,
-}
-//ANCHOR_END: field_node
-
-// Represents a variant in an enum
-#[derive(Debug, Serialize, Deserialize)]
-pub struct VariantNode {
-    pub id: NodeId,
-    pub name: String,
-    pub fields: Vec<FieldNode>,
-    pub discriminant: Option<String>,
-    pub attributes: Vec<Attribute>,
-}
-
-// Represents a type alias (type NewType = OldType)
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TypeAliasNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub type_id: TypeId,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-
-// Represents a union definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UnionNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub fields: Vec<FieldNode>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-
-// ANCHOR: ImplNode
-// Represents an implementation block
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ImplNode {
-    pub id: NodeId,
-    pub self_type: TypeId,
-    pub trait_type: Option<TypeId>,
-    pub methods: Vec<FunctionNode>,
-    pub generic_params: Vec<GenericParamNode>,
-}
-//ANCHOR_END: ItemImpl
-
-// ANCHOR: TraitNode
-// Represents a trait definition
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TraitNode {
-    pub id: NodeId,
-    pub name: String,
-    pub visibility: VisibilityKind,
-    pub methods: Vec<FunctionNode>,
-    pub generic_params: Vec<GenericParamNode>,
-    pub super_traits: Vec<TypeId>,
-    pub attributes: Vec<Attribute>,
-    pub docstring: Option<String>,
-}
-//ANCHOR_END: TraitNode
-
-// ANCHOR: TypeNode
-// Represents a type reference with full metadata
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TypeNode {
-    pub id: TypeId,
-    pub kind: TypeKind,
-    // Reference to related types (e.g., generic arguments)
-    pub related_types: Vec<TypeId>,
-}
-//ANCHOR_END: TypeNode
-
-// Represents a generic parameter
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GenericParamNode {
-    pub id: NodeId,
-    pub kind: GenericParamKind,
-}
-
-// Represent an attribute
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Attribute {
-    pub name: String,          // e.g., "derive", "cfg", "serde"
-    pub args: Vec<String>,     // Arguments or parameters of the attribute
-    pub value: Option<String>, // Optional value (e.g., for `#[attr = "value"]`)
-}
-
-// ANCHOR: generic_param_kind
-// Different kinds of generic parameters
-#[derive(Debug, Serialize, Deserialize)]
-pub enum GenericParamKind {
-    Type {
-        name: String,
-        bounds: Vec<TypeId>,
-        default: Option<TypeId>,
-    },
-    Lifetime {
-        name: String,
-        bounds: Vec<String>,
-    },
-    Const {
-        name: String,
-        type_id: TypeId,
-    },
-}
-//ANCHOR_END: generic_param_kind
-
-// ANCHOR: TypeKind_defn
-// Different kinds of types
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum TypeKind {
-    //ANCHOR_END: TypeKind_defn
-    Named {
-        path: Vec<String>, // Full path segments
-        is_fully_qualified: bool,
-    },
-    Reference {
-        lifetime: Option<String>,
-        is_mutable: bool,
-        // Type being referenced is in related_types[0]
-    },
-    Slice {
-        // Element type is in related_types[0]
-    },
-    Array {
-        // Element type is in related_types[0]
-        size: Option<String>,
-    },
-    Tuple {
-        // Element types are in related_types
-    },
-    // ANCHOR: ExternCrate
-    Function {
-        // Parameter types are in related_types (except last one)
-        // Return type is in related_types[last]
-        is_unsafe: bool,
-        is_extern: bool,
-        abi: Option<String>,
-    },
-    //ANCHOR_END: ExternCrate
-    Never,
-    Inferred,
-    RawPointer {
-        is_mutable: bool,
-        // Pointee type is in related_types[0]
-    },
-    // ANCHOR: TraitObject
-    TraitObject {
-        // Trait bounds are in related_types
-        dyn_token: bool,
-    },
-    //ANCHOR_END: TraitObject
-    // ANCHOR: ImplTrait
-    ImplTrait {
-        // Trait bounds are in related_types
-    },
-    //ANCHOR_END: ImplTrait
-    Paren {
-        // Inner type is in related_types[0]
-    },
-    // ANCHOR: ItemMacro
-    Macro {
-        name: String,
-        tokens: String,
-    },
-    //ANCHOR_END:
-    Unknown {
-        type_str: String,
-    },
-}
-
-// Different kinds of visibility
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum VisibilityKind {
-    Public,
-    Crate,
-    Restricted(Vec<String>), // Path components of restricted visibility
-    Inherited,               // Default visibility
-}
-
-impl VisibilityKind {}
-
-// ANCHOR: Relation
-// Represents a relation between nodes
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Relation {
-    pub source: NodeId,
-    pub target: NodeId,
-    pub kind: RelationKind,
-}
-
-// ANCHOR: Uses
-// Different kinds of relations
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum RelationKind {
-    FunctionParameter,
-    FunctionReturn,
-    StructField,
-    EnumVariant,
-    ImplementsFor,
-    ImplementsTrait,
-    Inherits,
-    References,
-    Contains,
-    Uses,
-    ValueType,
-    MacroUse,
-    MacroExpansion,
-}
-//ANCHOR_END: Uses
-//ANCHOR_END: Relation
-
-// Unique ID for a node in the graph
-pub type NodeId = usize;
 
 // State for the visitor
 struct VisitorState {
@@ -430,6 +68,7 @@ impl VisitorState {
                 type_graph: Vec::new(),
                 impls: Vec::new(),
                 traits: Vec::new(),
+                private_traits: Vec::new(),
                 relations: Vec::new(),
                 modules: Vec::new(),
                 values: Vec::new(),
@@ -693,7 +332,9 @@ impl VisitorState {
                     .collect();
                 VisibilityKind::Restricted(path)
             }
-            Visibility::Inherited => VisibilityKind::Inherited,
+            // Private visibility shows up as Inherited in syn, which in Rust means
+            // visibility is limited to the current module and its descendants
+            Visibility::Inherited => VisibilityKind::Restricted(vec!["super".to_string()]),
         }
     }
 
@@ -763,40 +404,27 @@ impl VisitorState {
                     default,
                     ..
                 }) => {
-                    let bound_ids: Vec<TypeId> = bounds
+                    let bounds: Vec<TypeId> = bounds
                         .iter()
-                        .filter_map(|bound| {
-                            match bound {
-                                syn::TypeParamBound::Trait(trait_bound) => {
-                                    // Create a synthetic type for the trait bound
-                                    let bound_id = self.next_type_id();
-                                    self.code_graph.type_graph.push(TypeNode {
-                                        id: bound_id,
-                                        kind: TypeKind::Named {
-                                            path: trait_bound
-                                                .path
-                                                .segments
-                                                .iter()
-                                                .map(|seg| seg.ident.to_string())
-                                                .collect(),
-                                            is_fully_qualified: false,
-                                        },
-                                        related_types: Vec::new(),
-                                    });
-                                    Some(bound_id)
-                                }
-                                _ => None, // Ignore lifetime bounds for now
-                            }
-                        })
+                        .map(|bound| self.process_type_bound(bound))
                         .collect();
 
-                    let default_type = default.as_ref().map(|ty| self.get_or_create_type(ty));
+                    let default_type = default.as_ref().map(|expr| {
+                        let path = expr.to_token_stream().to_string();
+                        if let Some(&id) = self.type_map.get(&path) {
+                            id
+                        } else {
+                            let id = self.next_type_id();
+                            self.get_or_create_type(expr);
+                            id
+                        }
+                    });
 
                     params.push(GenericParamNode {
                         id: self.next_node_id(),
                         kind: GenericParamKind::Type {
                             name: ident.to_string(),
-                            bounds: bound_ids,
+                            bounds,
                             default: default_type,
                         },
                     });
@@ -805,7 +433,7 @@ impl VisitorState {
                     let bounds: Vec<String> = lifetime_def
                         .bounds
                         .iter()
-                        .map(|bound| bound.ident.to_string())
+                        .map(|bound| self.process_lifetime_bound(bound))
                         .collect();
 
                     params.push(GenericParamNode {
@@ -831,6 +459,35 @@ impl VisitorState {
         }
 
         params
+    }
+
+    fn process_type_bound(&mut self, bound: &syn::TypeParamBound) -> TypeId {
+        match bound {
+            syn::TypeParamBound::Trait(trait_bound) => {
+                self.get_or_create_type(&syn::Type::Path(syn::TypePath {
+                    qself: None,
+                    path: trait_bound.path.clone(),
+                }))
+            }
+            syn::TypeParamBound::Lifetime(_) => {
+                // Create a synthetic type for the lifetime bound
+                let type_id = self.next_type_id();
+                self.code_graph.type_graph.push(TypeNode {
+                    id: type_id,
+                    kind: TypeKind::Named {
+                        path: vec!["lifetime".to_string()],
+                        is_fully_qualified: false,
+                    },
+                    related_types: Vec::new(),
+                });
+                type_id
+            }
+            _ => self.next_type_id(),
+        }
+    }
+
+    fn process_lifetime_bound(&mut self, bound: &syn::Lifetime) -> String {
+        bound.ident.to_string()
     }
 
     // Extract doc comments from attributes
@@ -1079,7 +736,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             fields.push(field_node);
         }
 
-        // Process gTraiteneric parameters
+        // Process generic parameters
         let generic_params = self.state.process_generics(&item_struct.generics);
 
         // Extract doc comments and other attributes
@@ -1594,6 +1251,7 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
             docstring,
         };
         self.state.code_graph.traits.push(trait_node);
+        // }
 
         // Add relation for super traits
         for super_trait_id in &super_traits {
@@ -2083,48 +1741,4 @@ impl<'a, 'ast> Visit<'ast> for CodeVisitor<'a> {
         // Continue visiting
         visit::visit_macro(self, mac);
     }
-}
-
-pub fn analyze_code(file_path: &Path) -> Result<CodeGraph, syn::Error> {
-    let file = syn::parse_file(&std::fs::read_to_string(file_path).unwrap())?;
-    let mut visitor_state = VisitorState::new();
-
-    // Create the root module first
-    let root_module_id = visitor_state.next_node_id();
-    visitor_state.code_graph.modules.push(ModuleNode {
-        id: root_module_id,
-        name: "root".to_string(),
-        visibility: VisibilityKind::Inherited,
-        attributes: Vec::new(),
-        docstring: None,
-        submodules: Vec::new(),
-        items: Vec::new(),
-        imports: Vec::new(),
-        exports: Vec::new(),
-    });
-
-    let mut visitor = CodeVisitor::new(&mut visitor_state);
-    visitor.visit_file(&file);
-
-    // Add relations between root module and top-level items
-    for module in &visitor_state.code_graph.modules {
-        if module.id != root_module_id {
-            visitor_state.code_graph.relations.push(Relation {
-                source: root_module_id,
-                target: module.id,
-                kind: RelationKind::Contains,
-            });
-        }
-    }
-
-    Ok(visitor_state.code_graph)
-}
-
-pub fn save_graph(code_graph: &CodeGraph, output_path: &Path) -> std::io::Result<()> {
-    let pretty_config = PrettyConfig::default();
-    let ron_string = to_string_pretty(code_graph, pretty_config).expect("Serialization failed");
-
-    let mut output_file = FsFile::create(output_path)?;
-    output_file.write_all(ron_string.as_bytes())?;
-    Ok(())
 }

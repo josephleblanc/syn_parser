@@ -53,7 +53,7 @@ static analysis.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum TypeKind {
     // ...
-{{#include ../../../src/parser.rs:ExternCrate}}
+{{#include ../../../src/parser/types.rs:ExternCrate}}
 ```
 
 </details>
@@ -129,7 +129,7 @@ pub enum TypeKind {
   <summary><code>Type(ItemType)</code> as <code>TypeNode</code></summary>
 
 ```rust,no_run,noplayground
-{{#include ../../../src/parser.rs:TypeNode}}
+{{#include ../../../src/parser/types.rs:TypeNode}}
 ```
 
 </details>
@@ -167,9 +167,9 @@ These two types will be useful for extracting relations:
   <summary><code>ImplTrait(TypeImplTrait)</code> inside <code>TypeKind</code> </summary>
 
 ```rust,no_run,noplayground
-{{#include ../../../src/parser.rs:TypeKind_defn}}
+{{#include ../../../src/parser/types.rs:TypeKind_defn}}
     // ...
-{{#include ../../../src/parser.rs:ImplTrait}}
+{{#include ../../../src/parser/types.rs:ImplTrait}}
     // ...
 }
 ```
@@ -184,15 +184,15 @@ These two types will be useful for extracting relations:
   <summary><code>TraitObject(TypeTraitObject)</code> inside <code>TypeNode</code> </summary>
 
 ```rust,no_run,noplayground
-{{#include ../../../src/parser.rs:TypeKind_defn}}
+{{#include ../../../src/parser/types.rs:TypeKind_defn}}
     // ...
-{{#include ../../../src/parser.rs:TraitObject}}
+{{#include ../../../src/parser/types.rs:TraitObject}}
     // ...
 }
 ```
 
 ```rust,no_run,noplayground
-{{#include ../../../src/parser.rs:TypeNode}}
+{{#include ../../../src/parser/types.rs:TypeNode}}
 ```
 
 </details>
